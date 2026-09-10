@@ -1,0 +1,22 @@
+{
+  "name": "utility-platform",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "start:api": "npm --workspace=utility-api run start:dev",
+    "start:web": "npm --workspace=utility-web run start",
+    "start": "concurrently \"npm run start:api\" \"npm run start:web\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.4.2",
+    "typescript": "^5.8.2"
+  }
+}

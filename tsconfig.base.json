@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": false,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@utility/domain": ["./packages/domain/src/index.ts"],
+      "@utility/domain/*": ["./packages/domain/src/*"],
+      "@utility/runtime": ["./packages/runtime/src/index.ts"],
+      "@utility/runtime/*": ["./packages/runtime/src/*"],
+      "@utility/protocol": ["./packages/protocol/src/index.ts"],
+      "@utility/protocol/*": ["./packages/protocol/src/*"],
+      "@utility/toolkit": ["./packages/toolkit/src/index.ts"],
+      "@utility/toolkit/*": ["./packages/toolkit/src/*"],
+      "@utility/image": ["./packages/image/src/index.ts"],
+      "@utility/image/*": ["./packages/image/src/*"],
+      "@utility/pdf": ["./packages/pdf/src/index.ts"],
+      "@utility/pdf/*": ["./packages/pdf/src/*"]
+    }
+  }
+}
