@@ -22,6 +22,7 @@
     "@angular/ssr": "^22.1.7",
     "@utility/domain": "*",
     "@utility/protocol": "*",
+    "effect": "^3.22.2",
     "express": "^5.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"

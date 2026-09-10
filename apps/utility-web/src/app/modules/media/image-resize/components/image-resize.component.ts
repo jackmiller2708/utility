@@ -1,18 +1,8 @@
-import { Component, inject, HostListener } from '@angular/core';
+import { ButtonComponent, BadgeComponent, InputComponent, SelectComponent, ToggleComponent, IconComponent, DropzoneComponent, FileSummaryCardComponent, TelemetryDeckComponent, PresetButtonsComponent } from '@app/ui';
+import { ImageResizeService } from '../services/image-resize.service';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  ButtonComponent,
-  BadgeComponent,
-  InputComponent,
-  SelectComponent,
-  ToggleComponent,
-  IconComponent,
-  DropzoneComponent,
-  FileSummaryCardComponent,
-  TelemetryDeckComponent,
-  PresetButtonsComponent,
-} from '../../../../ui/index.js';
-import { ImageResizeService } from '../services/image-resize.service.js';
+import { OptionPipe } from '@app/core/pipes/option.pipe';
 
 @Component({
   selector: 'app-image-resize-page',
@@ -29,9 +19,14 @@ import { ImageResizeService } from '../services/image-resize.service.js';
     FileSummaryCardComponent,
     TelemetryDeckComponent,
     PresetButtonsComponent,
+    OptionPipe
   ],
   providers: [ImageResizeService],
   templateUrl: './image-resize.component.html',
+  host: {
+    '(window:keydown)': 'onKeyDown($event)',
+    '(window:paste)': 'onPaste($event)'
+  }
 })
 export class ImageResizeComponent {
   readonly service = inject(ImageResizeService);
@@ -60,24 +55,26 @@ export class ImageResizeComponent {
     { id: 'sq800', label: '800 Sq' },
   ];
 
-  @HostListener('window:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-      if (this.service.selectedImage() && !this.service.isProcessing()) {
-        event.preventDefault();
-        this.service.executeResize();
-      }
+    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter' && this.service.selectedImage() && !this.service.isProcessing()) {
+      event.preventDefault();
+      this.service.executeResize();
     }
   }
 
-  @HostListener('window:paste', ['$event'])
   onPaste(event: ClipboardEvent): void {
     const items = event.clipboardData?.items;
-    if (!items) return;
+
+    if (!items) {
+      return;
+    }
+
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
+
       if (item.type.startsWith('image/')) {
         const file = item.getAsFile();
+
         if (file) {
           event.preventDefault();
           this.service.setImage(file);
@@ -108,7 +105,6 @@ export class ImageResizeComponent {
   }
 
   onQualitySliderChange(event: Event): void {
-    const val = Number((event.target as HTMLInputElement).value);
-    this.service.updateFormState({ quality: val });
+    this.service.updateFormState({ quality: Number((event.target as HTMLInputElement).value) });
   }
 }

@@ -22,6 +22,7 @@ export class App implements OnInit {
 
   setOperation(opId: string): void {
     this.activeOperationId.set(opId);
+
     if (opId === 'image.resize') {
       this.router.navigate(['/media/image-resize']);
     }
