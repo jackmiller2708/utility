@@ -15,7 +15,7 @@ export class RuntimeStatusService {
   readonly isConnected = signal(false);
 
   refreshStatus(): void {
-    this.apiClient.getAuthStatus().subscribe(Either.match({
+    this.apiClient.getAuthStatus$().subscribe(Either.match({
       onRight: (status) => {
         this.authStatus.set(status);
         this.isConnected.set(true);
@@ -26,7 +26,7 @@ export class RuntimeStatusService {
       },
     }));
 
-    this.apiClient.getTools().subscribe(Either.match({
+    this.apiClient.getTools$().subscribe(Either.match({
       onRight: (res) => this.tools.set(res.tools),
       onLeft: () => {
         // Fallback registered tools description for local UI preview

@@ -19,15 +19,15 @@ export class ApiClientService {
   private readonly http = inject(HttpClientService);
   private readonly config = inject(API_CONFIG);
 
-  getAuthStatus() {
+  getAuthStatus$() {
     return this.http.get<AuthStatusResponse>(`${this.config.baseUrl}/auth/status`);
   }
 
-  getTools() {
+  getTools$() {
     return this.http.get<ToolsListResponse>(`${this.config.baseUrl}/tools`);
   }
 
-  executeImageResize(file: File, options: ImageResizeOptions) {
+  executeImageResize$(file: File, options: ImageResizeOptions) {
     const formData = new FormData();
 
     formData.append('file', file, file.name);
@@ -63,7 +63,7 @@ export class ApiClientService {
     return this.http.post<ImageResizeOutput>(`${this.config.baseUrl}/tools/image.resize`, formData);
   }
 
-  getArtifact(id: string) {
+  getArtifact$(id: string) {
     return this.http.get<ArtifactResponse>(`${this.config.baseUrl}/artifacts/${id}`);
   }
 

@@ -3,6 +3,7 @@ import type { ArtifactModel, ArtifactFileDetails } from '../../../../domain/inde
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { ApiClientService } from '../../../../core/services/api-client.service.js';
 import { Either, Option } from 'effect';
+import { finalize } from 'rxjs';
 
 export interface ImageResizeFormState {
   targetWidth: Option.Option<number>;
@@ -357,16 +358,9 @@ export class ImageResizeService {
     this._isProcessing.set(true);
     this._errorMessage.set(Option.none());
 
-    const s = this._formState();
-
-    this._apiClient.executeImageResize(img.value.file, {
-      width: Option.getOrNull(s.targetWidth),
-      height: Option.getOrNull(s.targetHeight),
-      fit: s.fitMode,
-      withoutEnlargement: s.withoutEnlargement,
-      format: s.outputFormat || undefined,
-      quality: this.isLossyFormat() ? s.quality : undefined,
-    }).subscribe(Either.match({
+    this._resizeImage$(img.value.file, this._formState())
+      .pipe(finalize(() => this._isProcessing.set(false)))
+      .subscribe(Either.match({
         onRight: (res) => {
           this._resultArtifact.set(Option.some({
             id: res.artifact.id,
@@ -376,11 +370,9 @@ export class ImageResizeService {
             checksum: res.artifact.checksum,
             createdAt: res.artifact.createdAt,
           }));
-          this._isProcessing.set(false);
         },
         onLeft: (err) => {
           this._errorMessage.set(Option.some(err.message || 'Failed to process image transformation'));
-          this._isProcessing.set(false);
         },
       }));
   }
@@ -395,5 +387,16 @@ export class ImageResizeService {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  private _resizeImage$(file: File, state: ImageResizeFormState) {
+    return this._apiClient.executeImageResize$(file, {
+      width: Option.getOrNull(state.targetWidth),
+      height: Option.getOrNull(state.targetHeight),
+      fit: state.fitMode,
+      withoutEnlargement: state.withoutEnlargement,
+      format: state.outputFormat || undefined,
+      quality: this.isLossyFormat() ? state.quality : undefined,
+    });
   }
 }
