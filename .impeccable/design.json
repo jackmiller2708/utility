@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-10T17:55:00.000Z",
+  "title": "Design System: Utility Platform",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Electric Indigo",
+        "canonical": "#6366f1",
+        "tonalRamp": ["#1e1b4b", "#312e81", "#3730a3", "#4338ca", "#4f46e5", "#6366f1", "#818cf8", "#a5b4fc", "#c7d2fe", "#e0e7ff"]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Electric Cyan",
+        "canonical": "#06b6d4",
+        "tonalRamp": ["#083344", "#164e63", "#155e75", "#0e7490", "#0891b2", "#06b6d4", "#22d3ee", "#67e8f9", "#a5f3fc", "#cffafe"]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Obsidian Dark",
+        "canonical": "#09090b",
+        "tonalRamp": ["#09090b", "#121215", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#f4f4f5"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Workbench main headers and feature titles."
+      },
+      "label": {
+        "displayName": "Telemetry / Monospace",
+        "purpose": "Dimensions, SHA-256 digests, and file metrics."
+      }
+    },
+    "shadows": [
+      {
+        "name": "glow-accent",
+        "value": "0 0 20px -3px rgba(99, 102, 241, 0.25)",
+        "purpose": "Subtle radiant glow for active execution buttons."
+      },
+      {
+        "name": "elevation-low",
+        "value": "0 4px 12px -2px rgba(0, 0, 0, 0.5)",
+        "purpose": "Tonal flyouts and comparison overlays."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Default smooth easing for hover and state changes."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Affirmative execution trigger for running tool operations.",
+      "html": "<button class=\"ds-btn-primary\">Execute Operation</button>",
+      "css": ".ds-btn-primary { background: #6366f1; color: #ffffff; padding: 8px 16px; border-radius: 8px; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: background 0.15s ease, transform 0.1s ease; } .ds-btn-primary:hover { background: #4f46e5; } .ds-btn-primary:active { transform: scale(0.98); }"
+    },
+    {
+      "name": "Telemetry Chip",
+      "kind": "chip",
+      "refersTo": "chip-telemetry",
+      "description": "Monospace metric indicator for file size, resolution, and hash digests.",
+      "html": "<span class=\"ds-chip-telemetry\">1920 &times; 1080 &middot; 420 KB</span>",
+      "css": ".ds-chip-telemetry { display: inline-flex; align-items: center; background: #18181b; border: 1px solid #27272a; color: #a1a1aa; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 4px; }"
+    },
+    {
+      "name": "Workbench Card Container",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Tonal containment surface for parameter forms and previews.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Operation Parameters</div><div class=\"ds-card-body\">Configure output dimensions and fit strategy.</div></div>",
+      "css": ".ds-card { background: #121215; border: 1px solid #27272a; border-radius: 12px; padding: 24px; color: #f4f4f5; font-family: Inter, sans-serif; } .ds-card-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; } .ds-card-body { font-size: 14px; color: #a1a1aa; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Precision Instrument Workbench",
+    "overview": "The Utility Platform design system models a high-performance local capability workstation. It balances developer-grade density with immediate tactile feedback, treating file transformations, schema parameter forms, and system telemetry as first-class physical instruments.",
+    "keyCharacteristics": [
+      "Tactile Dark Canvas: Deep obsidian backdrop with 1px zinc borders and tonal surface separation.",
+      "Instrument Telemetry: Monospace badges, live file size deltas, dimension chips, and SHA-256 fingerprints.",
+      "Intent-Driven Forms: Clean, modular parameter groups with immediate validation and one-click smart presets.",
+      "Zero-Friction Ergonomics: Seamless drag-and-drop zones, instant live preview comparison, and clear state transitions."
+    ],
+    "rules": [
+      {
+        "name": "The Execution Rarity Rule",
+        "body": "Electric Indigo is reserved strictly for primary execution and active tool selection. Never use it for background decoration or passive text.",
+        "section": "colors"
+      },
+      {
+        "name": "The Telemetry Monospace Rule",
+        "body": "Any data representing sizes (KB/MB), dimensions (W×H), execution duration (ms), or hashes (SHA-256) must use monospace formatting and neutral-to-cyan status coloring.",
+        "section": "colors"
+      },
+      {
+        "name": "The Metric Precision Rule",
+        "body": "All numbers denoting file size, dimensions, memory, or time must render in tabular monospace (font-mono) to prevent layout shift during live updates.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tonal Boundary Rule",
+        "body": "Surfaces separate via 1px border contrast (#27272a) and background value stepping, never via heavy diffuse shadows.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use tabular monospace (font-mono) for all byte counts, dimensions, hashes, and operation identifiers.",
+      "Do show before/after comparison previews and explicit delta metrics (e.g. -42.8% reduction) for every transformation.",
+      "Do preserve the dark-first obsidian canvas hierarchy (#09090b canvas, #121215 panel, #18181b elevated surface).",
+      "Do provide one-click quick presets alongside granular numeric inputs for common dimensions and formats."
+    ],
+    "donts": [
+      "Don't expose shell commands, raw filesystem paths, or backend runtime syntax to the user.",
+      "Don't use primary Electric Indigo (#6366f1) for non-actionable elements or decorative headers.",
+      "Don't use heavy drop shadows or bright white surfaces that break the dark workstation immersion.",
+      "Don't trigger destructive actions or discard uploaded files without explicit confirmation."
+    ]
+  }
+}
