@@ -1,63 +1,67 @@
 # Product Specification
 
-## 1. Purpose
+## Purpose
 
-Utility Platform is a private personal utility application that centralizes repetitive file and media workflows behind a web interface.
+Provide a private web application for common file manipulation and conversion workflows using the Linux host's native tooling.
 
-The host machine provides Linux-native capabilities. The browser provides the user interface.
+## User model
 
-## 2. Users
+Initial deployment is single-owner.
 
-Initial audience: one trusted owner operating the host machine.
+There are no:
+- user accounts
+- teams
+- roles
+- billing
+- public registration
 
-The system therefore does not require accounts, roles, teams, or conventional authorization.
+There is device identity because network reachability does not imply trust.
 
-It does require device authentication so that an unexpected device cannot invoke the utility API.
-
-## 3. Core use cases
+## Initial tool categories
 
 ### Image
 
-- Resize
-- Convert format
-- Compress
-- Crop
-- Inspect metadata
-- Generate derivatives
+- resize
+- convert
+- compress
+- crop
+- metadata
+- derivatives
 
 ### PDF
 
-- Render pages to images
-- Extract embedded images
-- Convert pages
-- Merge
-- Split
-- Inspect metadata
+- render pages
+- extract images
+- inspect metadata
+- merge
+- split
 
-### Future media
+### Media
 
-- Extract frames
-- Transcode
-- Compress
-- Extract audio
-- Generate thumbnails
+Future:
+- transcode
+- extract frames
+- extract audio
+- thumbnails
 
-## 4. UX principle
+## UX principle
 
-The user should think:
+Expose intent, not implementation.
 
-"Resize this image to 1920px."
+Good:
 
-not:
+`Resize image → width 1920 → fit inside`
 
-"Run Sharp with these options."
+Bad:
 
-The UI should expose safe, meaningful operations and hide implementation parameters unless they are genuinely useful to the user.
+`Run sharp with these command parameters`
 
-## 5. Private-server assumptions
+## Local-first behavior
 
-- Host is normally trusted.
-- Network exposure is opt-in.
-- API must still authenticate every device.
-- Filesystem access is constrained to configured roots/workspaces.
-- Arbitrary process execution is never exposed to the browser.
+The host owns:
+- uploaded files
+- temporary workspaces
+- generated artifacts
+- native dependencies
+
+No cloud storage is required.

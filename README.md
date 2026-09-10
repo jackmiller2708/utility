@@ -1,33 +1,29 @@
 # Utility Platform
 
-A private, local-first utility platform for file manipulation and workflow automation.
+A private, local-first utility platform built around a NestJS backend, Angular web client, and Effect-based application/tool layer.
 
-## Vision
+The host machine provides Linux-native capabilities such as Sharp, Poppler, and eventually FFmpeg. The browser only interacts with typed tool APIs.
 
-Provide a web UI for common workflows while keeping implementation details behind typed Effect-TS capabilities. Linux-native utilities such as Sharp, Poppler, and FFmpeg are adapters, not the public API.
-
-Core principle:
+## Architecture principle
 
 > The server is a capability runtime, not a command executor.
 
-## Initial goals
+Tools expose typed user intent. Runtime capabilities provide filesystem, workspace, process, artifact, and OS integration.
 
-- Web client served by the user's Linux machine.
-- No traditional account system.
-- Device authentication using cryptographic device identity.
-- Typed tool APIs using Effect Schema.
-- Shared filesystem, workspace, process, and artifact abstractions.
-- Image operations backed by Sharp.
-- PDF operations backed by Poppler utilities.
-- Extensible package architecture.
-- Later: Tauri desktop client using the same web/application protocol.
+## Stack
 
-## Non-goals for v0
+- Angular — web client
+- NestJS — HTTP/API application shell
+- TypeScript
+- Effect + Effect Schema — application logic, services, errors, schemas
+- Sharp — image manipulation
+- Poppler-utils — PDF manipulation
+- FFmpeg — planned media adapter
 
-- Public hosting.
-- Multi-user authorization.
-- Cloud storage.
-- Arbitrary shell execution from the web client.
-- Workflow visual editor.
-- Plugin marketplace.
-- Database-heavy persistence.
+## Current scope
+
+Web only. No Tauri/native desktop application is part of the architecture.
+
+## First vertical slice
+
+Angular → NestJS → Effect → Tool Registry → Image.resize → Sharp → Workspace → Artifact download.

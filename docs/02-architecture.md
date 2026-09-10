@@ -1,131 +1,127 @@
 # Architecture
 
-## System overview
+## System
 
 ```text
-+--------------------+
-|     Web Client     |
-+---------+----------+
-          |
-          | typed protocol
-          v
-+--------------------+
-|   Server Shell     |
-| auth / API / jobs  |
-+---------+----------+
-          |
-          v
-+--------------------+
-|   Tool Registry    |
-+---------+----------+
-          |
-     +----+----+----------------+
-     |         |                |
-     v         v                v
-  Image      PDF             Media
-     |         |                |
-   Sharp    Poppler          FFmpeg
-     |         |                |
-     +---------+----------------+
++-----------------------------+
+|        Angular Web          |
+|                             |
+| Tool discovery              |
+| Upload / forms              |
+| Job progress                |
+| Artifact download           |
++--------------+--------------+
+               |
+               | HTTP
+               v
++-----------------------------+
+|          NestJS             |
+|                             |
+| Controllers                 |
+| Device Auth                 |
+| API validation              |
+| Tool discovery              |
+| Job management              |
++--------------+--------------+
                |
                v
-       Runtime Capabilities
-       FileSystem / Process
-       Workspace / Artifact
++-----------------------------+
+|       Effect Application    |
+|                             |
+| Tool Registry               |
+| Tool operations             |
+| Services / Layers           |
+| Domain errors               |
+| Orchestration               |
++--------------+--------------+
+               |
+       +-------+-------+
+       |       |       |
+       v       v       v
+      FS   Workspace Process
+       |       |       |
+       +-------+-------+
+               |
+               v
+          Native adapters
+        Sharp / Poppler / FFmpeg
                |
                v
              Linux
 ```
 
-## Package boundaries
+## NestJS role
 
-### domain
+NestJS owns transport and application lifecycle.
 
-Pure types and business concepts.
+Controllers should be thin.
 
-Must not import Node.js APIs, Sharp, Poppler wrappers, or HTTP framework code.
+Conceptually:
 
-### runtime
+```ts
+@Post("image.resize")
+resize(...) {
+  return this.effectRuntime.runPromise(
+    Image.resize(...)
+  )
+}
+```
 
-System capabilities represented as Effect services.
+The controller should not contain image-processing logic.
 
-Examples:
+## Effect role
 
-- FileSystem
-- Process
-- Workspace
-- ArtifactStore
-- Clock
-- Logger
+Effect owns:
+- services
+- dependency injection through Layers
+- error channels
+- orchestration
+- concurrency
+- interruption/cancellation
 
-### tools
+NestJS DI and Effect DI solve different problems.
 
-User-intent APIs.
+NestJS DI wires the application shell.
 
-Examples:
-
-- Image.resize
-- Image.convert
-- Pdf.renderPages
-
-### adapters
-
-Concrete implementations.
-
-Examples:
-
-- SharpImageService
-- PopplerPdfService
-- FfmpegMediaService
-- NodeFileSystem
-- NodeProcess
-
-### protocol
-
-Transport-facing schemas.
-
-The protocol maps typed tool operations to HTTP/WebSocket messages.
-
-### server
-
-Composition root.
-
-The server assembles Layers, exposes the protocol, authenticates devices, and manages jobs.
+Effect Layers wire the capability graph used by tool programs.
 
 ## Dependency direction
 
 ```text
-server
-  ↓
+Angular
+   ↓
 protocol
-  ↓
-tools
-  ↓
+   ↓
+NestJS transport
+   ↓
+toolkit
+   ↓
+tool packages
+   ↓
 runtime
-  ↓
-adapters
-  ↓
-OS / native libraries
+   ↓
+native adapters
+   ↓
+Linux
 ```
 
-Domain schemas may be shared downward without acquiring infrastructure dependencies.
+Pure domain types can be shared without importing infrastructure.
 
-## Effect Layer model
+## Monorepo
 
-Runtime dependencies should be injected with Effect Layers.
-
-Example conceptual composition:
-
-```ts
-ServerLive
-  .pipe(
-    Layer.provide(ToolRegistryLive),
-    Layer.provide(ImageLive),
-    Layer.provide(PdfLive),
-    Layer.provide(WorkspaceLive),
-    Layer.provide(FileSystemLive),
-    Layer.provide(ProcessLive),
-  )
+```text
+utility-platform/
+├── apps/
+│   ├── api/
+│   └── web/
+│
+├── packages/
+│   ├── domain/
+│   ├── runtime/
+│   ├── protocol/
+│   ├── toolkit/
+│   ├── image/
+│   └── pdf/
+│
+└── package.json
 ```
-
-The exact implementation is intentionally left open until the first vertical slice.

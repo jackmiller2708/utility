@@ -2,9 +2,7 @@
 
 ## FileSystem
 
-The FileSystem capability provides safe structured operations.
-
-Required initial operations:
+Effect service providing:
 
 - read
 - write
@@ -16,13 +14,13 @@ Required initial operations:
 - createDirectory
 - listDirectory
 
-Paths must be represented by a dedicated domain type rather than arbitrary strings where practical.
+Client-provided paths must never directly reach this service.
 
 ## Process
 
-Process is an internal capability.
+Internal-only capability.
 
-It accepts structured commands:
+Conceptual input:
 
 ```ts
 type Command = {
@@ -33,13 +31,15 @@ type Command = {
 }
 ```
 
-It must never be directly exposed through the public API.
+Implementation must use process spawning with argument arrays.
 
-The implementation must use argument arrays rather than shell interpolation.
+Never construct shell strings from user input.
+
+The Process capability is not exposed through the public API.
 
 ## Workspace
 
-A Workspace owns temporary and intermediate artifacts for an operation.
+Every tool operation that creates files gets a Workspace.
 
 Example:
 
@@ -51,42 +51,34 @@ workspace/
   manifest.json
 ```
 
-Workspace responsibilities:
+Responsibilities:
 
-- allocate unique directories
-- import input files
+- isolate operation files
 - allocate temporary paths
-- register generated artifacts
-- expose output artifacts
-- cleanup after successful completion
-- retain failed workspaces when configured for debugging
+- track artifacts
+- cleanup
+- optionally retain failed workspaces for debugging
 
 ## Artifact
 
-An Artifact is the result of an operation.
+Artifact represents an operation result.
 
-Initial artifact kinds:
+Initial types:
 
 - File
 - Directory
 
-Future kinds may include:
+Metadata:
 
-- Stream
-- Collection
-- StructuredData
-
-Artifacts should carry:
-
-- identifier
+- ID
 - name
 - path
-- MIME type where known
-- size where known
+- MIME type
+- size
 - optional checksum
 
-## Security boundary
+Clients receive Artifact IDs, not arbitrary server filesystem paths.
 
-Runtime capabilities must enforce configured filesystem roots.
+## Runtime security
 
-A tool must not be able to escape its workspace or configured roots by constructing `../` paths or equivalent path tricks.
+Workspace and configured storage roots must prevent traversal outside allowed directories.

@@ -2,40 +2,98 @@
 
 ## Current milestone
 
-M0 — Foundation
+M0 — NestJS + Angular foundation
 
 ## Objective
 
-Create the smallest working vertical slice:
+Create the smallest complete vertical slice:
 
-Web Client → authenticated API → Tool Registry → Image Tool → Sharp → Workspace → output artifact.
+Angular → authenticated NestJS API → Effect Tool Registry → Image.resize → Sharp → Workspace → Artifact download.
 
-## Required outcomes
+## M0 tasks
 
-- Monorepo initialized.
-- Effect configured.
-- Core domain types created.
-- Runtime FileSystem capability created.
-- Workspace capability created.
-- Process capability created.
-- Tool registry created.
-- Device identity/authentication design stubbed.
-- Image package created.
-- Sharp adapter implemented.
-- One image operation implemented: resize.
-- API endpoint implemented for the resize operation.
-- Web client can upload an image, resize it, and download the result.
+### Repository
+
+- Create TypeScript monorepo/workspace.
+- Create `apps/api` with NestJS.
+- Create `apps/web` with Angular.
+- Create shared packages.
+
+### Packages
+
+Create:
+
+```text
+packages/
+  domain/
+  runtime/
+  protocol/
+  toolkit/
+  image/
+  pdf/
+```
+
+### Runtime
+
+Implement Effect services for:
+
+- FileSystem
+- Workspace
+- Process
+- Artifact
+
+### Tool system
+
+Implement:
+
+- Tool definition
+- Operation definition
+- Tool Registry
+- Image tool
+- `image.resize`
+
+### Image
+
+Implement Sharp adapter.
+
+The browser must never know how Sharp is invoked.
+
+### API
+
+Implement:
+
+```text
+GET  /api/v1/tools
+POST /api/v1/tools/image.resize
+GET  /api/v1/artifacts/:id
+```
+
+### Web
+
+Implement:
+
+- tool list
+- image upload
+- resize form
+- result/download
+
+### Security
+
+Implement the first device identity model.
+
+Localhost should work in development without requiring repeated enrollment, but the architecture must support cryptographic device authentication before LAN exposure.
 
 ## Explicitly defer
 
-- PDF tools.
-- FFmpeg.
-- Workflow editor.
-- Persistent job database.
-- LAN discovery.
-- Tauri.
-- Advanced device management UI.
+- PDF implementation
+- FFmpeg
+- workflow editor
+- persistent database
+- Tauri
+- cloud deployment
+- multi-user accounts
+- plugin marketplace
 
 ## Definition of done
 
-A fresh Linux checkout can start the server, open the web client, upload an image, request a resize using the typed API, and receive a generated artifact without constructing a shell command in the client.
+A fresh Linux checkout can start the NestJS API and Angular client. A user can upload an image, resize it, and download the result. No client-side shell command or Sharp API is required.
