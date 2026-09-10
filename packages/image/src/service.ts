@@ -20,6 +20,7 @@ export interface ResizeOptions {
   readonly position?: string;
   readonly withoutEnlargement?: boolean;
   readonly format?: ImageFormat;
+  readonly quality?: number;
 }
 
 export interface ImageService {
@@ -57,16 +58,16 @@ export const SharpImageServiceLive = Layer.succeed(
           if (options.format) {
             switch (options.format) {
               case "jpeg":
-                pipeline = pipeline.jpeg({ quality: 85 });
+                pipeline = pipeline.jpeg({ quality: options.quality ?? 85 });
                 break;
               case "png":
                 pipeline = pipeline.png({ compressionLevel: 8 });
                 break;
               case "webp":
-                pipeline = pipeline.webp({ quality: 80 });
+                pipeline = pipeline.webp({ quality: options.quality ?? 80 });
                 break;
               case "avif":
-                pipeline = pipeline.avif({ quality: 75 });
+                pipeline = pipeline.avif({ quality: options.quality ?? 75 });
                 break;
             }
           }
@@ -84,7 +85,7 @@ export const SharpImageServiceLive = Layer.succeed(
         catch: (cause: unknown) =>
           new ImageProcessingError({
             operation: "resize",
-            message: `Failed to resize image at ${inputPath}: ${cause instanceof Error ? cause.message : String(cause)}`,
+            message: `Failed to resize image at ${inputPath}: ${cause instanceof Error ? cause.message : String(cause)}` ,
             cause,
           }),
       }),
@@ -106,7 +107,7 @@ export const SharpImageServiceLive = Layer.succeed(
         catch: (cause: unknown) =>
           new InvalidImageError({
             path: inputPath,
-            message: `Failed to extract image metadata from ${inputPath}: ${cause instanceof Error ? cause.message : String(cause)}`,
+            message: `Failed to extract image metadata from ${inputPath}: ${cause instanceof Error ? cause.message : String(cause)}` ,
             cause,
           }),
       }),

@@ -70,6 +70,16 @@ export const resizeOperation: Operation<
       options: ["jpeg", "png", "webp", "avif"],
       description: "Optionally convert format during resize",
     },
+    {
+      name: "quality",
+      label: "Compression Quality",
+      type: "number",
+      required: false,
+      defaultValue: 80,
+      min: 1,
+      max: 100,
+      description: "Compression quality percentage for lossy formats (WebP, JPEG, AVIF)",
+    },
   ],
   inputSchema: ImageResizeInputSchema,
   outputSchema: ImageResizeOutputSchema,
@@ -91,6 +101,7 @@ export const resizeOperation: Operation<
         position: input.position,
         withoutEnlargement: input.withoutEnlargement,
         format: input.format,
+        quality: input.quality,
       });
 
       const artifact = yield* artifactStore.saveArtifact({

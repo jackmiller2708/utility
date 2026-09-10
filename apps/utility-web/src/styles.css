@@ -1,3 +1,50 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-obsidian-950: #09090b;
+  --color-obsidian-900: #121215;
+  --color-obsidian-850: #18181b;
+  --color-obsidian-800: #27272a;
+  --color-obsidian-700: #3f3f46;
+
+  --color-indigo-brand: #6366f1;
+  --color-indigo-brand-hover: #4f46e5;
+  --color-indigo-brand-subtle: #312e81;
+
+  --color-cyan-telemetry: #06b6d4;
+  --color-cyan-telemetry-hover: #0891b2;
+}
+
+/* Custom workstation scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Focus outline utility */
+:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* Tabular numbers for telemetry */
+.font-mono,
+[data-telemetry] {
+  font-feature-settings: "tnum" 1, "zero" 1;
+}

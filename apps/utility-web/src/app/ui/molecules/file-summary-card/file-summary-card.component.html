@@ -1,0 +1,24 @@
+<div class="bg-[#121215] border border-zinc-800 rounded-xl p-3.5 flex items-center justify-between gap-3">
+  <div class="flex items-center gap-3 truncate">
+    <div class="w-12 h-12 rounded-lg overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0 flex items-center justify-center">
+      @if (previewUrl()) {
+        <img [src]="previewUrl()!" alt="File Preview" class="w-full h-full object-cover" />
+      }
+    </div>
+    <div class="truncate">
+      <div class="font-medium text-zinc-200 text-xs truncate">
+        {{ name() }}
+      </div>
+      <div class="text-xs font-mono text-zinc-400 flex items-center gap-2 mt-0.5">
+        @if (dimensions()) {
+          <span class="text-cyan-400">{{ dimensions() }}</span>
+          <span class="text-zinc-600">&middot;</span>
+        }
+        <span>{{ sizeFormatted() }}</span>
+      </div>
+    </div>
+  </div>
+  <app-button variant="ghost" size="sm" (clicked)="changeFile.emit()">
+    Change
+  </app-button>
+</div>

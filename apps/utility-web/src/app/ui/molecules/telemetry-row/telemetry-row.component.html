@@ -1,0 +1,15 @@
+<div class="flex justify-between items-center py-0.5">
+  <span class="text-zinc-400 text-xs font-mono">{{ label() }}</span>
+  <div class="flex items-center gap-1.5 max-w-[240px]">
+    <span
+      [class.text-zinc-200]="variant() === 'default'"
+      [class.text-cyan-400]="variant() === 'cyan'"
+      [class.text-emerald-400]="variant() === 'emerald'"
+      [class.text-zinc-400]="variant() === 'subtle'"
+      class="text-xs font-mono truncate"
+      [title]="value()"
+    >
+      {{ value() }}
+    </span>
+  </div>
+</div>

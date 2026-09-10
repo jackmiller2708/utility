@@ -1,0 +1,23 @@
+<div class="space-y-1.5">
+  <span class="text-xs font-mono text-zinc-400 uppercase">Quick Presets</span>
+  <div class="grid grid-cols-5 gap-1.5">
+    @for (preset of presets(); track preset.id) {
+      <button
+        type="button"
+        (click)="presetSelected.emit(preset.id)"
+        [class.bg-indigo-600]="activeId() === preset.id"
+        [class.text-white]="activeId() === preset.id"
+        [class.border-indigo-500]="activeId() === preset.id"
+        [class.shadow-sm]="activeId() === preset.id"
+        [class.bg-zinc-900]="activeId() !== preset.id"
+        [class.text-zinc-300]="activeId() !== preset.id"
+        [class.border-zinc-800]="activeId() !== preset.id"
+        [class.hover:bg-zinc-800]="activeId() !== preset.id"
+        [class.hover:border-zinc-700]="activeId() !== preset.id"
+        class="px-2 py-1.5 text-xs font-mono rounded-md border transition-all text-center cursor-pointer active:scale-95"
+      >
+        {{ preset.label }}
+      </button>
+    }
+  </div>
+</div>

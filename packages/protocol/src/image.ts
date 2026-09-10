@@ -15,6 +15,7 @@ export const ImageResizeInputSchema = Schema.Struct({
   position: Schema.optional(Schema.String),
   withoutEnlargement: Schema.optional(Schema.Boolean),
   format: Schema.optional(ImageFormatSchema),
+  quality: Schema.optional(Schema.Number),
 });
 
 export type ImageResizeInput = typeof ImageResizeInputSchema.Type;

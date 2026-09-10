@@ -1,0 +1,32 @@
+<div
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+  (click)="fileInput.click()"
+  [class.border-indigo-500]="isDragging()"
+  [class.bg-indigo-950/20]="isDragging()"
+  class="border-2 border-dashed border-zinc-700/80 hover:border-indigo-500/80 rounded-xl p-6 text-center cursor-pointer transition-all bg-[#121215] hover:bg-zinc-900/60 group"
+>
+  <input
+    #fileInput
+    type="file"
+    [accept]="accept()"
+    class="hidden"
+    (change)="onFileInputChange($event)"
+  />
+  <div class="w-10 h-10 mx-auto rounded-lg bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center text-zinc-400 group-hover:text-indigo-400 group-hover:border-indigo-500/50 transition-colors mb-3">
+    <app-icon name="upload" className="w-5 h-5"></app-icon>
+  </div>
+  <p class="text-sm font-medium text-zinc-200">
+    {{ title() }}
+  </p>
+  <div class="flex items-center justify-center gap-1.5 mt-2">
+    @for (fmt of supportedFormats(); track fmt) {
+      <app-badge variant="neutral">{{ fmt }}</app-badge>
+    }
+  </div>
+  <div class="mt-2.5 flex items-center justify-center gap-1 text-xs text-zinc-400 font-mono">
+    <span>or paste from clipboard</span>
+    <kbd class="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-700/80 text-zinc-300 text-xs">⌘V / Ctrl+V</kbd>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+<span
+  [class.font-mono]="mono()"
+  [class.bg-zinc-900]="variant() === 'neutral'"
+  [class.text-zinc-400]="variant() === 'neutral'"
+  [class.border-zinc-800]="variant() === 'neutral'"
+  [class.bg-indigo-950/80]="variant() === 'indigo'"
+  [class.text-indigo-400]="variant() === 'indigo'"
+  [class.border-indigo-800/60]="variant() === 'indigo'"
+  [class.bg-cyan-950/80]="variant() === 'cyan'"
+  [class.text-cyan-400]="variant() === 'cyan'"
+  [class.border-cyan-800/60]="variant() === 'cyan'"
+  [class.bg-emerald-950/80]="variant() === 'emerald'"
+  [class.text-emerald-400]="variant() === 'emerald'"
+  [class.border-emerald-800/60]="variant() === 'emerald'"
+  [class.bg-amber-950/80]="variant() === 'amber'"
+  [class.text-amber-400]="variant() === 'amber'"
+  [class.border-amber-800/60]="variant() === 'amber'"
+  [class.bg-red-950/80]="variant() === 'crimson'"
+  [class.text-red-400]="variant() === 'crimson'"
+  [class.border-red-800/60]="variant() === 'crimson'"
+  class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border"
+>
+  <ng-content></ng-content>
+</span>

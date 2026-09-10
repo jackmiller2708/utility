@@ -1,47 +1,8 @@
-<div class="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-  <!-- Top Navigation Header -->
-  <app-header [authStatus]="authStatus()"></app-header>
-
-  <!-- Main Body Content -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      <!-- Sidebar / Tool Navigation (3 cols) -->
-      <aside class="lg:col-span-3">
-        <div class="sticky top-24 bg-zinc-950/60 border border-zinc-800/80 rounded-2xl p-3 backdrop-blur shadow-sm">
-          <app-tool-sidebar
-            [tools]="tools()"
-            [activeOperationId]="activeOperationId()"
-            (selectedOperationId)="setOperation($event)"
-          ></app-tool-sidebar>
-        </div>
-      </aside>
-
-      <!-- Main Operation Canvas (9 cols) -->
-      <section class="lg:col-span-9">
-        <div class="bg-zinc-900/30 border border-zinc-800/80 rounded-2xl p-6 sm:p-8 backdrop-blur shadow-xl">
-          @if (activeOperationId() === 'image.resize') {
-            <app-image-resize></app-image-resize>
-          } @else {
-            <div class="py-12 text-center text-zinc-400">
-              <p>Operation not available in current milestone.</p>
-            </div>
-          }
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="border-t border-zinc-800/80 py-6 text-center text-xs text-zinc-400">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center space-x-2">
-        <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-        <span class="font-medium text-zinc-400">Utility Platform</span>
-        <span class="text-zinc-400">• Private Local-first Server</span>
-      </div>
-      <div class="text-zinc-400">
-        Angular 22 + NestJS 12 + Effect Application Layer
-      </div>
-    </div>
-  </footer>
-</div>
+<app-workbench-layout
+  [authStatus]="runtimeStatus.authStatus()"
+  [tools]="runtimeStatus.tools()"
+  [activeOperationId]="activeOperationId()"
+  (operationSelected)="setOperation($event)"
+>
+  <router-outlet></router-outlet>
+</app-workbench-layout>

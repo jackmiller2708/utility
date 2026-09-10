@@ -49,9 +49,12 @@ A private, self-hosted utility workstation with typed schema-driven safety, ephe
 - Working image processing vertical slice tested end-to-end with the backend Sharp adapter (`apps/utility-api`).
 - Core contracts defined in `@utility/protocol` and domain models in `@utility/domain`.
 
-## Product Principles
+## Product & Frontend Architecture Principles
 
 1. **Tools Express User Intent**: Present clean, human-centered parameter forms rather than leaky command-line abstractions.
 2. **Immediate & Trustworthy Feedback**: Provide instant visual previews, precise file size deltas, and cryptographic integrity hashes for all artifacts.
-3. **Frictionless Utility**: Prioritize drag-and-drop ergonomics, smart presets, and high-efficiency single-click actions for repetitive tasks.
-4. **Privacy & Sandboxed Safety**: Ensure all transformations remain strictly local and isolated without OS path leakage.
+3. **Atomic Design System**: Pure presentation components in `ui/{atoms,molecules,organisms,templates}` decoupled from business logic.
+4. **Deep Modular Routing**: Feature workflows encapsulated in `app/modules/*` with dedicated routes, services, and components.
+5. **Core & Domain Layering**: `domain/*` manages contracts/models and `core/*` manages runtime/HTTP/auth services.
+6. **Separated Template Files**: All templates reside in dedicated `.html` files (`templateUrl`) for clear mental separation.
+7. **Privacy & Sandboxed Safety**: Ensure all transformations remain strictly local and isolated without OS path leakage.
