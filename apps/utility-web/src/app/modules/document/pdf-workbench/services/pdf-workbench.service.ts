@@ -14,6 +14,9 @@ export type PdfBatchOperation = 'pdf.inspect' | 'pdf.render-pages' | 'pdf.extrac
 export interface BatchFileRow {
   readonly id: string;
   readonly file: File;
+  /** Fetched via `pdf.inspect` the moment the file is added — the batch cost estimate needs every file's real page count, not just the one file single mode has on hand. */
+  readonly pages: number | null;
+  readonly inspecting: boolean;
 }
 
 export interface BatchInspectRow {
@@ -53,6 +56,12 @@ export type PdfAction = 'render' | 'extract';
 export interface CostEstimate {
   readonly seconds: number;
   readonly bytes: number;
+}
+
+export interface BatchCostEstimate extends CostEstimate {
+  /** How many of the batch's files have finished being inspected and are reflected in this estimate. */
+  readonly knownFileCount: number;
+  readonly totalFileCount: number;
 }
 
 /**
@@ -150,6 +159,48 @@ export class PdfWorkbenchService {
   readonly isBatchActive = computed(() => this._isBatchSubmitting() || this.batchJobs().some((job) => job.isActive));
   readonly canSubmitBatch = computed(() => this._batchFiles().length > 0 && !this.isBatchActive());
 
+  /**
+   * The batch equivalent of single mode's `renderCostEstimate` — deferred out of the original
+   * batch build because it needs every file's own page count, not just the one file single mode
+   * has on hand, and inspecting N files before showing anything felt like the wrong trade at the
+   * time. Now: each file is inspected the moment it's added (see `addBatchFiles`), and the
+   * estimate sums every file's *own* effective page count (the chosen range clamped to that
+   * file's real page count) at the chosen DPI — accurate for files already inspected, and
+   * flagged as partial via `knownFileCount`/`totalFileCount` for the rest still in flight.
+   */
+  readonly batchRenderCostEstimate = computed<BatchCostEstimate | null>(() => {
+    if (!this.isRenderBatch()) {
+      return null;
+    }
+
+    const files = this._batchFiles();
+    const known = files.filter((row) => row.pages != null);
+    if (known.length === 0) {
+      return null;
+    }
+
+    const dpi = this._batchDpi();
+    const secondsPerPage = SECONDS_PER_PAGE[dpi] ?? SECONDS_PER_PAGE[150];
+    const bytesPerPage = BYTES_PER_PAGE[dpi] ?? BYTES_PER_PAGE[150];
+    const first = this._batchFirstPage();
+    const last = this._batchLastPage();
+
+    let totalPages = 0;
+    for (const row of known) {
+      const pages = row.pages as number;
+      const effectiveFirst = Math.max(first ?? 1, 1);
+      const effectiveLast = Math.min(last ?? pages, pages);
+      totalPages += Math.max(0, effectiveLast - effectiveFirst + 1);
+    }
+
+    return {
+      seconds: Math.round(totalPages * secondsPerPage),
+      bytes: Math.round(totalPages * bytesPerPage),
+      knownFileCount: known.length,
+      totalFileCount: files.length,
+    };
+  });
+
   setMode(mode: PdfWorkbenchMode): void {
     this._mode.set(mode);
   }
@@ -163,12 +214,27 @@ export class PdfWorkbenchService {
     const accepted = files.slice(0, room);
     const rejectedCount = files.length - accepted.length;
 
-    const rows = accepted.map((file) => ({ id: nextPdfBatchRowId(), file }));
+    const rows: BatchFileRow[] = accepted.map((file) => ({ id: nextPdfBatchRowId(), file, pages: null, inspecting: true }));
     this._batchFiles.update((list) => [...list, ...rows]);
 
     this._batchLimitNotice.set(rejectedCount > 0
       ? `Batch limit is ${MAX_BATCH_FILES} files — ${rejectedCount} file${rejectedCount === 1 ? '' : 's'} not added.`
       : null);
+
+    for (const row of rows) {
+      this._apiClient.inspectPdf$(row.file)
+        .pipe(finalize(() => {
+          this._batchFiles.update((list) => list.map((r) => (r.id === row.id ? { ...r, inspecting: false } : r)));
+        }))
+        .subscribe(Either.match({
+          onRight: (res) => {
+            this._batchFiles.update((list) => list.map((r) => (r.id === row.id ? { ...r, pages: res.pages } : r)));
+          },
+          onLeft: () => {
+            // Leave pages null; the row still shows and the batch cost estimate simply excludes it (noted as "N of M known").
+          },
+        }));
+    }
   }
 
   removeBatchFile(id: string): void {

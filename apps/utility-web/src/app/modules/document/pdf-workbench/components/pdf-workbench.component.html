@@ -86,6 +86,13 @@
             (valuesChange)="service.setBatchFormValues($event)"
           ></app-operation-form>
 
+          @if (batchCostEstimateLabel(); as estimate) {
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">ESTIMATED COST</span>
+              <span class="inline-block bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5 text-xs font-mono font-bold text-ink">{{ estimate }}</span>
+            </div>
+          }
+
           <div class="border-t border-paper-hairline pt-5 flex flex-col gap-3 min-w-0">
             <app-button
               variant="primary"

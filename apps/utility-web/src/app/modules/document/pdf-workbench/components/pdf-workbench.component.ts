@@ -40,8 +40,20 @@ export class PdfWorkbenchComponent {
       id: row.id,
       name: row.file.name,
       sizeFormatted: this.service.formatBytes(row.file.size),
+      detail: row.inspecting ? 'Reading…' : row.pages != null ? `${row.pages} page${row.pages === 1 ? '' : 's'}` : undefined,
     }))
   );
+
+  readonly batchCostEstimateLabel = computed(() => {
+    const estimate = this.service.batchRenderCostEstimate();
+    if (!estimate) {
+      return null;
+    }
+    const label = `≈${this.service.formatSeconds(estimate.seconds)} · ~${this.service.formatBytes(estimate.bytes)}`;
+    return estimate.knownFileCount < estimate.totalFileCount
+      ? `${label} (${estimate.knownFileCount} of ${estimate.totalFileCount} files known)`
+      : label;
+  });
 
   readonly batchGalleryItems = computed<readonly GalleryItem[]>(() =>
     this.service.batchArtifactResults().map((artifact) => ({
