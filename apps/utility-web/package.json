@@ -20,6 +20,7 @@
     "@angular/platform-server": "^22.1.0",
     "@angular/router": "^22.1.0",
     "@angular/ssr": "^22.1.7",
+    "@utility/adapter": "*",
     "@utility/domain": "*",
     "@utility/protocol": "*",
     "effect": "^3.22.2",

@@ -10,7 +10,7 @@ export * from './atoms/icon/icon.component.js';
 export * from './molecules/dropzone/dropzone.component.js';
 export * from './molecules/file-summary-card/file-summary-card.component.js';
 export * from './molecules/telemetry-row/telemetry-row.component.js';
-export * from './molecules/preset-buttons/preset-buttons.component.js';
+export * from './molecules/tile-group/tile-group.component.js';
 
 // Organisms
 export * from './organisms/header/header.component.js';

@@ -1,4 +1,4 @@
-import { ButtonComponent, BadgeComponent, InputComponent, SelectComponent, ToggleComponent, IconComponent, DropzoneComponent, FileSummaryCardComponent, TelemetryDeckComponent, PresetButtonsComponent } from '@app/ui';
+import { ButtonComponent, BadgeComponent, InputComponent, ToggleComponent, IconComponent, DropzoneComponent, FileSummaryCardComponent, TelemetryDeckComponent, TileGroupComponent } from '@app/ui';
 import { ImageResizeService } from '../services/image-resize.service';
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -12,18 +12,18 @@ import { OptionPipe } from '@app/core/pipes/option.pipe';
     ButtonComponent,
     BadgeComponent,
     InputComponent,
-    SelectComponent,
     ToggleComponent,
     IconComponent,
     DropzoneComponent,
     FileSummaryCardComponent,
     TelemetryDeckComponent,
-    PresetButtonsComponent,
+    TileGroupComponent,
     OptionPipe
   ],
   providers: [ImageResizeService],
   templateUrl: './image-resize.component.html',
   host: {
+    class: 'block min-w-0 w-full',
     '(window:keydown)': 'onKeyDown($event)',
     '(window:paste)': 'onPaste($event)'
   }
@@ -31,28 +31,36 @@ import { OptionPipe } from '@app/core/pipes/option.pipe';
 export class ImageResizeComponent {
   readonly service = inject(ImageResizeService);
 
-  readonly fitOptions = [
-    { value: 'inside', label: 'Preserve Aspect (Scale down within bounds)' },
-    { value: 'cover', label: 'Cover & Crop (Fill dimensions, crop excess)' },
-    { value: 'contain', label: 'Contain & Letterbox (Pad to exact canvas)' },
-    { value: 'fill', label: 'Stretch to Fit (Distort proportions)' },
-    { value: 'outside', label: 'Enclose Bounds (Match minimum dimension)' },
+  readonly fitTiles = [
+    { id: 'inside', label: 'FIT' },
+    { id: 'cover', label: 'FILL' },
+    { id: 'contain', label: 'LETTERBOX' },
+    { id: 'fill', label: 'STRETCH' },
+    { id: 'outside', label: 'COVER' },
   ];
 
-  readonly formatOptions = [
-    { value: '', label: 'Keep Source Format' },
-    { value: 'webp', label: 'WebP (Balanced Compression & Web standard)' },
-    { value: 'jpeg', label: 'JPEG (Standard Photo Compression)' },
-    { value: 'png', label: 'PNG (Lossless Graphics & Transparency)' },
-    { value: 'avif', label: 'AVIF (High Efficiency Next-Gen)' },
+  readonly fitHelp: Record<string, string> = {
+    inside: 'Scales to fit inside the bounds, aspect ratio locked. Nothing is cropped.',
+    cover: 'Scales to fill the bounds and crops the overflow — centre-weighted.',
+    contain: 'Fits inside the bounds and pads the remainder to hit the exact canvas.',
+    fill: 'Forces the exact canvas. Aspect ratio is not preserved — expect distortion.',
+    outside: 'Scales so both dimensions meet or exceed the bounds. Nothing is cropped.',
+  };
+
+  readonly formatTiles = [
+    { id: '', label: 'SOURCE' },
+    { id: 'webp', label: 'WEBP' },
+    { id: 'jpeg', label: 'JPEG' },
+    { id: 'png', label: 'PNG' },
+    { id: 'avif', label: 'AVIF' },
   ];
 
   readonly presets = [
-    { id: 'orig', label: '100% (Original)' },
+    { id: 'orig', label: '100%' },
     { id: 'p50', label: '50%' },
     { id: 'p25', label: '25%' },
     { id: '1080p', label: '1080p' },
-    { id: 'sq800', label: '800 Sq' },
+    { id: 'sq800', label: 'Square' },
   ];
 
   onKeyDown(event: KeyboardEvent): void {

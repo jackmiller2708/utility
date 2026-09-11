@@ -1,50 +1,109 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Courier Prime', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --color-obsidian-950: #09090b;
-  --color-obsidian-900: #121215;
-  --color-obsidian-850: #18181b;
-  --color-obsidian-800: #27272a;
-  --color-obsidian-700: #3f3f46;
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  --radius-xl: 4px;
 
-  --color-indigo-brand: #6366f1;
-  --color-indigo-brand-hover: #4f46e5;
-  --color-indigo-brand-subtle: #312e81;
+  /* Spot inks */
+  --color-riso-pink: #FF3EA5;
+  --color-riso-pink-hover: #D91E85;
+  --color-riso-pink-pooled: #3D1730;
+  --color-riso-blue: #0078BF;
+  --color-riso-blue-hover: #005B94;
+  --color-riso-mint: #12A66B;
+  --color-riso-gold: #E8A200;
+  --color-riso-red: #E23B2E;
 
-  --color-cyan-telemetry: #06b6d4;
-  --color-cyan-telemetry-hover: #0891b2;
+  /* Press room (dark, chrome only) */
+  --color-press: #16130F;
+  --color-press-elevated: #1E1A14;
+  --color-press-line: #332C21;
+  --color-press-text: #EFE6D2;
+  --color-press-text-muted: #B4A98D;
+
+  /* Paper (working surfaces, light) */
+  --color-paper: #F6F0E3;
+  --color-paper-fresh: #FCF8ED;
+  --color-paper-deckle: #D9CEB4;
+  --color-paper-hairline: #E7DFC8;
+  --color-ink: #221D16;
+  --color-ink-muted: #6E6656;
+  --color-ink-faint: #9C927A;
 }
 
-/* Custom workstation scrollbar */
+html, body {
+  background: var(--color-press);
+}
+
+@keyframes reg-spin {
+  to { transform: rotate(90deg); }
+}
+
+@keyframes ink-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .35; }
+}
+
+/* Press-room scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #09090b;
+  background: var(--color-press);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 3px;
+  background: var(--color-press-line);
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: var(--color-ink-faint);
 }
 
-/* Focus outline utility */
+::selection {
+  background: var(--color-riso-pink);
+  color: var(--color-ink);
+}
+
+/* Focus reads as ink hitting the plate, never a glow */
 :focus-visible {
-  outline: 2px solid #6366f1;
+  outline: 2px solid var(--color-riso-pink);
   outline-offset: 2px;
 }
 
-/* Tabular numbers for telemetry */
+/* The Ledger Rule: every trusted number sets tabular */
 .font-mono,
-[data-telemetry] {
+[data-ledger] {
   font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* Paper Lift / Stamped Down — the system's only two shadows */
+.shadow-paper-lift {
+  box-shadow: 2px 3px 0 rgba(22, 19, 15, 0.35);
+}
+
+.shadow-stamped {
+  box-shadow: inset 1px 1px 0 rgba(34, 29, 22, 0.25);
+}
+
+/* Registration cross — corner mark for active plates, focus, loading */
+.reg-cross {
+  width: 9px;
+  height: 9px;
+  display: inline-block;
+  background:
+    linear-gradient(currentColor, currentColor) center / 9px 1px no-repeat,
+    linear-gradient(currentColor, currentColor) center / 1px 9px no-repeat;
+}
+
+.reg-cross-spin {
+  animation: reg-spin 1.1s steps(4) infinite;
 }

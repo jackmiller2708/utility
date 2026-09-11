@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 export class ToggleComponent {
   checked = input<boolean>(false);
   label = input<string>('');
+  description = input<string>('');
   disabled = input<boolean>(false);
   checkedChange = output<boolean>();
 

@@ -1,59 +1,64 @@
 ---
 name: Utility Platform
-description: Private local-first capability runtime & utility workstation
+description: A risograph print studio for local-first media transformation — designers & creators, not developers
 colors:
-  primary: "#6366f1"
-  primary-hover: "#4f46e5"
-  primary-subtle: "#312e81"
-  secondary: "#06b6d4"
-  secondary-hover: "#0891b2"
-  accent-success: "#10b981"
-  accent-warning: "#f59e0b"
-  accent-danger: "#ef4444"
-  neutral-bg: "#09090b"
-  neutral-surface: "#121215"
-  neutral-elevated: "#18181b"
-  neutral-border: "#27272a"
-  neutral-border-subtle: "#1f1f23"
-  neutral-text: "#f4f4f5"
-  neutral-text-muted: "#a1a1aa"
-  neutral-text-subtle: "#71717a"
+  primary: "#FF3EA5"
+  primary-hover: "#D91E85"
+  primary-subtle: "#3D1730"
+  secondary: "#0078BF"
+  secondary-hover: "#005B94"
+  accent-success: "#12A66B"
+  accent-warning: "#E8A200"
+  accent-danger: "#E23B2E"
+  canvas-bg: "#16130F"
+  canvas-elevated: "#1E1A14"
+  canvas-border: "#332C21"
+  canvas-text: "#EFE6D2"
+  canvas-text-muted: "#B4A98D"
+  neutral-bg: "#16130F"
+  neutral-surface: "#F6F0E3"
+  neutral-elevated: "#FCF8ED"
+  neutral-border: "#D9CEB4"
+  neutral-border-subtle: "#E7DFC8"
+  neutral-text: "#221D16"
+  neutral-text-muted: "#6E6656"
+  neutral-text-subtle: "#9C927A"
 typography:
   display:
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
-    fontSize: "clamp(1.75rem, 3vw, 2.25rem)"
-    fontWeight: 700
-    lineHeight: "1.2"
-    letterSpacing: "-0.025em"
-  headline:
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 600
-    lineHeight: "1.3"
-    letterSpacing: "-0.02em"
-  title:
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
-    fontSize: "1rem"
-    fontWeight: 600
-    lineHeight: "1.4"
+    fontFamily: "Archivo, -apple-system, BlinkMacSystemFont, sans-serif"
+    fontSize: "clamp(1.875rem, 3.2vw, 2.5rem)"
+    fontWeight: 900
+    lineHeight: "1.1"
     letterSpacing: "-0.01em"
+  headline:
+    fontFamily: "Archivo, -apple-system, BlinkMacSystemFont, sans-serif"
+    fontSize: "1.25rem"
+    fontWeight: 800
+    lineHeight: "1.25"
+    letterSpacing: "-0.005em"
+  title:
+    fontFamily: "Archivo, -apple-system, BlinkMacSystemFont, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 700
+    lineHeight: "1.35"
+    letterSpacing: "0em"
   body:
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
-    fontSize: "0.875rem"
+    fontFamily: "Archivo, -apple-system, BlinkMacSystemFont, sans-serif"
+    fontSize: "0.9375rem"
     fontWeight: 400
-    lineHeight: "1.5"
+    lineHeight: "1.55"
     letterSpacing: "0em"
   label:
-    fontFamily: "JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+    fontFamily: "Courier Prime, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
     fontSize: "0.75rem"
-    fontWeight: 500
+    fontWeight: 700
     lineHeight: "1.4"
-    letterSpacing: "0.025em"
+    letterSpacing: "0.04em"
 rounded:
-  sm: "4px"
-  md: "8px"
-  lg: "12px"
-  xl: "16px"
+  sm: "1px"
+  md: "2px"
+  lg: "3px"
+  xl: "4px"
   full: "9999px"
 spacing:
   xs: "4px"
@@ -66,166 +71,184 @@ components:
   button-primary:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.neutral-text}"
-    rounded: "{rounded.md}"
-    padding: "8px 16px"
+    rounded: "{rounded.sm}"
+    padding: "10px 18px"
   button-primary-hover:
     backgroundColor: "{colors.primary-hover}"
     textColor: "{colors.neutral-text}"
-    rounded: "{rounded.md}"
-    padding: "8px 16px"
+    rounded: "{rounded.sm}"
+    padding: "10px 18px"
   button-secondary:
-    backgroundColor: "{colors.neutral-elevated}"
-    textColor: "{colors.neutral-text}"
-    rounded: "{rounded.md}"
-    padding: "8px 16px"
+    backgroundColor: "transparent"
+    textColor: "{colors.secondary}"
+    rounded: "{rounded.sm}"
+    padding: "10px 18px"
   button-ghost:
     backgroundColor: "transparent"
-    textColor: "{colors.neutral-text-muted}"
-    rounded: "{rounded.md}"
-    padding: "8px 16px"
+    textColor: "{colors.canvas-text-muted}"
+    rounded: "{rounded.sm}"
+    padding: "10px 18px"
   card:
     backgroundColor: "{colors.neutral-surface}"
     textColor: "{colors.neutral-text}"
-    rounded: "{rounded.lg}"
+    rounded: "{rounded.md}"
     padding: "24px"
   input:
-    backgroundColor: "{colors.neutral-surface}"
+    backgroundColor: "{colors.neutral-elevated}"
     textColor: "{colors.neutral-text}"
-    rounded: "{rounded.md}"
-    padding: "8px 12px"
+    rounded: "{rounded.sm}"
+    padding: "10px 12px"
 ---
 
 # Design System: Utility Platform
 
 ## Overview
 
-**Creative North Star: "The Precision Instrument Workbench"**
+**Creative North Star: "The Print Run"**
 
-The Utility Platform design system models a high-performance local capability workstation. It balances developer-grade density with immediate tactile feedback, treating file transformations, schema parameter forms, and system telemetry as first-class physical instruments. Every surface is tuned for low eye fatigue during prolonged use, clear visual hierarchy, and instant operational certainty.
+Utility Web is redesigned as a risograph studio, not a developer console. Every transformation is staged like a job going through the press: the source file is a plate, each output format or size is one spot-color pass, and the finished artifact is a printed sheet pulled off the drum and set out to dry. Designers and creators already read this world fluently — it is the world of zines, small-run posters, and DIY publishing, not command lines or telemetry dashboards. Nothing here is a photo of a risograph; it is that print shop's actual grammar rebuilt as interface: flat spot-color ink, cut-paper edges, registration crosses, one ink at a time.
 
-The aesthetic philosophy centers on crisp tonal layering on deep obsidian (`#09090b`), illuminated by purposeful electric indigo (`#6366f1`) for primary actions and cyan (`#06b6d4`) for secondary metadata and status signals. Monospace telemetry (`JetBrains Mono`) anchors technical specifications, SHA-256 digests, dimensions, and operational telemetry.
+The system runs on two surfaces at once. The **press room** — a warm, near-black canvas, the room the machine sits in at night — carries navigation, chrome, and atmosphere. Every sheet of actual work — every form, every panel, every number the user must read — sits on **paper**: a warm uncoated cream stock lifted off that dark table, carrying dark ink text at real contrast. The press room sets the mood; the paper does the reading. This is deliberate and load-bearing: it lets the studio feel unmistakably like a print shop after dark while keeping every parameter form, every dimension, every file size exactly as legible as a spec sheet has to be.
+
+Color is earned like ink, not decoration. A risograph print costs one run per color — so the interface spends spot color the same way: pink for the one action that matters, blue for information, mint and gold and red for outcome states, and nothing else. The rest of the surface is paper and press-room neutral. This also happens to be the right call for the tool's real audience: designers judging a resize or a format conversion need to trust the numbers before they trust the mood.
 
 **Key Characteristics:**
-- **Tactile Dark Canvas**: Deep obsidian backdrop with 1px zinc borders and tonal surface separation.
-- **Instrument Telemetry**: Monospace badges, live file size deltas, dimension chips, and SHA-256 fingerprints.
-- **Intent-Driven Forms**: Clean, modular parameter groups with immediate validation and one-click smart presets.
-- **Zero-Friction Ergonomics**: Seamless drag-and-drop zones, instant live preview comparison, and clear state transitions.
+- **Press Room, Paper Sheets**: Dark ink-black canvas for chrome and wayfinding; warm cream paper cards for every working surface, form, and readout.
+- **One Ink at a Time**: Spot color (pink, blue, mint, gold, red) is reserved for action and state — never decoration, never more than one dominant ink per view.
+- **Cut-Paper Geometry**: Square-cut corners, deckle-edge borders, and registration crosses stand in for the soft glass-panel rounding of a generic dashboard.
+- **The Ink Ledger**: Every number a designer must trust — dimensions, file size, format, hash — sets in typewritten monospace, stamped like a job ticket, never floating loose in body type.
 
 ## Colors
 
-The palette is engineered around high-contrast dark neutral surfaces punctuated by targeted chromatic accents for state, telemetry, and execution.
+The palette is a working ink set, not a brand gradient: a small number of named spot colors, each with exactly one job, laid over two neutral grounds (press-room dark, uncoated paper light).
 
 ### Primary
-- **Electric Indigo** (`#6366f1`): The primary brand and call-to-action color. Used exclusively for affirmative execution buttons, active navigation states, and primary focus outlines.
-- **Indigo Deep** (`#4f46e5`): Hover and active states for primary execution controls.
-- **Indigo Subtle** (`#312e81`): Subtle background tint for selected tools and active category badges.
+- **Riso Pink** (`#FF3EA5`): The one ink reserved for the action that commits — run the job, download the artifact, confirm a primary choice. Always paired with dark ink text, never white — a fluorescent spot color is the ground a darker ink prints on, not the ink itself.
+- **Riso Pink, Second Pass** (`#D91E85`): Hover and active state — a second pass of the same plate, slightly heavier.
+- **Riso Pink, Pooled** (`#3D1730`): A dark, ink-pooled tint for selected states on the press-room canvas — pink caught in shadow, not a pastel tint.
 
 ### Secondary
-- **Electric Cyan** (`#06b6d4`): Secondary accent for technical telemetry, live preview inspect tags, and processing signals.
-- **Cyan Deep** (`#0891b2`): Hover state for cyan action triggers and secondary filters.
+- **Riso Blue** (`#0078BF`): Informational ink — metadata, active navigation, secondary actions, links. Reads as "this is true right now," never "act on this."
+- **Riso Blue, Second Pass** (`#005B94`): Hover state for blue actions and filters.
 
 ### Tertiary / Status Accents
-- **Emerald Pulse** (`#10b981`): Runtime active heartbeat, successful operation outcomes, and positive delta reductions.
-- **Amber Warning** (`#f59e0b`): Connecting states, background queue warnings, and size inflation notices.
-- **Crimson Error** (`#ef4444`): Validation errors, rejected MIME types, and failed job alerts.
+- **Riso Mint** (`#12A66B`): Successful runs, completed jobs, positive size reductions.
+- **Riso Gold** (`#E8A200`): Caution — connecting, queued, size inflation, anything worth a second look before it prints.
+- **Riso Red** (`#E23B2E`): Misregistration — validation errors, rejected files, failed jobs.
 
-### Neutral
-- **Obsidian Dark** (`#09090b`): Root application canvas background.
-- **Surface Dark** (`#121215`): Card surfaces, sidebar background, and toolbar panels.
-- **Surface Elevated** (`#18181b`): Dropzones, input containers, preset buttons, and modal dialogs.
-- **Border Crisp** (`#27272a`): 1px structural borders dividing panels and containment cards.
-- **Border Subtle** (`#1f1f23`): Sub-item dividers and secondary grid lines.
-- **Text Bright** (`#f4f4f5`): Primary titles, active values, and button labels.
-- **Text Muted** (`#a1a1aa`): Secondary descriptions, section headers, and field helper copy.
-- **Text Subtle** (`#71717a`): Inactive placeholders, disabled hints, and timestamp metadata.
+### Canvas (press room — dark, for chrome only)
+- **Press Black** (`#16130F`): Root application canvas. A warm ink-black, not a cool neutral gray — this is a room, not a screen.
+- **Press Elevated** (`#1E1A14`): Header bar, sidebar ground, anything that sits above the floor but is still furniture, not paper.
+- **Press Line** (`#332C21`): 1px hairlines on the dark canvas.
+- **Press Text** (`#EFE6D2`): Nav labels, section headers, and anything set directly on the dark canvas — an unbleached paper color, not white.
+- **Press Text, Muted** (`#B4A98D`): Secondary chrome labels, inactive nav items, timestamps in the dark UI.
+
+### Paper (working surfaces — light, for everything the user must read)
+- **Stock** (`#F6F0E3`): The default card and panel ground — warm uncoated cream, never pure white.
+- **Fresh Sheet** (`#FCF8ED`): Inputs, active fields, and anything that should read as the top sheet in the stack.
+- **Deckle Edge** (`#D9CEB4`): Paper borders and card edges — a cut-paper line, not a UI-chrome line.
+- **Hairline** (`#E7DFC8`): Sub-dividers inside a paper surface — table rows, list separators.
+- **Ink** (`#221D16`): Primary text on paper — a warm near-black, the color of actual printed ink, never pure `#000`.
+- **Ink, Muted** (`#6E6656`): Secondary copy, helper text, field descriptions.
+- **Ink, Faint** (`#9C927A`): Placeholders, disabled hints, timestamps on paper.
 
 ### Named Rules
-**The Execution Rarity Rule.** Electric Indigo is reserved strictly for primary execution and active tool selection. Never use it for background decoration or passive text.
+**The Overprint Rule.** A light spot ink (pink, gold, mint) always carries dark ink text; a deeper spot ink (blue, red) carries paper-cream or white text. This mirrors how a real riso print overprints black on a color pass, and it is also what keeps every colored surface at real reading contrast — never decorative color with guessed-legible text on top.
 
-**The Telemetry Monospace Rule.** Any data representing sizes (KB/MB), dimensions (W×H), execution duration (ms), or hashes (SHA-256) must use monospace formatting and neutral-to-cyan status coloring.
+**The One-Ink Rule.** No view runs more than one dominant spot color at a time. A card, a form, a toolbar owns exactly one accent ink for its primary action; every other color in view is neutral (paper or press-room) until it is that surface's turn to matter.
+
+**The Ledger Rule.** Anything the user must trust as fact — bytes, pixels, W×H, duration, a SHA-256 digest, a format name — sets in Courier Prime, tabular, stamped like a job ticket. Never render a number the user must trust in the body face.
 
 ## Typography
 
-**Display Font:** Inter, -apple-system, BlinkMacSystemFont, sans-serif
-**Body Font:** Inter, -apple-system, BlinkMacSystemFont, sans-serif
-**Label/Mono Font:** JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace
+**Display/Headline/Title/Body Font:** Archivo, -apple-system, BlinkMacSystemFont, sans-serif
+**Label/Ledger Font:** Courier Prime, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace
 
-**Character:** Clean, neutral, high-legibility geometric sans-serif for interface controls paired with tabular, compact monospace typography for numerical telemetry and parameter identifiers.
+**Character:** A single grotesk family carries the whole interface voice — bold poster weights for headers (the loud caps of a zine masthead or a rubber-stamped cover), regular weight for reading copy — paired with an actual typewriter face for anything technical, evoking a caption typed straight onto a plate rather than a developer's terminal font. No serif, no script: this is a working shop, not a boutique.
 
 ### Hierarchy
-- **Display** (Bold 700, `clamp(1.75rem, 3vw, 2.25rem)`, `1.2` line-height): Main workbench header and major tool view titles.
-- **Headline** (Semi-bold 600, `1.25rem` / `20px`, `1.3` line-height): Card headers, tool operation titles, and inspection panel sections.
-- **Title** (Semi-bold 600, `1rem` / `16px`, `1.4` line-height): Form section titles, modal headers, and sidebar tool group names.
-- **Body** (Regular 400, `0.875rem` / `14px`, `1.5` line-height, max line length 70ch): Form input labels, helper text, explanations, and system messages.
-- **Label** (Medium 500, `0.75rem` / `12px`, `1.4` line-height, `0.025em` tracking): Monospace tags, status pills, dimension badges, SHA-256 hashes, and milestone markers.
+- **Display** (Black 900, `clamp(1.875rem, 3.2vw, 2.5rem)`, `1.1` line-height, tight tracking): Masthead headers and major tool titles — set like a zine cover line.
+- **Headline** (Extrabold 800, `1.25rem` / `20px`, `1.25` line-height): Card headers, job titles, panel sections.
+- **Title** (Bold 700, `1rem` / `16px`, `1.35` line-height): Form section labels, modal headers, sidebar group names.
+- **Body** (Regular 400, `0.9375rem` / `15px`, `1.55` line-height, max 70ch): Field labels, helper copy, explanations, system messages — Archivo reads cleanly at body size, unlike most display grotesks.
+- **Label/Ledger** (Bold 700, `0.75rem` / `12px`, `1.4` line-height, `0.04em` tracking): Courier Prime, uppercase where used as a tag — stamped job-ticket tags, dimension readouts, hashes, status pills.
 
 ### Named Rules
-**The Metric Precision Rule.** All numbers denoting file size, dimensions, memory, or time must render in tabular monospace (`font-mono`) to prevent layout shift during live updates.
+**The Masthead Rule.** Display and headline sizes always carry the heaviest available weight (900/800) — a light or regular zine masthead is a contradiction in terms.
 
 ## Layout
 
-The spatial model uses a fixed-width collapsible navigation sidebar paired with a flexible modular workbench grid.
+**The Composing Table**: a dark press-room floor holding a fixed tool rail and a paper sheet where the actual job happens.
 
-- **Workbench Grid**: Responsive 12-column system (`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`).
-- **Sidebar**: Fixed 260px width on desktop (`border-r border-zinc-800 bg-zinc-950/60 backdrop-blur`), collapsible on mobile viewports.
-- **Workspace Layout**: Split two-column inspection and parameter configuration (`grid grid-cols-1 lg:grid-cols-12 gap-8` with 5-col controls / 7-col preview & comparison).
-- **Spacing Scale**: Base 4px rhythm (`xs: 4px`, `sm: 8px`, `md: 16px`, `lg: 24px`, `xl: 32px`, `xxl: 48px`).
+- **Composing Surface**: Responsive 12-column system (`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`), unchanged in structure from the prior system — only its skin changes.
+- **Plate Rail** (sidebar): Fixed 260px on desktop, rendered as a stack of tool tabs against the press-room ground (`bg-[#16130F] border-r border-[#332C21]`), each tool category a distinct tab; the active tab carries a small pink registration mark. Collapses on mobile.
+- **Job Sheet** (workspace): Split two-column layout — parameter controls at 5 columns, live preview and comparison at 7 (`grid grid-cols-1 lg:grid-cols-12 gap-8`) — both rendered as paper (`bg-[#F6F0E3]`), floating on the press-room floor with a hard paper-lift shadow.
+- **Spacing Scale**: Unchanged 4px rhythm (`xs: 4px` … `xxl: 48px`) — a structural fact of the app, not a visual one.
 
 ## Elevation & Depth
 
-Utility Platform operates on a flat, tonal surface model with crisp 1px borders. Depth is communicated through luminosity stepping (`#09090b` → `#121215` → `#18181b`) and subtle ambient glows on active states rather than heavy drop shadows.
+No glass, no soft glow. Depth reads as paper physically lifted off a table: a small, hard-edged, slightly warm shadow, never blurred into a glow.
 
 ### Shadow Vocabulary
-- **Glow Accent** (`box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.25)`): Applied to active primary action buttons and focused drag-and-drop targets.
-- **Surface Elevation Low** (`box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.5)`): Used for flyouts, tooltips, and floating comparison bars.
+- **Paper Lift** (`box-shadow: 2px 3px 0 rgba(22, 19, 15, 0.35)`): The standard card/panel shadow — a hard offset, like a sheet sitting a few millimeters above the surface below it, not floating.
+- **Stamped Down** (`box-shadow: inset 1px 1px 0 rgba(34, 29, 22, 0.25)`): Pressed/active state for buttons and tabs — the ink just struck the paper.
 
 ### Named Rules
-**The Tonal Boundary Rule.** Surfaces separate via 1px border contrast (`#27272a`) and background value stepping, never via heavy diffuse shadows.
+**The No-Glow Rule.** Nothing in this system emits light. Active and focus states are communicated by ink color and the registration mark, never by a blurred halo.
 
 ## Shapes
 
-- **Radius Scale**:
-  - Small (`rounded-sm: 4px`): Monospace tags, status pills, and preset buttons.
-  - Medium (`rounded-md: 8px`): Form inputs, standard buttons, select dropdowns, and sidebar navigation items.
-  - Large (`rounded-lg: 12px`): Cards, preview containers, dropzones, and inspection panels.
-  - Full (`rounded-full: 9999px`): Status indicator dots, user identity pills, and circular action triggers.
-- **Borders**: Uniform 1px solid borders (`border-zinc-800` / `#27272a`).
+- **Radius Scale**: Nearly square throughout — this is cut paper, not glass.
+  - Hairline (`rounded-sm: 1px`): Table rows, dividers.
+  - Standard (`rounded-md: 2px`): Buttons, inputs, tabs.
+  - Panel (`rounded-lg: 3px`): Cards, dropzones, preview frames.
+  - Wide (`rounded-xl: 4px`): Large containers only.
+  - Full (`rounded-full: 9999px`): Reserved exclusively for stamped status dots and ink-blot indicators — the one place a true circle belongs, because a rubber stamp is round.
+- **Registration Cross**: A small `+` mark (two 8px hairlines, spot-color ink) in the corner of the active card, preview frame, or during a running job — a direct borrow from print registration marks, doing double duty as a loading/alignment indicator.
+- **Borders**: 1px solid — `border-[#D9CEB4]` on paper, `border-[#332C21]` on the press-room canvas. No soft/faded borders.
 
 ## Components
 
 ### Buttons
-- **Shape:** Medium radius (`rounded-md: 8px`).
-- **Primary:** Background `bg-indigo-600` (`#6366f1`), text `text-white`, padding `8px 16px`. Active state transitions smoothly with subtle transform `active:scale-[0.99]`.
-- **Secondary:** Background `bg-zinc-800` (`#27272a`), border `border-zinc-700`, text `text-zinc-200`, hover `bg-zinc-700`.
-- **Ghost:** Transparent background, text `text-zinc-400`, hover `bg-zinc-900 text-zinc-100`.
+- **Shape:** Square-cut, `rounded-sm` (2px).
+- **Primary:** Fill `bg-[#FF3EA5]`, text `text-[#221D16]` (dark ink on pink — never white), bold Archivo. Active state uses the Stamped Down shadow, not a scale transform — this is a press hitting paper, not a spring.
+- **Secondary:** Transparent fill, 2px `border-[#0078BF]`, text `text-[#0078BF]`; hover fills solid blue with cream text — a "second pass" committing.
+- **Ghost:** Transparent, text `text-[#B4A98D]` on the press-room canvas or `text-[#9C927A]` on paper; hover brings up the surface's ink color at low opacity.
 
 ### Cards & Panels
-- **Corner Style:** Large radius (`rounded-xl: 12px` or `rounded-lg: 8px`).
-- **Background:** `bg-zinc-900/60` (`#121215`) with `border border-zinc-800` (`#27272a`).
-- **Internal Padding:** `16px` to `24px` for content containment.
+- **Corner Style:** `rounded-lg` (3px) — barely rounded, reads as cut, not molded.
+- **Background:** `bg-[#F6F0E3]` (Stock) with `border border-[#D9CEB4]` (Deckle Edge), Paper Lift shadow against the press-room floor.
+- **Internal Padding:** `16px`–`24px`.
+- **Corner Mark:** Every primary panel carries a small registration cross or ticket-stub notch in one corner — the "this sheet is real" mark.
 
 ### Inputs & Selects
-- **Style:** Background `bg-zinc-900/80`, border `border-zinc-700/80`, text `text-zinc-100`, radius `rounded-md: 8px`, padding `8px 12px`.
-- **Focus:** Border transition to `border-indigo-500` with ring `ring-1 ring-indigo-500/50`.
+- **Style:** `bg-[#FCF8ED]` (Fresh Sheet), `border border-[#D9CEB4]`, text `text-[#221D16]`, `rounded-sm`, padding `10px 12px`. A ruled bottom-border echo (`border-b-2 border-b-[#221D16]`) under the value, like a fill-in field on a spec sheet.
+- **Focus:** Border shifts to `border-[#FF3EA5]`; a small pink registration cross appears at the field's top-right corner instead of a glow ring.
 
-### Dropzone / Upload Canvas
-- **Style:** Dashed border `border-2 border-dashed border-zinc-700/80`, background `bg-zinc-900/30`, hover `border-indigo-500/80 bg-indigo-950/10`.
-- **Active Drag:** Border `border-indigo-400`, pulse animation, and text highlight.
+### Dropzone / Upload Plate
+- **Style:** Dashed cut-line border `border-2 border-dashed border-[#9C927A]` on a bare `bg-[#FCF8ED]` sheet — an unprinted plate waiting for a job. Large Display-weight instructional text, centered.
+- **Active Drag:** A fluorescent pink wash bleeds in from the edges (`background: radial-gradient` from `#FF3EA5` at low opacity, edges only, never a full flood) with the border solidifying to pink — ink hitting the plate.
 
-### Telemetry Badges & Chips
-- **Style:** Background `bg-zinc-900`, border `border-zinc-800`, text `text-zinc-300`, font `font-mono text-xs`, padding `2px 8px`, radius `rounded`.
-- **Success Variant:** Background `bg-emerald-950/50`, border `border-emerald-800/60`, text `text-emerald-400`.
+### Telemetry Badges & Ledger Tags
+- **Style:** Small stamped ticket tags — `bg-[#FCF8ED]`, `border border-[#D9CEB4]`, text `text-[#221D16]`, Courier Prime, `rounded-sm`, padding `2px 8px`. Every byte count, dimension, and hash renders this way.
+- **State Variants:** Success mint fill (`bg-[#12A66B]` / cream text), Warning gold fill (`bg-[#E8A200]` / dark ink text), Danger red fill (`bg-[#E23B2E]` / cream text) — colored only when reporting that specific state, neutral paper otherwise.
+
+### Preset & Format Tiles
+- **Style:** Small square-cut stamped tiles (`50%`, `25%`, `1080p`, `Square`, and each output format) — `bg-[#FCF8ED]` idle, `border border-[#D9CEB4]`; selected state fills `bg-[#0078BF]` with cream text, like a chosen plate punched into the rail.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** use tabular monospace (`font-mono`) for all byte counts, dimensions, hashes, and operation identifiers.
-- **Do** show before/after comparison previews and explicit delta metrics (e.g. `-42.8% reduction`) for every transformation.
-- **Do** preserve the dark-first obsidian canvas hierarchy (`#09090b` canvas, `#121215` panel, `#18181b` elevated surface).
-- **Do** provide one-click quick presets alongside granular numeric inputs for common dimensions and formats.
+- **Do** put every number the user must trust — size, dimensions, hashes, durations — in Courier Prime, tabular, stamped like a ledger.
+- **Do** keep all functional content (forms, previews, telemetry) on a paper surface with dark ink text; the press-room dark only ever carries chrome.
+- **Do** pair light spot inks with dark text and deep spot inks with light text (The Overprint Rule) — never guess contrast.
+- **Do** spend spot color on exactly one thing per view: the action, or the state, never both, never decoration.
+- **Do** show before/after comparison and explicit size deltas as stamped ledger tags, exactly as before.
 
 ### Don't:
+- **Don't** put body copy, form labels, or data directly on the press-room dark canvas — that surface is for wayfinding only.
+- **Don't** use soft glows, blurred shadows, or rounded glass panels — depth is a hard paper-lift offset, never a blur.
+- **Don't** run two spot colors as equals in one view; one ink leads, the rest stay neutral until it's their turn.
+- **Don't** render the registration cross, stamp texture, or paper grain as literal 3D skeuomorphism (no drop-shadowed curling corners, no photographic paper texture) — this is flat graphic print language, not a photo of paper.
 - **Don't** expose shell commands, raw filesystem paths, or backend runtime syntax to the user.
-- **Don't** use primary Electric Indigo (`#6366f1`) for non-actionable elements or decorative headers.
-- **Don't** use heavy drop shadows or bright white surfaces that break the dark workstation immersion.
 - **Don't** trigger destructive actions or discard uploaded files without explicit confirmation.

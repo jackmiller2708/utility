@@ -9,7 +9,8 @@ import { CommonModule } from '@angular/common';
 })
 export class TelemetryRowComponent {
   label = input<string>('');
-  value = input<string>('');
-  variant = input<'default' | 'cyan' | 'emerald' | 'subtle'>('default');
-  copyable = input<boolean>(false);
+  srcValue = input<string>('');
+  outValue = input<string>('');
+  filled = input<boolean>(false);
+  tone = input<'neutral' | 'mint' | 'gold'>('neutral');
 }

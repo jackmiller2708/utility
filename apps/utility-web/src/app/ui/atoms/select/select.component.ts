@@ -11,6 +11,7 @@ export interface SelectOption {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './select.component.html',
+  host: { class: 'block min-w-0 w-full' },
 })
 export class SelectComponent {
   id = input<string>('');

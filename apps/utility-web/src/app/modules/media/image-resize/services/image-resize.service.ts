@@ -2,6 +2,7 @@ import type { ArtifactModel, ArtifactFileDetails } from '../../../../domain/inde
 
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { ApiClientService } from '../../../../core/services/api-client.service.js';
+import { ArtifactModelFromImageResizeOutput } from '../../../../domain/index.js';
 import { Either, Option } from 'effect';
 import { finalize } from 'rxjs';
 
@@ -24,6 +25,18 @@ export interface DimensionValidationResult {
   isValid: boolean;
   severity: 'warning' | 'error';
   message: string;
+}
+
+export interface ComparisonSource {
+  readonly name: string;
+  readonly dimensions: string;
+  readonly sizeFormatted: string;
+  readonly formatLabel: string;
+}
+
+export interface SizeDelta {
+  readonly percent: number;
+  readonly grew: boolean;
 }
 
 @Injectable()
@@ -62,14 +75,14 @@ export class ImageResizeService {
     const q = this._formState().quality;
 
     if (q <= 50) {
-      return { label: 'Aggressive Compression (Smaller File)', variant: 'amber' as const };
+      return { label: 'Aggressive Compression (Smaller File)', variant: 'gold' as const };
     }
 
     if (q <= 85) {
-      return { label: 'Balanced Fidelity (Recommended)', variant: 'indigo' as const };
+      return { label: 'Balanced Fidelity (Recommended)', variant: 'blue' as const };
     }
 
-    return { label: 'Maximum Fidelity (Larger File)', variant: 'emerald' as const };
+    return { label: 'Maximum Fidelity (Larger File)', variant: 'mint' as const };
   });
 
   readonly dimensionValidation = computed<Option.Option<DimensionValidationResult>>(() => {
@@ -175,15 +188,73 @@ export class ImageResizeService {
     return `${wStr} × ${hStr}`;
   });
 
-  readonly sizeSavingsPercentage = computed(() => {
+  readonly sizeDelta = computed<SizeDelta | null>(() => {
     return Option.Do.pipe(
       Option.andThen(() => Option.all([this._selectedImage(), this._resultArtifact()])),
-      Option.filterMap(([{ size: orig }, { size: res }]) => res >= orig
-        ? Option.none()
-        : Option.some(Math.round(((orig - res) / orig) * 100)
-      )),
+      Option.map(([{ size: orig }, { size: res }]) => ({
+        percent: Math.round(Math.abs((res - orig) / orig) * 100),
+        grew: res > orig,
+      })),
       Option.getOrNull
     )
+  });
+
+  readonly sourceFormatLabel = computed(() => {
+    const img = this.selectedImage();
+
+    if (!img) {
+      return '';
+    }
+
+    const ext = img.file.type?.split('/')[1] || img.name.split('.').pop() || '';
+
+    return ext.toUpperCase();
+  });
+
+  readonly outputFormatLabel = computed(() => {
+    const fmt = this._formState().outputFormat;
+
+    return fmt ? fmt.toUpperCase() : this.sourceFormatLabel();
+  });
+
+  readonly comparisonSource = computed<ComparisonSource | null>(() => {
+    const img = this.selectedImage();
+
+    if (!img) {
+      return null;
+    }
+
+    return {
+      name: img.name,
+      dimensions: `${img.width}×${img.height}`,
+      sizeFormatted: this.formatBytes(img.size),
+      formatLabel: this.sourceFormatLabel(),
+    };
+  });
+
+  readonly targetDimensionsLabel = computed(() => {
+    const s = this._formState();
+    const img = this._selectedImage();
+    let w = s.targetWidth;
+    let h = s.targetHeight;
+
+    if (Option.isSome(img) && this._lockAspectRatio()) {
+      const ratio = img.value.width / img.value.height;
+
+      if (Option.isSome(w) && Option.isNone(h)) {
+        h = Option.some(Math.round(w.value / ratio));
+      }
+
+      if (Option.isNone(w) && Option.isSome(h)) {
+        w = Option.some(Math.round(h.value * ratio));
+      }
+    }
+
+    if (Option.isNone(w) || Option.isNone(h)) {
+      return '—';
+    }
+
+    return `${w.value}×${h.value}`;
   });
 
   readonly artifactDownloadUrl = computed(() => this._resultArtifact().pipe(Option.map(({ id }) => 
@@ -362,14 +433,7 @@ export class ImageResizeService {
       .pipe(finalize(() => this._isProcessing.set(false)))
       .subscribe(Either.match({
         onRight: (res) => {
-          this._resultArtifact.set(Option.some({
-            id: res.artifact.id,
-            name: res.artifact.name,
-            mimeType: res.artifact.mimeType,
-            size: res.artifact.size,
-            checksum: res.artifact.checksum,
-            createdAt: res.artifact.createdAt,
-          }));
+          this._resultArtifact.set(Option.some(ArtifactModelFromImageResizeOutput.from(res)));
         },
         onLeft: (err) => {
           this._errorMessage.set(Option.some(err.message || 'Failed to process image transformation'));

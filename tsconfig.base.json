@@ -12,6 +12,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
+      "@utility/adapter": ["./packages/adapter/src/index.ts"],
+      "@utility/adapter/*": ["./packages/adapter/src/*"],
       "@utility/domain": ["./packages/domain/src/index.ts"],
       "@utility/domain/*": ["./packages/domain/src/*"],
       "@utility/runtime": ["./packages/runtime/src/index.ts"],

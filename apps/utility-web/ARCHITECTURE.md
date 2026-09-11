@@ -27,3 +27,8 @@ This document serves as the immutable architectural specification for `apps/util
 4. **Separation of Template and TypeScript Concerns**:
    - Every component MUST have its template in a dedicated `.html` file (`templateUrl: './...component.html'`).
    - No inline HTML strings in `.ts` files. This ensures mental separation of concerns, syntax highlighting, and maintainability.
+
+5. **DTO → Domain Model Adaptation**:
+   - A response type from `@utility/protocol` (parsed JSON DTO) is never consumed directly by feature-module logic.
+   - On first use, it is adapted into its corresponding `domain/models/*` class/interface via an adaptor implementing `From<Source, Target>` from `@utility/adapter` (mirroring Rust's `From<T>`/`Into<T>`).
+   - The adaptor is defined alongside the domain model it targets, in `domain/models/`, since `domain/` here already depends on `@utility/protocol` for its mappers.

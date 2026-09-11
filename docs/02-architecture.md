@@ -107,6 +107,29 @@ Linux
 
 Pure domain types can be shared without importing infrastructure.
 
+## DTO → domain adaptation
+
+A DTO decoded off the wire (protocol schema output) is never consumed directly by domain logic. On first use it is adapted into its corresponding domain model, via an adaptor implementing `From<Source, Target>` from `@utility/adapter` — mirroring Rust's `From<T>` / `Into<T>`.
+
+`domain` stays a zero-dependency package, so the adaptor cannot live there without creating a cycle (`protocol` already depends on `domain`). It is instead defined alongside the DTO, in whichever package already owns the `Source` type and is therefore already permitted to depend on `domain` — normally `protocol` itself:
+
+```ts
+// packages/protocol/src/artifact.ts
+import type { From } from "@utility/adapter";
+import type { Artifact } from "@utility/domain";
+
+export const ArtifactSchema = Schema.Struct({ /* ... */ });
+export type ArtifactResponse = typeof ArtifactSchema.Type;
+
+export const ArtifactFromResponse: From<ArtifactResponse, Artifact> = {
+  from: (dto) => ({ id: ArtifactId(dto.id), name: dto.name /* ... */ }),
+};
+```
+
+A frontend module that keeps its own local domain models (e.g. `apps/utility-web/src/app/domain/`) already depends on `@utility/protocol` directly, so there the adaptor can sit next to the domain model class itself, as originally intended.
+
+Callers decode the DTO (Effect Schema), then adapt before running any domain logic — never branch on raw parsed JSON shape.
+
 ## Monorepo
 
 ```text
@@ -117,6 +140,7 @@ utility-platform/
 │
 ├── packages/
 │   ├── domain/
+│   ├── adapter/
 │   ├── runtime/
 │   ├── protocol/
 │   ├── toolkit/

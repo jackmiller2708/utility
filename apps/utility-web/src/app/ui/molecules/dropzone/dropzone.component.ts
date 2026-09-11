@@ -1,12 +1,11 @@
 import { Component, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IconComponent } from '../../atoms/icon/icon.component.js';
 import { BadgeComponent } from '../../atoms/badge/badge.component.js';
 
 @Component({
   selector: 'app-dropzone',
   standalone: true,
-  imports: [CommonModule, IconComponent, BadgeComponent],
+  imports: [CommonModule, BadgeComponent],
   templateUrl: './dropzone.component.html',
 })
 export class DropzoneComponent {

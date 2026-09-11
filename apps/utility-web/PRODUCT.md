@@ -8,20 +8,20 @@ web
 
 ## Users
 
-Power users, developers, and creators operating a private personal utility server who need fast, secure, local file and media transformations (image resizing, format conversion, PDF inspection/extraction, and media operations) without manual CLI wrangling or third-party cloud uploads.
+Graphic designers and creators who need fast, secure media transformations for their daily design workflows without relying on third-party cloud uploads. Secondary: power users and developers operating the same private utility server for local file and media transformations without manual CLI wrangling.
 
 ## Product Purpose
 
-Utility Web is the modern, reactive web client for the Utility Platform. It provides an intuitive interface for discovering available tools, configuring typed operation parameters, uploading files, monitoring execution in real-time, and inspecting/downloading processed output artifacts.
+Utility Web is the modern, reactive web client for the Utility Platform. It gives designers and creators a frictionless daily workbench: drag-and-drop file selection, granular parameter tuning, live inspection, and side-by-side artifact comparison before download — backed by discovering available tools, configuring typed operation parameters, and monitoring execution in real-time.
 
 ## Positioning
 
-A private, self-hosted utility workstation with typed schema-driven safety, ephemeral workspace isolation, and zero telemetry—replacing ad-hoc shell scripts and untrusted third-party web converters with local, reproducible operations.
+A fast, secure, local-first media transformation workstation for designers and creators — typed schema-driven safety, ephemeral workspace isolation, and zero telemetry — replacing third-party cloud upload converters and ad-hoc shell scripts with private, reproducible, in-browser-driven operations that never send source files to an external server.
 
 ## Operating Context
 
 - **Environment**: Modern desktop and mobile browsers accessing the Utility API server over localhost or authenticated local area networks (LAN).
-- **Workflows**: Drag-and-drop single/batch file selection, live dimension & format inspection, parameter tuning via granular forms and quick presets, real-time job execution, and side-by-side artifact comparison & download.
+- **Workflows**: Drag-and-drop file selection, granular form parameter tuning, live dimension & format inspection, and side-by-side artifact comparison before downloading final assets. Real-time job execution and quick preset shortcuts speed up repetitive daily tasks.
 - **Integration**: Communicates with the NestJS + Effect backend (`apps/utility-api`) using schema-validated REST/multipart contracts.
 
 ## Capabilities and Constraints
@@ -40,7 +40,7 @@ A private, self-hosted utility workstation with typed schema-driven safety, ephe
 
 ## Brand Commitments
 
-- **Tone & Aesthetic**: Precise, utilitarian, developer-grade, and responsive.
+- **Tone & Aesthetic**: Precise, secure, and creator-friendly — approachable for designers, not gated behind developer-grade or command-line framing.
 - **UI Language**: Dark-themed by default, focused typography, clear status indicators, and minimal distraction.
 
 ## Evidence on Hand
@@ -51,10 +51,11 @@ A private, self-hosted utility workstation with typed schema-driven safety, ephe
 
 ## Product & Frontend Architecture Principles
 
-1. **Tools Express User Intent**: Present clean, human-centered parameter forms rather than leaky command-line abstractions.
-2. **Immediate & Trustworthy Feedback**: Provide instant visual previews, precise file size deltas, and cryptographic integrity hashes for all artifacts.
-3. **Atomic Design System**: Pure presentation components in `ui/{atoms,molecules,organisms,templates}` decoupled from business logic.
-4. **Deep Modular Routing**: Feature workflows encapsulated in `app/modules/*` with dedicated routes, services, and components.
-5. **Core & Domain Layering**: `domain/*` manages contracts/models and `core/*` manages runtime/HTTP/auth services.
-6. **Separated Template Files**: All templates reside in dedicated `.html` files (`templateUrl`) for clear mental separation.
-7. **Privacy & Sandboxed Safety**: Ensure all transformations remain strictly local and isolated without OS path leakage.
+1. **Frictionless Ergonomics**: Prioritize drag-and-drop, smart presets, and single-click actions to eliminate repetitive daily design tasks.
+2. **Immediate & Trustworthy Feedback**: Provide instant visual previews, precise raw-vs-output file size deltas, and cryptographic integrity hashes for all artifacts.
+3. **Human-Centered Design**: Present clean, accessible parameter forms rather than confusing command-line abstractions.
+4. **Atomic Design System**: Pure presentation components in `ui/{atoms,molecules,organisms,templates}` decoupled from business logic.
+5. **Deep Modular Routing**: Feature workflows encapsulated in `app/modules/*` with dedicated routes, services, and components.
+6. **Core & Domain Layering**: `domain/*` manages contracts/models and `core/*` manages runtime/HTTP/auth services.
+7. **Separated Template Files**: All templates reside in dedicated `.html` files (`templateUrl`) for clear mental separation.
+8. **Privacy & Sandboxed Safety**: Ensure all transformations remain strictly local and isolated without OS path leakage.

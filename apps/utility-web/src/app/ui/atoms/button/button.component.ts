@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './button.component.html',
+  host: { class: 'inline-flex max-w-full' },
 })
 export class ButtonComponent {
   variant = input<'primary' | 'secondary' | 'ghost' | 'success'>('primary');

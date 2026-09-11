@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '../../atoms/button/button.component.js';
 
@@ -14,4 +14,19 @@ export class FileSummaryCardComponent {
   sizeFormatted = input<string>('');
   previewUrl = input<string | null>(null);
   changeFile = output<void>();
+
+  confirmingRemoval = signal(false);
+
+  requestRemoval(): void {
+    this.confirmingRemoval.set(true);
+  }
+
+  cancelRemoval(): void {
+    this.confirmingRemoval.set(false);
+  }
+
+  confirmRemoval(): void {
+    this.confirmingRemoval.set(false);
+    this.changeFile.emit();
+  }
 }

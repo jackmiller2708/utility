@@ -4,9 +4,12 @@
     [checked]="checked()"
     [disabled]="disabled()"
     (change)="onChange($event)"
-    class="mt-0.5 rounded border-zinc-700 bg-zinc-900 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+    class="w-4 h-4 mt-0.5 rounded-sm border border-paper-deckle bg-paper-fresh accent-riso-pink cursor-pointer shrink-0"
   />
-  <span class="text-xs text-zinc-300 leading-tight">
-    {{ label() }}
+  <span class="flex-1 min-w-0">
+    <span class="block text-sm font-bold leading-relaxed text-ink">{{ label() }}</span>
+    @if (description()) {
+      <span class="block text-sm leading-relaxed text-ink-muted">{{ description() }}</span>
+    }
   </span>
 </label>

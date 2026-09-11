@@ -8,6 +8,8 @@ import { CommonModule } from '@angular/common';
   templateUrl: './badge.component.html',
 })
 export class BadgeComponent {
-  variant = input<'neutral' | 'indigo' | 'cyan' | 'emerald' | 'amber' | 'crimson'>('neutral');
+  variant = input<'neutral' | 'pink' | 'blue' | 'mint' | 'gold' | 'red'>('neutral');
+  /** paper: a stamped ledger tag on a working surface. press: a chrome tag on the dark canvas. */
+  surface = input<'paper' | 'press'>('paper');
   mono = input<boolean>(true);
 }
