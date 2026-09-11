@@ -1,8 +1,8 @@
 <app-workbench-layout
   [authStatus]="runtimeStatus.authStatus()"
   [tools]="runtimeStatus.tools()"
-  [activeOperationId]="activeOperationId()"
-  (operationSelected)="setOperation($event)"
+  [activeToolId]="activeToolId()"
+  (toolSelected)="selectTool($event)"
 >
   <router-outlet></router-outlet>
 </app-workbench-layout>

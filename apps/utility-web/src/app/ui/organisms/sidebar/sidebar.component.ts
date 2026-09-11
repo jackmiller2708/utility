@@ -12,6 +12,6 @@ import type { ToolModel } from '../../../domain/index.js';
 })
 export class SidebarComponent {
   tools = input<readonly ToolModel[]>([]);
-  activeOperationId = input<string>('image.resize');
-  selectedOperationId = output<string>();
+  activeToolId = input<string>('image');
+  selectedToolId = output<string>();
 }

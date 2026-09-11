@@ -1,0 +1,21 @@
+<div class="p-4 bg-riso-red/10 border border-riso-red rounded-sm flex flex-col gap-2 min-w-0">
+  <div class="flex items-center justify-between gap-2">
+    <h4 class="text-sm font-bold text-riso-red truncate">{{ title() }}</h4>
+    <button
+      type="button"
+      (click)="retryClicked.emit()"
+      class="inline-flex items-center gap-1 px-2 py-1 text-xs font-mono font-bold rounded-sm bg-riso-red text-paper-fresh transition-colors cursor-pointer shrink-0"
+      [attr.aria-label]="retryLabel()"
+    >
+      <app-icon name="play" className="w-3 h-3"></app-icon>
+      <span>{{ retryLabel() }}</span>
+    </button>
+  </div>
+  <p class="text-sm leading-relaxed text-ink break-words">{{ message() }}</p>
+  @if (suggestion()) {
+    <div class="pt-2 border-t border-riso-red/30 flex items-start gap-1.5 text-xs font-mono text-ink-muted">
+      <span class="font-bold shrink-0 text-riso-red">FIX:</span>
+      <span class="min-w-0 break-words">{{ suggestion() }}</span>
+    </div>
+  }
+</div>

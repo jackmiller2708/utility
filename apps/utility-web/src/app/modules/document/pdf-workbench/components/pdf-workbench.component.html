@@ -1,0 +1,170 @@
+<div class="flex flex-col gap-6 min-w-0">
+  <div class="flex flex-col gap-2 min-w-0">
+    <div class="flex items-end gap-4 flex-wrap">
+      <h1 class="text-[clamp(1.875rem,3.2vw,2.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-press-text">
+        PDF documents
+      </h1>
+      <app-badge variant="pink" surface="press">pdf</app-badge>
+    </div>
+    <p class="text-[0.9375rem] leading-relaxed text-press-text-muted max-w-[70ch]">
+      Drop in a PDF to see its vitals, then render its pages to images or pull out everything embedded inside.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 min-w-0">
+    <section class="lg:col-span-5 min-w-0 relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift">
+      <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
+
+      <div class="px-6 py-5 border-b border-paper-hairline">
+        <h2 class="text-xl font-extrabold text-ink">Your document</h2>
+      </div>
+
+      <div class="p-6 flex flex-col gap-6 min-w-0">
+        @let selectedPdf = service.selectedPdf();
+        @let inspectResult = service.inspectResult();
+
+        @if (!selectedPdf) {
+          <app-dropzone
+            title="Drop PDF or browse"
+            accept="application/pdf"
+            [supportedFormats]="['PDF']"
+            (fileSelected)="service.setPdf($event)"
+          ></app-dropzone>
+        } @else {
+          <app-file-summary-card
+            [name]="selectedPdf.name"
+            [dimensions]="service.isInspecting() ? 'Reading…' : (inspectResult ? inspectResult.pages + ' page' + (inspectResult.pages === 1 ? '' : 's') : '')"
+            [sizeFormatted]="service.formatBytes(selectedPdf.size)"
+            [previewUrl]="null"
+            itemLabel="document"
+            (changeFile)="service.resetPdf()"
+          ></app-file-summary-card>
+        }
+
+        @if (inspectResult) {
+          <div class="flex flex-wrap gap-1.5">
+            <app-badge variant="neutral">{{ inspectResult.pages }} PAGES</app-badge>
+            @if (inspectResult.title) {
+              <app-badge variant="neutral">{{ inspectResult.title }}</app-badge>
+            }
+            @if (inspectResult.author) {
+              <app-badge variant="neutral">{{ inspectResult.author }}</app-badge>
+            }
+          </div>
+        }
+
+        @if (selectedPdf && inspectResult) {
+          <div class="flex flex-col gap-4 min-w-0 border-t border-paper-hairline pt-5">
+            <h3 class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">RENDER PAGES</h3>
+
+            <app-tile-group
+              heading="RESOLUTION"
+              [tiles]="dpiTiles"
+              [activeId]="service.dpi() + ''"
+              activeInk="blue"
+              (tileSelected)="onDpiSelected($event)"
+            ></app-tile-group>
+
+            <div class="flex flex-col gap-2 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">PAGE RANGE</span>
+                @if (service.isRangeActive()) {
+                  <button
+                    type="button"
+                    (click)="service.clearRange()"
+                    class="text-xs font-mono font-bold tracking-[0.04em] text-riso-blue hover:text-riso-blue-hover cursor-pointer"
+                  >
+                    ALL PAGES
+                  </button>
+                }
+              </div>
+              <div class="grid grid-cols-2 gap-2 min-w-0">
+                <app-input
+                  ariaLabel="First page"
+                  type="number"
+                  placeholder="1"
+                  unitSuffix="FROM"
+                  [value]="service.firstPage()"
+                  (valueChange)="service.updateFirstPage($event)"
+                ></app-input>
+                <app-input
+                  ariaLabel="Last page"
+                  type="number"
+                  [placeholder]="inspectResult.pages + ''"
+                  unitSuffix="TO"
+                  [value]="service.lastPage()"
+                  (valueChange)="service.updateLastPage($event)"
+                ></app-input>
+              </div>
+            </div>
+
+            @if (costEstimateLabel(); as estimate) {
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">ESTIMATED COST</span>
+                <span class="inline-block bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5 text-xs font-mono font-bold text-ink">{{ estimate }}</span>
+              </div>
+            }
+
+            <app-button
+              variant="primary"
+              size="lg"
+              class="[&>button]:w-full"
+              [disabled]="service.resolvedPageCount() <= 0 || service.isProcessing()"
+              [loading]="service.isProcessing() && service.activeAction() === 'render'"
+              (clicked)="service.executeRenderPages()"
+            >
+              @if (service.isProcessing() && service.activeAction() === 'render') {
+                <span>Rendering…</span>
+              } @else {
+                <span>Render pages</span>
+              }
+            </app-button>
+          </div>
+
+          <div class="flex flex-col gap-3 min-w-0 border-t border-paper-hairline pt-5">
+            <h3 class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">EXTRACT IMAGES</h3>
+            <p class="text-sm leading-relaxed text-ink-muted max-w-[70ch]">
+              Pulls out every embedded raster image at its original resolution — logos, photos, artwork placed in the document.
+            </p>
+            <app-button
+              variant="secondary"
+              size="lg"
+              class="[&>button]:w-full"
+              [disabled]="service.isProcessing()"
+              [loading]="service.isProcessing() && service.activeAction() === 'extract'"
+              (clicked)="service.executeExtractImages()"
+            >
+              @if (service.isProcessing() && service.activeAction() === 'extract') {
+                <span>Extracting…</span>
+              } @else {
+                <span>Extract images</span>
+              }
+            </app-button>
+          </div>
+        }
+
+        @if (service.errorDiagnostic() | option; as diag) {
+          <app-error-diagnostic
+            [title]="diag.title"
+            [message]="diag.message"
+            [suggestion]="diag.suggestion"
+            retryLabel="Retry"
+            (retryClicked)="service.activeAction() === 'extract' ? service.executeExtractImages() : service.executeRenderPages()"
+          ></app-error-diagnostic>
+        }
+      </div>
+    </section>
+
+    <section class="lg:col-span-7 min-w-0">
+      <app-gallery-grid
+        [title]="galleryTitle()"
+        [items]="galleryItems()"
+        [loading]="service.isProcessing()"
+        [elapsedLabel]="elapsedLabel()"
+        emptyTitle="No output yet"
+        emptyMessage="Render pages or extract images to see results here."
+        (downloadAllClicked)="downloadAll()"
+      ></app-gallery-grid>
+    </section>
+  </div>
+</div>

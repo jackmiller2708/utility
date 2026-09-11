@@ -13,6 +13,6 @@ import type { AuthStatusModel, ToolModel } from '../../../domain/index.js';
 export class WorkbenchLayoutComponent {
   authStatus = input<AuthStatusModel | null>(null);
   tools = input<readonly ToolModel[]>([]);
-  activeOperationId = input<string>('image.resize');
-  operationSelected = output<string>();
+  activeToolId = input<string>('image');
+  toolSelected = output<string>();
 }

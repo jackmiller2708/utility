@@ -8,13 +8,40 @@ const isErrorEvent = (): SafeRefinement<InstanceType<typeof ErrorEvent>, never> 
 	(error: unknown) => typeof globalThis.ErrorEvent !== 'undefined' && error instanceof globalThis.ErrorEvent
 ) as any;
 
-const matchErrorMessage = Match.type<HttpErrorResponse>().pipe(
-	Match.when({ error: isErrorEvent() }, ({ error }) => `Client Error: ${error.message}`),
+/**
+ * NestJS's default exception body shape is `{ statusCode, message, error }`.
+ * `message` is a plain string for most exceptions, or an array of strings for
+ * validation-pipe failures. Angular has already JSON-parsed this into `error.error`.
+ */
+const extractBackendMessage = (body: unknown): string | undefined => {
+	if (!body || typeof body !== 'object' || !('message' in body)) {
+		return undefined;
+	}
+
+	const message = (body as { message: unknown }).message;
+
+	if (typeof message === 'string' && message.length > 0) {
+		return message;
+	}
+
+	if (Array.isArray(message) && message.every((m) => typeof m === 'string')) {
+		return message.join(', ');
+	}
+
+	return undefined;
+};
+
+const matchStatusMessage = Match.type<HttpErrorResponse>().pipe(
 	Match.when({ status: 401 }, () => 'Unauthorized! Please log in again.'),
 	Match.when({ status: 403 }, () => 'Forbidden! You do not have permission to access this.'),
 	Match.when({ status: 404 }, () => 'The requested resource was not found.'),
 	Match.when({ status: 500 }, () => 'Internal Server Error. Please try again later.'),
 	Match.orElse((error) => `Error Code ${error.status}: ${error.message}`)
+);
+
+const matchErrorMessage = Match.type<HttpErrorResponse>().pipe(
+	Match.when({ error: isErrorEvent() }, ({ error }) => `Client Error: ${error.message}`),
+	Match.orElse((error) => extractBackendMessage(error.error) ?? matchStatusMessage(error))
 );
 
 export const responseInterceptor: HttpInterceptorFn = (req, next) => next(req).pipe(

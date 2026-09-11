@@ -3,33 +3,23 @@
     <h3 class="text-xs font-mono font-bold tracking-[0.04em] text-press-text-muted">TOOLS</h3>
   </div>
 
-  <div class="space-y-5">
+  <div>
     @for (tool of tools(); track tool.id) {
-      <div class="space-y-1">
-        <div class="px-5 flex items-center justify-between gap-2">
-          <span class="text-sm font-bold text-press-text truncate">{{ tool.name }}</span>
-          <app-badge variant="neutral" surface="press">{{ tool.category }}</app-badge>
-        </div>
-
-        <div>
-          @for (op of tool.operations; track op.id) {
-            <button
-              type="button"
-              (click)="selectedOperationId.emit(op.id)"
-              [class.bg-riso-pink-pooled]="activeOperationId() === op.id"
-              [class.border-l-riso-pink]="activeOperationId() === op.id"
-              [class.text-press-text]="activeOperationId() === op.id"
-              [class.font-bold]="activeOperationId() === op.id"
-              [class.border-l-transparent]="activeOperationId() !== op.id"
-              [class.text-press-text-muted]="activeOperationId() !== op.id"
-              [class.hover:text-press-text]="activeOperationId() !== op.id"
-              class="w-full text-left pl-[17px] pr-5 py-2.5 text-sm border-l-[3px] transition-colors flex items-center gap-2 truncate cursor-pointer"
-            >
-              <span class="truncate">{{ op.name }}</span>
-            </button>
-          }
-        </div>
-      </div>
+      <button
+        type="button"
+        (click)="selectedToolId.emit(tool.id)"
+        [class.bg-riso-pink-pooled]="activeToolId() === tool.id"
+        [class.border-l-riso-pink]="activeToolId() === tool.id"
+        [class.text-press-text]="activeToolId() === tool.id"
+        [class.font-bold]="activeToolId() === tool.id"
+        [class.border-l-transparent]="activeToolId() !== tool.id"
+        [class.text-press-text-muted]="activeToolId() !== tool.id"
+        [class.hover:text-press-text]="activeToolId() !== tool.id"
+        class="w-full text-left pl-[17px] pr-5 py-2.5 text-sm border-l-[3px] transition-colors flex items-center justify-between gap-2 cursor-pointer"
+      >
+        <span class="truncate">{{ tool.name }}</span>
+        <app-badge variant="neutral" surface="press">{{ tool.category }}</app-badge>
+      </button>
     }
   </div>
 
@@ -37,14 +27,6 @@
   <div class="pt-5 border-t border-press-line mx-5 space-y-2">
     <h4 class="text-xs font-mono font-bold tracking-[0.04em] text-press-text-muted">PLANNED</h4>
     <div class="space-y-1.5">
-      <div class="flex items-center justify-between text-sm text-press-text-muted">
-        <div class="flex items-center gap-2">
-          <app-icon name="document" className="w-3.5 h-3.5"></app-icon>
-          <span>PDF (Poppler)</span>
-        </div>
-        <app-badge variant="neutral" surface="press">M2</app-badge>
-      </div>
-
       <div class="flex items-center justify-between text-sm text-press-text-muted">
         <div class="flex items-center gap-2">
           <app-icon name="clock" className="w-3.5 h-3.5"></app-icon>
@@ -57,6 +39,6 @@
 
   <!-- Sandbox note -->
   <div class="mx-5 border-t border-press-line pt-4 font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-press-text-muted leading-relaxed">
-    IMAGES CLEAR WHEN<br>YOU CLOSE THIS TAB
+    FILES CLEAR WHEN<br>YOU CLOSE THIS TAB
   </div>
 </nav>

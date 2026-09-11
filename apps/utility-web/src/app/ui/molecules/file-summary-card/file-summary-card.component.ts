@@ -13,6 +13,8 @@ export class FileSummaryCardComponent {
   dimensions = input<string>('');
   sizeFormatted = input<string>('');
   previewUrl = input<string | null>(null);
+  /** Noun used in the removal-confirmation copy, e.g. "image", "document". */
+  itemLabel = input<string>('image');
   changeFile = output<void>();
 
   confirmingRemoval = signal(false);

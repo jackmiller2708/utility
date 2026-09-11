@@ -27,6 +27,13 @@ import {
   UnsupportedImageFormatError,
   ImageProcessingError,
 } from "@utility/image";
+import {
+  pdfTool,
+  pdfMergeSplitTool,
+  PopplerPdfServiceLive,
+  InvalidPdfError,
+  PdfProcessingError,
+} from "@utility/pdf";
 import { SecurityError, ValidationError } from "@utility/domain";
 
 // Compose the full Live layer
@@ -36,7 +43,8 @@ export const AppLive = Layer.mergeAll(
   WorkspaceManagerLive.pipe(Layer.provide(FileSystemLive)),
   ArtifactStoreLive.pipe(Layer.provide(FileSystemLive)),
   SharpImageServiceLive,
-  makeToolRegistry([imageTool])
+  PopplerPdfServiceLive.pipe(Layer.provide(Layer.mergeAll(ProcessLive, FileSystemLive))),
+  makeToolRegistry([imageTool, pdfTool, pdfMergeSplitTool])
 ).pipe(Layer.orDie);
 
 export type AppServices = Layer.Layer.Success<typeof AppLive>;
@@ -97,6 +105,14 @@ export class EffectRuntimeService implements OnModuleInit {
 
     if (error instanceof ImageProcessingError) {
       return new BadRequestException(`Image processing failed: ${error.message}`);
+    }
+
+    if (error instanceof InvalidPdfError) {
+      return new BadRequestException(error.message);
+    }
+
+    if (error instanceof PdfProcessingError) {
+      return new BadRequestException(error.message);
     }
 
     if (error instanceof SecurityError) {

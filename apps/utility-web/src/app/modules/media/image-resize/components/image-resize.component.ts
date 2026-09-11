@@ -1,4 +1,4 @@
-import { ButtonComponent, BadgeComponent, InputComponent, ToggleComponent, IconComponent, DropzoneComponent, FileSummaryCardComponent, TelemetryDeckComponent, TileGroupComponent } from '@app/ui';
+import { ButtonComponent, BadgeComponent, InputComponent, ToggleComponent, IconComponent, DropzoneComponent, FileSummaryCardComponent, TelemetryDeckComponent, TileGroupComponent, ErrorDiagnosticComponent } from '@app/ui';
 import { ImageResizeService } from '../services/image-resize.service';
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -18,6 +18,7 @@ import { OptionPipe } from '@app/core/pipes/option.pipe';
     FileSummaryCardComponent,
     TelemetryDeckComponent,
     TileGroupComponent,
+    ErrorDiagnosticComponent,
     OptionPipe
   ],
   providers: [ImageResizeService],

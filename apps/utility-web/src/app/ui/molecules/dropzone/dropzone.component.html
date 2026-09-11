@@ -12,6 +12,7 @@
     #fileInput
     type="file"
     [accept]="accept()"
+    [multiple]="multiple()"
     class="hidden"
     (change)="onFileInputChange($event)"
   />
@@ -23,8 +24,10 @@
       <app-badge variant="neutral">{{ fmt }}</app-badge>
     }
   </div>
-  <div class="mt-3 flex items-center justify-center gap-1.5 text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">
-    <span>or paste</span>
-    <kbd class="px-1.5 py-0.5 rounded-sm bg-paper border border-paper-deckle text-ink whitespace-nowrap">Ctrl+V</kbd>
-  </div>
+  @if (showPasteHint()) {
+    <div class="mt-3 flex items-center justify-center gap-1.5 text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">
+      <span>or paste</span>
+      <kbd class="px-1.5 py-0.5 rounded-sm bg-paper border border-paper-deckle text-ink whitespace-nowrap">Ctrl+V</kbd>
+    </div>
+  }
 </div>

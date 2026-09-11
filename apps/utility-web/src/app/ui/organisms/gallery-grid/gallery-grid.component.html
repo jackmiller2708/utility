@@ -1,0 +1,45 @@
+<div class="h-full flex flex-col bg-paper border border-paper-deckle rounded-lg shadow-paper-lift min-h-[420px]">
+  <div class="px-6 py-5 border-b border-paper-hairline flex items-center gap-3 flex-wrap">
+    <h2 class="flex-1 text-xl font-extrabold text-ink">{{ title() }}</h2>
+    @if (!loading() && items().length > 0) {
+      <app-badge variant="neutral">{{ items().length }}</app-badge>
+      @if (items().length > 1) {
+        <button
+          type="button"
+          (click)="downloadAllClicked.emit()"
+          class="inline-flex items-center gap-2 border-2 border-riso-blue text-riso-blue hover:bg-riso-blue hover:text-paper-fresh rounded-sm px-3 py-1.5 text-xs font-mono font-bold tracking-[0.04em] transition-colors cursor-pointer"
+        >
+          <app-icon name="download" className="w-3.5 h-3.5"></app-icon>
+          <span>DOWNLOAD ALL</span>
+        </button>
+      }
+    }
+  </div>
+
+  <div class="flex-1 p-6">
+    @if (loading()) {
+      <div class="h-full flex flex-col items-center justify-center gap-3 text-center" role="status" aria-live="polite">
+        <span class="reg-cross reg-cross-spin text-riso-pink" style="width:18px;height:18px"></span>
+        <span class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">
+          Working{{ elapsedLabel() ? ' · ' + elapsedLabel() : '…' }}
+        </span>
+      </div>
+    } @else if (items().length > 0) {
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        @for (item of items(); track item.id) {
+          <app-gallery-tile
+            [label]="item.label"
+            [sizeFormatted]="item.sizeFormatted"
+            [previewUrl]="item.previewUrl"
+            [downloadUrl]="item.downloadUrl"
+          ></app-gallery-tile>
+        }
+      </div>
+    } @else {
+      <div class="h-full flex flex-col items-center justify-center text-center gap-1.5 border border-dashed border-paper-deckle rounded-sm p-6">
+        <p class="text-sm font-bold text-ink">{{ emptyTitle() }}</p>
+        <p class="text-sm text-ink-muted max-w-[32ch]">{{ emptyMessage() }}</p>
+      </div>
+    }
+  </div>
+</div>

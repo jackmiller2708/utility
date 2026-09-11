@@ -4,27 +4,21 @@
     <div class="flex items-baseline gap-2.5">
       <span class="text-[1.375rem] font-black tracking-[-0.01em] leading-none text-press-text">UTILITY</span>
       <span class="font-mono text-xs font-bold tracking-[0.04em] text-press-text-muted">IMAGES</span>
-      <app-badge variant="neutral" surface="press">v0.1.0</app-badge>
     </div>
 
     <div class="flex-1"></div>
 
-    <!-- Runtime status -->
+    <!-- Status -->
     <div class="flex items-center gap-3">
-      @if (authStatus(); as auth) {
+      @if (authStatus()) {
         <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono">
-          <span class="w-2 h-2 rounded-full bg-riso-mint" style="animation: ink-pulse 2s ease-in-out infinite"></span>
-          <span class="font-bold tracking-[0.04em] text-press-text">
-            {{ auth.isLocal ? 'LOCALHOST' : 'AUTHENTICATED' }}
-          </span>
-          <span class="text-press-text-muted hidden md:inline border-l border-press-line pl-2">
-            {{ auth.device?.deviceId ? (auth.device.deviceId.slice(0, 8) + '…') : '127.0.0.1' }}
-          </span>
+          <span class="w-2 h-2 rounded-full bg-riso-mint shrink-0" style="animation: ink-pulse 2s ease-in-out infinite"></span>
+          <span class="font-bold leading-none tracking-[0.04em] text-press-text">READY</span>
         </div>
       } @else {
         <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono">
-          <span class="w-2 h-2 rounded-full bg-riso-gold" style="animation: ink-pulse 1.2s ease-in-out infinite"></span>
-          <span class="font-bold tracking-[0.04em] text-press-text-muted">CONNECTING&hellip;</span>
+          <span class="w-2 h-2 rounded-full bg-riso-gold shrink-0" style="animation: ink-pulse 1.2s ease-in-out infinite"></span>
+          <span class="font-bold leading-none tracking-[0.04em] text-press-text-muted">STARTING&hellip;</span>
         </div>
       }
     </div>

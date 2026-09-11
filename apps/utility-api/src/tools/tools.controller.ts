@@ -7,10 +7,11 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
   BadRequestException,
   NotFoundException,
 } from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import { Effect } from "effect";
 import { DeviceAuthGuard } from "../auth/device-auth.guard.js";
 import { EffectRuntimeService } from "../effect/effect-runtime.service.js";
@@ -101,6 +102,85 @@ export class ToolsController {
               },
               { workspace: ws }
             );
+          })
+        );
+      })
+    );
+  }
+
+  @Post("pdf.split")
+  @UseInterceptors(FileInterceptor("file"))
+  async splitPdf(
+    @UploadedFile() file: MulterUploadedFile,
+    @Body() body: { ranges?: string }
+  ) {
+    if (!file) {
+      throw new BadRequestException("A PDF file is required");
+    }
+
+    let ranges: { firstPage: number; lastPage: number }[];
+    try {
+      ranges = JSON.parse(body.ranges || "[]");
+    } catch {
+      throw new BadRequestException("ranges must be valid JSON");
+    }
+
+    if (!Array.isArray(ranges) || ranges.length === 0) {
+      throw new BadRequestException("At least one page range is required");
+    }
+
+    return this.effectRuntime.runPromise(
+      Effect.gen(function* () {
+        const registry = yield* ToolRegistry;
+        const wsManager = yield* WorkspaceManager;
+        const fs = yield* FileSystem;
+
+        const op = yield* registry.getOperation("pdf.split");
+        if (!op) {
+          return yield* Effect.fail(new NotFoundException("Operation pdf.split not found"));
+        }
+
+        return yield* wsManager.withWorkspace((ws) =>
+          Effect.gen(function* () {
+            const filename = file.originalname || "input.pdf";
+            yield* fs.write(ws.resolveInputPath(filename), file.buffer);
+
+            return yield* op.execute({ file: filename, ranges }, { workspace: ws });
+          })
+        );
+      })
+    );
+  }
+
+  @Post("pdf.merge")
+  @UseInterceptors(FilesInterceptor("files"))
+  async mergePdfs(@UploadedFiles() files: MulterUploadedFile[]) {
+    if (!files || files.length < 2) {
+      throw new BadRequestException("At least two PDF files are required to merge");
+    }
+
+    return this.effectRuntime.runPromise(
+      Effect.gen(function* () {
+        const registry = yield* ToolRegistry;
+        const wsManager = yield* WorkspaceManager;
+        const fs = yield* FileSystem;
+
+        const op = yield* registry.getOperation("pdf.merge");
+        if (!op) {
+          return yield* Effect.fail(new NotFoundException("Operation pdf.merge not found"));
+        }
+
+        return yield* wsManager.withWorkspace((ws) =>
+          Effect.gen(function* () {
+            const filenames: string[] = [];
+
+            for (let i = 0; i < files.length; i++) {
+              const filename = `${i}_${files[i].originalname || "input.pdf"}`;
+              yield* fs.write(ws.resolveInputPath(filename), files[i].buffer);
+              filenames.push(filename);
+            }
+
+            return yield* op.execute({ files: filenames }, { workspace: ws });
           })
         );
       })

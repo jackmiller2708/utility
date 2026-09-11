@@ -9,7 +9,10 @@
       {{ name() }}
     </div>
     <div class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted mt-0.5 truncate">
-      {{ dimensions() }} &middot; {{ sizeFormatted() }}
+      @if (dimensions()) {
+        {{ dimensions() }} &middot;
+      }
+      {{ sizeFormatted() }}
     </div>
   </div>
   <app-button variant="ghost" size="sm" (clicked)="requestRemoval()">
@@ -19,9 +22,9 @@
 
 @if (confirmingRemoval()) {
   <div class="mt-4 bg-paper-fresh border border-riso-red rounded-sm p-4" role="alertdialog">
-    <div class="text-sm font-bold text-ink">Remove this image?</div>
+    <div class="text-sm font-bold text-ink">Remove this {{ itemLabel() }}?</div>
     <div class="text-sm leading-relaxed text-ink-muted mt-1">
-      The export goes with it. You can drop the image back in any time.
+      Any results go with it. You can drop the {{ itemLabel() }} back in any time.
     </div>
     <div class="flex gap-2 mt-3.5">
       <button

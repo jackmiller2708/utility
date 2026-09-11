@@ -12,7 +12,11 @@ export class DropzoneComponent {
   accept = input<string>('image/png,image/jpeg,image/webp,image/avif,image/gif');
   supportedFormats = input<readonly string[]>(['PNG', 'JPEG', 'WebP', 'AVIF']);
   title = input<string>('Drop input file here, or browse');
+  /** When true, accepts and emits every selected/dropped file via `filesSelected` instead of just the first. */
+  multiple = input<boolean>(false);
+  showPasteHint = input<boolean>(true);
   fileSelected = output<File>();
+  filesSelected = output<File[]>();
 
   isDragging = signal(false);
 
@@ -29,15 +33,23 @@ export class DropzoneComponent {
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragging.set(false);
-    if (event.dataTransfer?.files?.length) {
-      this.fileSelected.emit(event.dataTransfer.files[0]);
-    }
+    this.emitFiles(event.dataTransfer?.files ?? null);
   }
 
   onFileInputChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files?.length) {
-      this.fileSelected.emit(input.files[0]);
+    this.emitFiles(input.files);
+  }
+
+  private emitFiles(files: FileList | null): void {
+    if (!files?.length) {
+      return;
+    }
+
+    if (this.multiple()) {
+      this.filesSelected.emit(Array.from(files));
+    } else {
+      this.fileSelected.emit(files[0]);
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { ImageResizeOutput } from '@utility/protocol';
+import type { ImageResizeOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, PdfSplitOutput, PdfMergeOutput } from '@utility/protocol';
 import type { From } from '@utility/adapter';
 
 export interface ArtifactModelParams {
@@ -37,6 +37,22 @@ export const ArtifactModelFromImageResizeOutput: From<ImageResizeOutput, Artifac
     checksum: dto.artifact.checksum,
     createdAt: dto.artifact.createdAt,
   }),
+};
+
+export const ArtifactModelsFromPdfRenderPagesOutput: From<PdfRenderPagesOutput, readonly ArtifactModel[]> = {
+  from: (dto) => dto.pages.map((artifact) => new ArtifactModel(artifact)),
+};
+
+export const ArtifactModelsFromPdfExtractImagesOutput: From<PdfExtractImagesOutput, readonly ArtifactModel[]> = {
+  from: (dto) => dto.images.map((artifact) => new ArtifactModel(artifact)),
+};
+
+export const ArtifactModelsFromPdfSplitOutput: From<PdfSplitOutput, readonly ArtifactModel[]> = {
+  from: (dto) => dto.files.map((artifact) => new ArtifactModel(artifact)),
+};
+
+export const ArtifactModelFromPdfMergeOutput: From<PdfMergeOutput, ArtifactModel> = {
+  from: (dto) => new ArtifactModel(dto.artifact),
 };
 
 export interface ArtifactFileDetails {

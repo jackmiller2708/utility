@@ -11,7 +11,8 @@ export type IconName =
   | 'play'
   | 'check'
   | 'link'
-  | 'unlink';
+  | 'unlink'
+  | 'grip';
 
 @Component({
   selector: 'app-icon',

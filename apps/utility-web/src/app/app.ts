@@ -1,7 +1,19 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { WorkbenchLayoutComponent } from './ui/index.js';
 import { RuntimeStatusService } from './core/index.js';
+
+const TOOL_ROUTES: Record<string, string> = {
+  image: '/media/image-resize',
+  pdf: '/document/pdf',
+  'pdf-merge-split': '/document/merge-split',
+};
+
+const routeToToolId = (url: string): string | null => {
+  const match = Object.entries(TOOL_ROUTES).find(([, route]) => url.startsWith(route));
+  return match ? match[0] : null;
+};
 
 @Component({
   selector: 'app-root',
@@ -14,17 +26,27 @@ export class App implements OnInit {
   private readonly router = inject(Router);
   readonly runtimeStatus = inject(RuntimeStatusService);
 
-  readonly activeOperationId = signal<string>('image.resize');
+  readonly activeToolId = signal<string>(routeToToolId(this.router.url) ?? 'image');
 
   ngOnInit(): void {
     this.runtimeStatus.refreshStatus();
+
+    this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        const toolId = routeToToolId(event.urlAfterRedirects);
+        if (toolId) {
+          this.activeToolId.set(toolId);
+        }
+      });
   }
 
-  setOperation(opId: string): void {
-    this.activeOperationId.set(opId);
+  selectTool(toolId: string): void {
+    this.activeToolId.set(toolId);
 
-    if (opId === 'image.resize') {
-      this.router.navigate(['/media/image-resize']);
+    const route = TOOL_ROUTES[toolId];
+    if (route) {
+      this.router.navigate([route]);
     }
   }
 }
