@@ -1,7 +1,9 @@
-import type { ArtifactModel } from '../../../../domain/index.js';
+import type { ArtifactModel, JobModel } from '../../../../domain/index.js';
+import type { PdfSplitOutput, PdfMergeOutput } from '@utility/protocol';
 
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { ApiClientService } from '../../../../core/services/api-client.service.js';
+import { JobTrackerService } from '../../../../core/index.js';
 import { ArtifactModelsFromPdfSplitOutput, ArtifactModelFromPdfMergeOutput } from '../../../../domain/index.js';
 import { Either, Option } from 'effect';
 import { finalize } from 'rxjs';
@@ -46,14 +48,14 @@ const nextRowId = () => `row_${++rowIdCounter}`;
 @Injectable()
 export class MergeSplitService {
   private readonly _apiClient = inject(ApiClientService);
+  private readonly _jobTracker = inject(JobTrackerService);
 
   private readonly _mode = signal<MergeSplitMode>('split');
-  private readonly _isProcessing = signal<boolean>(false);
   private readonly _activeAction = signal<MergeSplitAction | null>(null);
-  private readonly _elapsedSeconds = signal<number>(0);
+  private readonly _isSubmitting = signal<boolean>(false);
+  private readonly _activeJobId = signal<Option.Option<string>>(Option.none());
   private readonly _errorMessage = signal<Option.Option<string>>(Option.none());
   private readonly _lastResult = signal<{ action: MergeSplitAction; items: readonly ArtifactModel[] } | null>(null);
-  private _elapsedTimer: ReturnType<typeof setInterval> | undefined;
 
   // Split state
   private readonly _selectedPdf = signal<Option.Option<PdfFileDetails>>(Option.none());
@@ -65,9 +67,13 @@ export class MergeSplitService {
   private readonly _mergeFiles = signal<readonly MergeFileRow[]>([]);
 
   readonly mode = this._mode.asReadonly();
-  readonly isProcessing = this._isProcessing.asReadonly();
   readonly activeAction = this._activeAction.asReadonly();
-  readonly elapsedSeconds = this._elapsedSeconds.asReadonly();
+  /** The tracked job behind the current split/merge run, once submission has been accepted — null before that, and null again once its terminal state has been consumed. */
+  readonly activeJob = computed<JobModel | null>(() => {
+    const id = this._activeJobId();
+    return Option.isNone(id) ? null : this._jobTracker.jobs().find((job) => job.id === id.value) ?? null;
+  });
+  readonly isProcessing = computed(() => this._isSubmitting() || this.activeJob() !== null);
   readonly errorMessage = computed(() => Option.getOrNull(this._errorMessage()));
   readonly lastResult = this._lastResult.asReadonly();
 
@@ -106,6 +112,28 @@ export class MergeSplitService {
       suggestion: 'Verify the files and parameters, then retry.',
     };
   })));
+
+  constructor() {
+    effect(() => {
+      const job = this.activeJob();
+
+      if (!job || !job.isTerminal) {
+        return;
+      }
+
+      const action = this._activeAction() ?? 'split';
+      this._activeJobId.set(Option.none());
+
+      if (job.status === 'completed') {
+        const items = action === 'merge'
+          ? [ArtifactModelFromPdfMergeOutput.from(job.result as PdfMergeOutput)]
+          : ArtifactModelsFromPdfSplitOutput.from(job.result as PdfSplitOutput);
+        this._lastResult.set({ action, items });
+      } else if (job.status === 'failed') {
+        this._errorMessage.set(Option.some(job.error ?? 'Operation failed'));
+      }
+    });
+  }
 
   setMode(mode: MergeSplitMode): void {
     this._mode.set(mode);
@@ -162,7 +190,7 @@ export class MergeSplitService {
 
   executeSplit(): void {
     const pdf = this._selectedPdf();
-    if (Option.isNone(pdf) || this._isProcessing()) {
+    if (Option.isNone(pdf) || this.isProcessing()) {
       return;
     }
 
@@ -176,22 +204,18 @@ export class MergeSplitService {
     }
 
     this._activeAction.set('split');
-    this._isProcessing.set(true);
+    this._isSubmitting.set(true);
     this._errorMessage.set(Option.none());
-    this._startElapsedTimer();
 
-    this._apiClient.splitPdf$(pdf.value.file, ranges)
-      .pipe(finalize(() => {
-        this._isProcessing.set(false);
-        this._stopElapsedTimer();
-      }))
+    this._jobTracker.submit$(
+      'pdf.split',
+      pdf.value.name,
+      this._apiClient.submitSplitJob$(pdf.value.file, ranges)
+    )
+      .pipe(finalize(() => this._isSubmitting.set(false)))
       .subscribe(Either.match({
-        onRight: (res) => {
-          this._lastResult.set({ action: 'split', items: ArtifactModelsFromPdfSplitOutput.from(res) });
-        },
-        onLeft: (err) => {
-          this._errorMessage.set(Option.some(err.message || 'Failed to split PDF'));
-        },
+        onRight: ({ jobId }) => this._activeJobId.set(Option.some(jobId)),
+        onLeft: (err) => this._errorMessage.set(Option.some(err.message || 'Failed to start split job')),
       }));
   }
 
@@ -235,28 +259,33 @@ export class MergeSplitService {
 
   executeMerge(): void {
     const files = this._mergeFiles();
-    if (files.length < 2 || this._isProcessing()) {
+    if (files.length < 2 || this.isProcessing()) {
       return;
     }
 
-    this._activeAction.set('merge');
-    this._isProcessing.set(true);
-    this._errorMessage.set(Option.none());
-    this._startElapsedTimer();
+    const label = files.length > 2 ? `${files[0].file.name} +${files.length - 1}` : files.map((f) => f.file.name).join(' + ');
 
-    this._apiClient.mergePdfs$(files.map((f) => f.file))
-      .pipe(finalize(() => {
-        this._isProcessing.set(false);
-        this._stopElapsedTimer();
-      }))
+    this._activeAction.set('merge');
+    this._isSubmitting.set(true);
+    this._errorMessage.set(Option.none());
+
+    this._jobTracker.submit$(
+      'pdf.merge',
+      label,
+      this._apiClient.submitMergeJob$(files.map((f) => f.file))
+    )
+      .pipe(finalize(() => this._isSubmitting.set(false)))
       .subscribe(Either.match({
-        onRight: (res) => {
-          this._lastResult.set({ action: 'merge', items: [ArtifactModelFromPdfMergeOutput.from(res)] });
-        },
-        onLeft: (err) => {
-          this._errorMessage.set(Option.some(err.message || 'Failed to merge PDFs'));
-        },
+        onRight: ({ jobId }) => this._activeJobId.set(Option.some(jobId)),
+        onLeft: (err) => this._errorMessage.set(Option.some(err.message || 'Failed to start merge job')),
       }));
+  }
+
+  cancelActiveJob(): void {
+    const id = this._activeJobId();
+    if (Option.isSome(id)) {
+      this._jobTracker.cancel(id.value);
+    }
   }
 
   // --- Shared ---
@@ -273,35 +302,11 @@ export class MergeSplitService {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  formatSeconds(totalSeconds: number): string {
-    if (totalSeconds < 60) {
-      return `${totalSeconds}s`;
-    }
-
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}m ${seconds}s`;
-  }
-
   getArtifactFileUrl(id: string): string {
     return this._apiClient.getArtifactFileUrl(id);
   }
 
   getArtifactDownloadUrl(id: string): string {
     return this._apiClient.getArtifactDownloadUrl(id);
-  }
-
-  private _startElapsedTimer(): void {
-    this._elapsedSeconds.set(0);
-    this._elapsedTimer = setInterval(() => {
-      this._elapsedSeconds.update((s) => s + 1);
-    }, 1000);
-  }
-
-  private _stopElapsedTimer(): void {
-    if (this._elapsedTimer) {
-      clearInterval(this._elapsedTimer);
-      this._elapsedTimer = undefined;
-    }
   }
 }

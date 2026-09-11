@@ -12,7 +12,9 @@ export type IconName =
   | 'check'
   | 'link'
   | 'unlink'
-  | 'grip';
+  | 'grip'
+  | 'close'
+  | 'chevron';
 
 @Component({
   selector: 'app-icon',

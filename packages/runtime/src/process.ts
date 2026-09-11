@@ -1,5 +1,5 @@
 import { Context, Effect, Layer } from "effect";
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { ProcessError } from "./errors.js";
 
 export interface Command {
@@ -27,8 +27,10 @@ export const ProcessLive = Layer.succeed(
   Process.of({
     spawn: (command: Command) =>
       Effect.async<ProcessResult, ProcessError>((resume) => {
+        let proc: ChildProcessWithoutNullStreams | undefined;
+
         try {
-          const proc = spawn(command.executable, [...command.args], {
+          proc = spawn(command.executable, [...command.args], {
             cwd: command.cwd,
             env: command.env ? { ...process.env, ...command.env } : process.env,
             shell: false,
@@ -48,7 +50,7 @@ export const ProcessLive = Layer.succeed(
           let timeoutId: NodeJS.Timeout | undefined;
           if (command.timeoutMs && command.timeoutMs > 0) {
             timeoutId = setTimeout(() => {
-              proc.kill("SIGKILL");
+              proc?.kill("SIGKILL");
               resume(
                 Effect.fail(
                   new ProcessError({
@@ -108,6 +110,14 @@ export const ProcessLive = Layer.succeed(
             )
           );
         }
+
+        // Runs only if the fiber awaiting this effect is interrupted (e.g. a cancelled
+        // job) while the process is still running. Without this, cancellation stops
+        // Effect from waiting on the result but leaves the real OS process running to
+        // completion in the background — the entire point of cancellation lost silently.
+        return Effect.sync(() => {
+          proc?.kill("SIGKILL");
+        });
       }),
   })
 );

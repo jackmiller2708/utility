@@ -4,9 +4,10 @@
   (drop)="onDrop($event)"
   (click)="fileInput.click()"
   [class.border-riso-pink]="isDragging()"
+  [class.dropzone-inviting]="isFileOverDocument() && !isDragging()"
   [style.background]="isDragging() ? 'radial-gradient(120% 90% at 50% 50%, #FCF8ED 55%, rgba(255,62,165,0.35) 100%)' : null"
   [class.bg-paper-fresh]="!isDragging()"
-  class="border-2 border-dashed border-ink-faint rounded-lg px-6 py-10 text-center cursor-pointer transition-colors min-w-0"
+  class="border-2 border-dashed border-ink-faint rounded-lg px-6 py-10 text-center cursor-pointer transition-[background,border-color] duration-shift ease-run min-w-0 hover:border-ink-muted active:shadow-stamped"
 >
   <input
     #fileInput

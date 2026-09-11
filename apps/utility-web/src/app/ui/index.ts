@@ -13,6 +13,7 @@ export * from './molecules/telemetry-row/telemetry-row.component.js';
 export * from './molecules/tile-group/tile-group.component.js';
 export * from './molecules/error-diagnostic/error-diagnostic.component.js';
 export * from './molecules/gallery-tile/gallery-tile.component.js';
+export * from './molecules/job-ticket/job-ticket.component.js';
 
 // Organisms
 export * from './organisms/header/header.component.js';
@@ -20,6 +21,8 @@ export * from './organisms/sidebar/sidebar.component.js';
 export * from './organisms/telemetry-deck/telemetry-deck.component.js';
 export * from './organisms/gallery-grid/gallery-grid.component.js';
 export * from './organisms/sortable-file-list/sortable-file-list.component.js';
+export * from './organisms/job-tray/job-tray.component.js';
+export * from './organisms/route-curtain/route-curtain.component.js';
 
 // Templates
 export * from './templates/workbench-layout/workbench-layout.component.js';

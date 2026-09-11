@@ -1,0 +1,9 @@
+<div
+  #curtain
+  class="fixed inset-0 z-50 bg-press flex items-center justify-center"
+  style="opacity: 1"
+  [class.pointer-events-none]="!blocking()"
+  [attr.aria-hidden]="!blocking()"
+>
+  <span class="reg-cross reg-cross-spin text-riso-pink" style="width:32px;height:32px"></span>
+</div>

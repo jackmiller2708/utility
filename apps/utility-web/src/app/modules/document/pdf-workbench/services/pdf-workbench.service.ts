@@ -1,7 +1,9 @@
-import type { ArtifactModel } from '../../../../domain/index.js';
+import type { ArtifactModel, JobModel } from '../../../../domain/index.js';
+import type { PdfRenderPagesOutput, PdfExtractImagesOutput } from '@utility/protocol';
 
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { ApiClientService } from '../../../../core/services/api-client.service.js';
+import { JobTrackerService } from '../../../../core/index.js';
 import { ArtifactModelsFromPdfRenderPagesOutput, ArtifactModelsFromPdfExtractImagesOutput } from '../../../../domain/index.js';
 import { Either, Option } from 'effect';
 import { finalize } from 'rxjs';
@@ -61,12 +63,13 @@ const DEFAULT_RANGE_SIZE = 10;
 @Injectable()
 export class PdfWorkbenchService {
   private readonly _apiClient = inject(ApiClientService);
+  private readonly _jobTracker = inject(JobTrackerService);
   private readonly _selectedPdf = signal<Option.Option<PdfFileDetails>>(Option.none());
   private readonly _inspectResult = signal<Option.Option<PdfInspectResult>>(Option.none());
   private readonly _isInspecting = signal<boolean>(false);
   private readonly _activeAction = signal<PdfAction | null>(null);
-  private readonly _isProcessing = signal<boolean>(false);
-  private readonly _elapsedSeconds = signal<number>(0);
+  private readonly _isSubmitting = signal<boolean>(false);
+  private readonly _activeJobId = signal<Option.Option<string>>(Option.none());
   private readonly _errorMessage = signal<Option.Option<string>>(Option.none());
   private readonly _rangeTouchedByUser = signal<boolean>(false);
 
@@ -76,14 +79,16 @@ export class PdfWorkbenchService {
   private readonly _firstPage = signal<number | null>(null);
   private readonly _lastPage = signal<number | null>(null);
 
-  private _elapsedTimer: ReturnType<typeof setInterval> | undefined;
-
   readonly selectedPdf = computed(() => Option.getOrNull(this._selectedPdf()));
   readonly inspectResult = computed(() => Option.getOrNull(this._inspectResult()));
   readonly isInspecting = this._isInspecting.asReadonly();
   readonly activeAction = this._activeAction.asReadonly();
-  readonly isProcessing = this._isProcessing.asReadonly();
-  readonly elapsedSeconds = this._elapsedSeconds.asReadonly();
+  /** The tracked job behind the current render/extract run, once submission has been accepted — null before that, and null again once its terminal state has been consumed. */
+  readonly activeJob = computed<JobModel | null>(() => {
+    const id = this._activeJobId();
+    return Option.isNone(id) ? null : this._jobTracker.jobs().find((job) => job.id === id.value) ?? null;
+  });
+  readonly isProcessing = computed(() => this._isSubmitting() || this.activeJob() !== null);
   readonly errorMessage = computed(() => Option.getOrNull(this._errorMessage()));
   readonly dpi = this._dpi.asReadonly();
   readonly firstPage = this._firstPage.asReadonly();
@@ -147,6 +152,28 @@ export class PdfWorkbenchService {
     };
   })));
 
+  constructor() {
+    effect(() => {
+      const job = this.activeJob();
+
+      if (!job || !job.isTerminal) {
+        return;
+      }
+
+      const action = this._activeAction() ?? 'render';
+      this._activeJobId.set(Option.none());
+
+      if (job.status === 'completed') {
+        const items = action === 'extract'
+          ? ArtifactModelsFromPdfExtractImagesOutput.from(job.result as PdfExtractImagesOutput)
+          : ArtifactModelsFromPdfRenderPagesOutput.from(job.result as PdfRenderPagesOutput);
+        this._lastResult.set({ action, items });
+      } else if (job.status === 'failed') {
+        this._errorMessage.set(Option.some(job.error ?? 'Operation failed'));
+      }
+    });
+  }
+
   setPdf(file: File): void {
     this._errorMessage.set(Option.none());
     this._lastResult.set(null);
@@ -204,58 +231,57 @@ export class PdfWorkbenchService {
 
   executeRenderPages(): void {
     const pdf = this._selectedPdf();
-    if (Option.isNone(pdf) || this._isProcessing()) {
+    if (Option.isNone(pdf) || this.isProcessing()) {
       return;
     }
 
     this._activeAction.set('render');
-    this._isProcessing.set(true);
+    this._isSubmitting.set(true);
     this._errorMessage.set(Option.none());
-    this._startElapsedTimer();
 
-    this._apiClient.renderPdfPages$(pdf.value.file, {
-      dpi: this._dpi(),
-      firstPage: this._firstPage(),
-      lastPage: this._lastPage(),
-    })
-      .pipe(finalize(() => {
-        this._isProcessing.set(false);
-        this._stopElapsedTimer();
-      }))
+    this._jobTracker.submit$(
+      'pdf.render-pages',
+      pdf.value.name,
+      this._apiClient.submitRenderPagesJob$(pdf.value.file, {
+        dpi: this._dpi(),
+        firstPage: this._firstPage(),
+        lastPage: this._lastPage(),
+      })
+    )
+      .pipe(finalize(() => this._isSubmitting.set(false)))
       .subscribe(Either.match({
-        onRight: (res) => {
-          this._lastResult.set({ action: 'render', items: ArtifactModelsFromPdfRenderPagesOutput.from(res) });
-        },
-        onLeft: (err) => {
-          this._errorMessage.set(Option.some(err.message || 'Failed to render pages'));
-        },
+        onRight: ({ jobId }) => this._activeJobId.set(Option.some(jobId)),
+        onLeft: (err) => this._errorMessage.set(Option.some(err.message || 'Failed to start render job')),
       }));
   }
 
   executeExtractImages(): void {
     const pdf = this._selectedPdf();
-    if (Option.isNone(pdf) || this._isProcessing()) {
+    if (Option.isNone(pdf) || this.isProcessing()) {
       return;
     }
 
     this._activeAction.set('extract');
-    this._isProcessing.set(true);
+    this._isSubmitting.set(true);
     this._errorMessage.set(Option.none());
-    this._startElapsedTimer();
 
-    this._apiClient.extractPdfImages$(pdf.value.file)
-      .pipe(finalize(() => {
-        this._isProcessing.set(false);
-        this._stopElapsedTimer();
-      }))
+    this._jobTracker.submit$(
+      'pdf.extract-images',
+      pdf.value.name,
+      this._apiClient.submitExtractImagesJob$(pdf.value.file)
+    )
+      .pipe(finalize(() => this._isSubmitting.set(false)))
       .subscribe(Either.match({
-        onRight: (res) => {
-          this._lastResult.set({ action: 'extract', items: ArtifactModelsFromPdfExtractImagesOutput.from(res) });
-        },
-        onLeft: (err) => {
-          this._errorMessage.set(Option.some(err.message || 'Failed to extract images'));
-        },
+        onRight: ({ jobId }) => this._activeJobId.set(Option.some(jobId)),
+        onLeft: (err) => this._errorMessage.set(Option.some(err.message || 'Failed to start extract job')),
       }));
+  }
+
+  cancelActiveJob(): void {
+    const id = this._activeJobId();
+    if (Option.isSome(id)) {
+      this._jobTracker.cancel(id.value);
+    }
   }
 
   formatBytes(bytes: number): string {
@@ -304,17 +330,4 @@ export class PdfWorkbenchService {
       }));
   }
 
-  private _startElapsedTimer(): void {
-    this._elapsedSeconds.set(0);
-    this._elapsedTimer = setInterval(() => {
-      this._elapsedSeconds.update((s) => s + 1);
-    }, 1000);
-  }
-
-  private _stopElapsedTimer(): void {
-    if (this._elapsedTimer) {
-      clearInterval(this._elapsedTimer);
-      this._elapsedTimer = undefined;
-    }
-  }
 }

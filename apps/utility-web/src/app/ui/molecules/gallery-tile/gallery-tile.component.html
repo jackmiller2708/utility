@@ -1,4 +1,4 @@
-<div class="relative bg-paper-fresh border border-paper-deckle rounded-sm overflow-hidden">
+<div class="relative bg-paper-fresh border border-paper-deckle rounded-sm overflow-hidden transition duration-shift ease-run hover:border-ink-muted hover:shadow-paper-lift">
   <span class="reg-cross absolute top-1.5 right-1.5 text-riso-pink"></span>
   <div class="aspect-[4/5] bg-[repeating-linear-gradient(45deg,#E7DFC8_0,#E7DFC8_5px,#FCF8ED_5px,#FCF8ED_10px)] flex items-center justify-center">
     @if (previewUrl()) {
@@ -10,7 +10,7 @@
     @if (downloadUrl()) {
       <a
         [href]="downloadUrl()!"
-        class="text-ink-faint hover:text-riso-blue transition-colors shrink-0"
+        class="text-ink-faint hover:text-riso-blue active:opacity-60 transition-colors duration-shift ease-run shrink-0"
         [attr.aria-label]="'Download ' + label() + (sizeFormatted() ? ', ' + sizeFormatted() : '')"
       >
         <app-icon name="download" className="w-3.5 h-3.5"></app-icon>

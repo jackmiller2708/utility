@@ -236,6 +236,38 @@ No glass, no soft glow. Depth reads as paper physically lifted off a table: a sm
 ### Preset & Format Tiles
 - **Style:** Small square-cut stamped tiles (`50%`, `25%`, `1080p`, `Square`, and each output format) — `bg-[#FCF8ED]` idle, `border border-[#D9CEB4]`; selected state fills `bg-[#0078BF]` with cream text, like a chosen plate punched into the rail.
 
+## Motion
+
+Motion is the press running, made visible. Two engines, split by what the moment needs, never mixed on the same transition.
+
+**CSS** owns simple one-property shifts and the two continuous loops: hover/active/focus color and border transitions (`duration-tick: 120ms`, `duration-shift: 200ms`, `duration-press: 400ms`, `ease-run: cubic-bezier(0.16, 1, 0.3, 1)` — all Tailwind theme tokens in `styles.css`), Waiting Ink (`.pulse-slow` / `.pulse-fast`, the existing `ink-pulse` keyframe — pending/queued and connecting states), Index Turn (`.reg-cross-spin`, the existing `reg-spin` keyframe — running states, unchanged since it already meant "the press is running"), and Struck Plate (`.struck-plate` — a cancelled job's one-shot desaturate-and-strike).
+
+**Motion (motion.dev)** owns anything that needs sequencing, spring physics, an exit an `@if` can't hold open for, or a stagger — wired through `MotionService` (`core/services/motion.service.ts`), never called ad hoc from a component. Every Motion-driven moment shares one spring character — critically damped, no overshoot (`{ type: 'spring', bounce: 0 }`) — so "confident arrival, never bounce" is one preset, not a per-component tuning exercise. Its real justification is interruption: a batch of several jobs updates rapidly and out of order, and a spring retargets smoothly mid-flight where a restarted CSS keyframe would snap.
+
+### Named patterns
+- **Waiting Ink** *(CSS)* — pending/queued, gold pulse.
+- **Index Turn** *(CSS)* — running, the registration cross spins.
+- **Odometer Tick** *(Motion)* — a ledger number's `scale` retargets on every increment instead of restarting, so a fast run of progress updates never stutters.
+- **Pulled Sheet** *(Motion, the system's one authored focal moment)* — a job completing: content lifts clear, border sharpens, a mint stamp lands. The same call fires whether the surface is a tray ticket or a workbench's results grid — one completion moment, reused, never re-invented per surface.
+- **Misregistration** *(Motion)* — a failed job snaps 2px out of register in red, then back — literally what the ink calls a bad print, never a generic shake.
+- **Struck Plate** *(CSS)* — a cancelled job desaturates and takes one diagonal strike, then holds muted.
+- **Stamped In / Pulled Away** *(Motion)* — a job ticket entering or leaving a list: entrance staggers up to four slots (40ms step) regardless of batch size; exit plays before the DOM node is removed, so the remaining tickets reflow instead of jumping. Stamped In generalizes beyond jobs to any single element arriving for the first time — a file's summary card replacing the dropzone, a removal-confirmation alert appearing — same call, same meaning: something just landed on the press.
+- **The Punch** *(Motion, Odometer Tick reused)* — selecting a preset, format, fit-mode, or DPI tile plays the same scale-flash as a ledger number ticking: "a chosen plate punched into the rail" (the tile system's own language in Components, above), not a new gesture.
+- **Ink Stroke** *(Motion)* — the completed/failed status glyph draws its own outline (`stroke-dasharray`/`stroke-dashoffset`) rather than appearing whole, the way a rubber stamp's ink traces its shape as it lands. Works on any stroke-based icon (`MotionService.drawOn`), fired alongside Pulled Sheet/Misregistration.
+- **FLIP move** *(Motion)* — a row that changed position (drag-reorder, a sibling removed) inverts the jump into a spring slide instead of snapping. Tracked continuously against each row's last known position, not only around the drag gesture, so removal-caused reflow gets it too.
+- **The Curtain** *(Motion, overlay)* — the press room's own light going down between plates: a full-viewport `bg-press` panel with a centered Index Turn spinner, covering every tool switch and the very first boot. Route-level continuity was tried twice before this and rejected both times: Angular's native View Transitions router feature threw `InvalidStateError` against SSR hydration on every navigation, and a plain per-page CSS fade-in (`opacity:0 → 1`) left a visible gap where the outgoing page's dark canvas showed through before the incoming page painted — reported as "a flash of black, then fade in from bottom." The Curtain fixes both by owning the transition itself rather than decorating either side of it. See Interaction below for the guard-driven sequencing that makes it airtight.
+
+### Interaction: the route curtain
+A `canActivate` guard (`curtainReadyGuard`) sits on every tool's leaf route and calls `RouteCurtainService.show()`, which does not resolve until the curtain has actually reached full opacity — so Angular only creates the destination component *after* the guard resolves, meaning the entire swap happens behind a fully opaque curtain, never mid-fade. Once the navigation settles (`NavigationEnd`, or `Cancel`/`Error`/`Skipped` if it didn't), the curtain holds a minimum 320ms (120ms under reduced motion) from the moment it reached opacity — a warm local navigation can settle before the fade-in even finishes, and lifting the curtain that fast reads as a flicker, not a job that ran; a navigation slow enough to already clear the floor on its own pays no extra wait. Past that hold, the curtain waits a real paint (double `requestAnimationFrame`) past the DOM update, then fades away over Motion's `curtainHide`, revealing content that was already fully rendered underneath. The curtain starts fully opaque as a plain inline style in its own template — so the SSR-rendered HTML ships that way, and the very first thing a browser paints, before any JS has run, is the calm curtain rather than the raw interface. `MotionService.curtainShow`/`curtainHide` use single-value targets (not `[from, to]` keyframe arrays) specifically so a rapid double tool-switch retargets smoothly from wherever the curtain currently is, never snapping.
+
+### Supporting states
+Every interactive atom (buttons, inputs, selects, toggles, tiles, sidebar rows, gallery tiles) carries `duration-shift`/`ease-run` on its color, border, and shadow transitions — no control anywhere in the app pops a state change instantly. Every clickable element also carries an explicit `:active` acknowledgment, not just `:hover`: a "plated" element (has a background or border) gets `active:shadow-stamped` (the ink physically pressing into the paper); a plain text/icon-only affordance with no plate gets `active:opacity-60` (the ink itself deepening) instead — never a scale transform, matching the Buttons rule above. The dropzone reads drag intent in two stages: `.dropzone-inviting` (a muted pink border) the moment any file is dragged over the browser window, even before the cursor reaches the plate, escalating to the full pink wash only once the cursor is directly over it. A gallery tile lifts (`shadow-paper-lift`) and its border darkens on hover, the same paper-physically-lifted language the cards already use, never a new depth idiom. Inputs and selects carry the registration-cross focus mark the Components section already specified but which the first build never wired up (`peer-focus:opacity-100` on a corner `.reg-cross`) — every documented state now actually exists in code, not just in this file.
+
+**Tailwind note:** `shadow-paper-lift` / `shadow-stamped` are declared with `@utility` (not a plain CSS class) specifically so variants compile — `hover:shadow-paper-lift` (and `active:shadow-stamped`) need Tailwind to recognize the utility name to wrap it in a pseudo-class selector at all; a hand-written plain CSS class silently compiles to nothing under a variant prefix.
+
+### Reduced motion
+One `prefers-reduced-motion` gate, not a designed alternate path: the two CSS loops turn off via one media query in `styles.css`, and `MotionService` checks the same preference once and drops the spatial component of each pattern while keeping its opacity/color state change legible. Fewer and gentler, not silent.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -244,6 +276,8 @@ No glass, no soft glow. Depth reads as paper physically lifted off a table: a sm
 - **Do** pair light spot inks with dark text and deep spot inks with light text (The Overprint Rule) — never guess contrast.
 - **Do** spend spot color on exactly one thing per view: the action, or the state, never both, never decoration.
 - **Do** show before/after comparison and explicit size deltas as stamped ledger tags, exactly as before.
+- **Do** reuse the named motion patterns (Waiting Ink, Index Turn, Odometer Tick, Pulled Sheet, Misregistration, Struck Plate, Stamped In/Pulled Away) for any new state that matches their meaning, rather than inventing a new transition for the same kind of moment.
+- **Do** give every clickable element hover, active, and (for inputs/selects) focus treatment — `active:shadow-stamped` for anything with a plate, `active:opacity-60` for plain text/icon links, never a scale transform.
 
 ### Don't:
 - **Don't** put body copy, form labels, or data directly on the press-room dark canvas — that surface is for wayfinding only.
@@ -252,3 +286,4 @@ No glass, no soft glow. Depth reads as paper physically lifted off a table: a sm
 - **Don't** render the registration cross, stamp texture, or paper grain as literal 3D skeuomorphism (no drop-shadowed curling corners, no photographic paper texture) — this is flat graphic print language, not a photo of paper.
 - **Don't** expose shell commands, raw filesystem paths, or backend runtime syntax to the user.
 - **Don't** trigger destructive actions or discard uploaded files without explicit confirmation.
+- **Don't** use bounce/elastic easing or a blurred glow as a motion effect — the No-Glow Rule and confident-deceleration character bind motion exactly as they bind shadows.

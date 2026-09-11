@@ -41,9 +41,10 @@
           } @else {
             <app-file-summary-card
               [name]="selectedPdf.name"
-              [dimensions]="service.isInspecting() ? 'Reading…' : (inspectResult ? inspectResult.pages + ' page' + (inspectResult.pages === 1 ? '' : 's') : '')"
+              [dimensions]="service.isInspecting() ? 'Reading' : (inspectResult ? inspectResult.pages + ' page' + (inspectResult.pages === 1 ? '' : 's') : '')"
               [sizeFormatted]="service.formatBytes(selectedPdf.size)"
               [previewUrl]="null"
+              [loading]="service.isInspecting()"
               itemLabel="document"
               (changeFile)="service.resetPdf()"
             ></app-file-summary-card>
@@ -86,7 +87,7 @@
                       <button
                         type="button"
                         (click)="service.removeRange(range.id)"
-                        class="h-9 w-9 flex items-center justify-center rounded-sm border border-paper-deckle bg-paper-fresh text-ink-muted hover:text-riso-red transition-colors cursor-pointer shrink-0"
+                        class="h-9 w-9 flex items-center justify-center rounded-sm border border-paper-deckle bg-paper-fresh text-ink-muted hover:text-riso-red transition-colors duration-shift ease-run cursor-pointer shrink-0 active:shadow-stamped"
                         aria-label="Remove this range"
                       >
                         &times;
@@ -99,7 +100,7 @@
               <button
                 type="button"
                 (click)="service.addRange()"
-                class="self-start text-xs font-mono font-bold tracking-[0.04em] text-riso-blue hover:text-riso-blue-hover cursor-pointer"
+                class="self-start text-xs font-mono font-bold tracking-[0.04em] text-riso-blue hover:text-riso-blue-hover active:opacity-60 transition-colors duration-shift ease-run cursor-pointer"
               >
                 + ADD ANOTHER RANGE
               </button>
@@ -177,10 +178,11 @@
         [title]="galleryTitle()"
         [items]="galleryItems()"
         [loading]="service.isProcessing()"
-        [elapsedLabel]="elapsedLabel()"
+        [job]="service.activeJob()"
         emptyTitle="No output yet"
         emptyMessage="Split or merge to see results here."
         (downloadAllClicked)="downloadAll()"
+        (cancelJob)="service.cancelActiveJob()"
       ></app-gallery-grid>
     </section>
   </div>

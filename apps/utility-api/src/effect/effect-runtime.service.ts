@@ -19,7 +19,7 @@ import {
   ProcessError,
   ArtifactError,
 } from "@utility/runtime";
-import { ToolRegistry, makeToolRegistry } from "@utility/toolkit";
+import { ToolRegistry, makeToolRegistry, JobRegistryLive } from "@utility/toolkit";
 import {
   imageTool,
   SharpImageServiceLive,
@@ -44,7 +44,8 @@ export const AppLive = Layer.mergeAll(
   ArtifactStoreLive.pipe(Layer.provide(FileSystemLive)),
   SharpImageServiceLive,
   PopplerPdfServiceLive.pipe(Layer.provide(Layer.mergeAll(ProcessLive, FileSystemLive))),
-  makeToolRegistry([imageTool, pdfTool, pdfMergeSplitTool])
+  makeToolRegistry([imageTool, pdfTool, pdfMergeSplitTool]),
+  JobRegistryLive
 ).pipe(Layer.orDie);
 
 export type AppServices = Layer.Layer.Success<typeof AppLive>;
@@ -55,6 +56,11 @@ export class EffectRuntimeService implements OnModuleInit {
 
   async onModuleInit() {
     this.runtime = ManagedRuntime.make(AppLive);
+  }
+
+  /** Starts an effect in the background and returns its fiber immediately, without waiting for completion. */
+  runFork<A, E>(effect: Effect.Effect<A, E, AppServices>) {
+    return this.runtime.runFork(effect);
   }
 
   async runPromise<A, E>(effect: Effect.Effect<A, E, AppServices>): Promise<A> {

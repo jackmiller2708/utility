@@ -1,5 +1,9 @@
 <div class="min-h-screen bg-press text-press-text flex flex-col font-sans">
-  <app-header [authStatus]="authStatus()"></app-header>
+  <app-header
+    [authStatus]="authStatus()"
+    [activeJobCount]="jobTracker.activeCount()"
+    (jobTrayToggled)="tray.expanded.set(true)"
+  ></app-header>
 
   <div class="flex-1 flex items-stretch flex-wrap">
     <aside class="flex-none w-full lg:w-[240px] bg-press border-b lg:border-b-0 lg:border-r border-press-line">
@@ -17,8 +21,15 @@
     </main>
   </div>
 
-  <footer class="flex-none bg-press-elevated border-t border-press-line py-4">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-2 font-mono text-xs font-bold tracking-[0.04em] text-press-text-muted">
+  <footer class="flex-none bg-press-elevated border-t border-press-line">
+    <app-job-tray
+      #tray
+      [jobs]="jobTracker.jobs()"
+      (cancelJob)="jobTracker.cancel($event)"
+      (dismissJob)="jobTracker.dismiss($event)"
+    ></app-job-tray>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-center gap-2 font-mono text-xs font-bold tracking-[0.04em] text-press-text-muted">
       <span class="w-1.5 h-1.5 rounded-full bg-riso-pink shrink-0"></span>
       <span class="leading-none">Utility &middot; Your files stay private &mdash; nothing uploads to the cloud</span>
     </div>

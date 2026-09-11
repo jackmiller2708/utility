@@ -1,4 +1,4 @@
-import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, AuthStatusResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, PdfSplitOutput, PdfMergeOutput } from '@utility/protocol';
+import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, AuthStatusResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse } from '@utility/protocol';
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClientService } from './http-client.service.js';
@@ -12,6 +12,12 @@ interface ImageResizeOptions {
   withoutEnlargement?: boolean;
   format?: string;
   quality?: number | null;
+}
+
+interface PdfRenderPagesOptions {
+  dpi?: number;
+  firstPage?: number | null;
+  lastPage?: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -96,22 +102,60 @@ export class ApiClientService {
     return this.http.post<PdfExtractImagesOutput>(`${this.config.baseUrl}/tools/pdf.extract-images`, formData);
   }
 
-  splitPdf$(file: File, ranges: readonly { firstPage: number; lastPage: number }[]) {
+  submitSplitJob$(file: File, ranges: readonly { firstPage: number; lastPage: number }[]) {
     const formData = new FormData();
     formData.append('file', file, file.name);
     formData.append('ranges', JSON.stringify(ranges));
 
-    return this.http.post<PdfSplitOutput>(`${this.config.baseUrl}/tools/pdf.split`, formData);
+    return this.http.post<JobSubmittedResponse>(`${this.config.baseUrl}/jobs/pdf.split`, formData);
   }
 
-  mergePdfs$(files: readonly File[]) {
+  submitMergeJob$(files: readonly File[]) {
     const formData = new FormData();
 
     for (const file of files) {
       formData.append('files', file, file.name);
     }
 
-    return this.http.post<PdfMergeOutput>(`${this.config.baseUrl}/tools/pdf.merge`, formData);
+    return this.http.post<JobSubmittedResponse>(`${this.config.baseUrl}/jobs/pdf.merge`, formData);
+  }
+
+  submitRenderPagesJob$(file: File, options: PdfRenderPagesOptions) {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    if (options.dpi != null) {
+      formData.append('dpi', String(options.dpi));
+    }
+
+    if (options.firstPage != null && options.firstPage > 0) {
+      formData.append('firstPage', String(options.firstPage));
+    }
+
+    if (options.lastPage != null && options.lastPage > 0) {
+      formData.append('lastPage', String(options.lastPage));
+    }
+
+    return this.http.post<JobSubmittedResponse>(`${this.config.baseUrl}/jobs/pdf.render-pages`, formData);
+  }
+
+  submitExtractImagesJob$(file: File) {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    return this.http.post<JobSubmittedResponse>(`${this.config.baseUrl}/jobs/pdf.extract-images`, formData);
+  }
+
+  listJobs$() {
+    return this.http.get<JobListResponse>(`${this.config.baseUrl}/jobs`);
+  }
+
+  getJob$(id: string) {
+    return this.http.get<JobResponse>(`${this.config.baseUrl}/jobs/${id}`);
+  }
+
+  cancelJob$(id: string) {
+    return this.http.delete<JobCancelResponse>(`${this.config.baseUrl}/jobs/${id}`);
   }
 
   getArtifact$(id: string) {

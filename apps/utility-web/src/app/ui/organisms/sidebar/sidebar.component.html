@@ -15,26 +15,12 @@
         [class.border-l-transparent]="activeToolId() !== tool.id"
         [class.text-press-text-muted]="activeToolId() !== tool.id"
         [class.hover:text-press-text]="activeToolId() !== tool.id"
-        class="w-full text-left pl-[17px] pr-5 py-2.5 text-sm border-l-[3px] transition-colors flex items-center justify-between gap-2 cursor-pointer"
+        class="w-full text-left pl-[17px] pr-5 py-2.5 text-sm border-l-[3px] active:bg-press-line transition-colors duration-shift ease-run flex items-center justify-between gap-2 cursor-pointer"
       >
         <span class="truncate">{{ tool.name }}</span>
         <app-badge variant="neutral" surface="press">{{ tool.category }}</app-badge>
       </button>
     }
-  </div>
-
-  <!-- Planned capabilities -->
-  <div class="pt-5 border-t border-press-line mx-5 space-y-2">
-    <h4 class="text-xs font-mono font-bold tracking-[0.04em] text-press-text-muted">PLANNED</h4>
-    <div class="space-y-1.5">
-      <div class="flex items-center justify-between text-sm text-press-text-muted">
-        <div class="flex items-center gap-2">
-          <app-icon name="clock" className="w-3.5 h-3.5"></app-icon>
-          <span>Async Jobs</span>
-        </div>
-        <app-badge variant="neutral" surface="press">M3</app-badge>
-      </div>
-    </div>
   </div>
 
   <!-- Sandbox note -->

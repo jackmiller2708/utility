@@ -1,13 +1,12 @@
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BadgeComponent } from '../../atoms/badge/badge.component.js';
-import { IconComponent } from '../../atoms/icon/icon.component.js';
 import type { ToolModel } from '../../../domain/index.js';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, BadgeComponent, IconComponent],
+  imports: [CommonModule, BadgeComponent],
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {

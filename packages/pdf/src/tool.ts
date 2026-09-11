@@ -109,11 +109,23 @@ export const renderPagesOperation: Operation<
       const inputFilePath = context.workspace.resolveInputPath(input.file);
       const parsed = path.parse(input.file);
 
-      const pagePaths = yield* pdfService.renderPages(inputFilePath, context.workspace, {
-        dpi: input.dpi,
-        firstPage: input.firstPage,
-        lastPage: input.lastPage,
-      });
+      // Chunked progress reporting needs concrete first/last bounds; resolve the
+      // open end of the range via inspect only when a job actually wants progress.
+      let firstPage = input.firstPage;
+      let lastPage = input.lastPage;
+
+      if (context.reportProgress && (!firstPage || !lastPage)) {
+        const meta = yield* pdfService.inspect(inputFilePath);
+        firstPage = firstPage ?? 1;
+        lastPage = lastPage ?? meta.pages;
+      }
+
+      const pagePaths = yield* pdfService.renderPages(
+        inputFilePath,
+        context.workspace,
+        { dpi: input.dpi, firstPage, lastPage },
+        context.reportProgress
+      );
 
       const pages = yield* Effect.forEach(
         pagePaths,
@@ -162,7 +174,13 @@ export const extractImagesOperation: Operation<
       const inputFilePath = context.workspace.resolveInputPath(input.file);
       const parsed = path.parse(input.file);
 
-      const imagePaths = yield* pdfService.extractImages(inputFilePath, context.workspace);
+      let totalPages: number | undefined;
+      if (context.reportProgress) {
+        const meta = yield* pdfService.inspect(inputFilePath);
+        totalPages = meta.pages;
+      }
+
+      const imagePaths = yield* pdfService.extractImages(inputFilePath, context.workspace, context.reportProgress, totalPages);
 
       const images = yield* Effect.forEach(
         imagePaths,
@@ -217,7 +235,7 @@ export const splitOperation: Operation<
       const inputFilePath = context.workspace.resolveInputPath(input.file);
       const parsed = path.parse(input.file);
 
-      const outputPaths = yield* pdfService.splitRanges(inputFilePath, context.workspace, input.ranges);
+      const outputPaths = yield* pdfService.splitRanges(inputFilePath, context.workspace, input.ranges, context.reportProgress);
 
       const files = yield* Effect.forEach(
         outputPaths,

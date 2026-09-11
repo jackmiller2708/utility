@@ -55,7 +55,7 @@
               (click)="service.toggleAspectRatioLock()"
               [class.text-riso-pink]="service.lockAspectRatio()"
               [class.text-ink-faint]="!service.lockAspectRatio()"
-              class="justify-self-center inline-flex items-center justify-center h-8 w-8 rounded-sm border border-paper-deckle bg-paper-fresh transition-colors cursor-pointer"
+              class="justify-self-center inline-flex items-center justify-center h-8 w-8 rounded-sm border border-paper-deckle bg-paper-fresh transition-colors duration-shift ease-run cursor-pointer active:shadow-stamped"
               [title]="service.lockAspectRatio() ? 'Aspect ratio locked' : 'Aspect ratio unlocked'"
               aria-label="Toggle Aspect Ratio Lock"
             >
@@ -81,7 +81,7 @@
               type="button"
               (click)="service.swapDimensions()"
               [disabled]="!service.selectedImage()"
-              class="h-9 w-9 flex items-center justify-center rounded-sm border border-paper-deckle bg-paper-fresh text-ink-muted hover:text-ink transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+              class="h-9 w-9 flex items-center justify-center rounded-sm border border-paper-deckle bg-paper-fresh text-ink-muted hover:text-ink transition-colors duration-shift ease-run disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0 active:shadow-stamped"
               title="Swap width and height"
               aria-label="Swap Width and Height dimensions"
             >
@@ -161,7 +161,7 @@
                     [class.bg-riso-blue]="service.formState().quality === q"
                     [class.text-paper-fresh]="service.formState().quality === q"
                     [class.text-ink-muted]="service.formState().quality !== q"
-                    class="px-2 py-1 text-xs font-mono font-bold rounded-sm hover:text-ink transition-colors cursor-pointer"
+                    class="px-2 py-1 text-xs font-mono font-bold rounded-sm hover:text-ink transition-colors duration-shift ease-run cursor-pointer active:shadow-stamped"
                     [attr.aria-label]="'Set quality to ' + q + '%'"
                   >
                     {{ q }}

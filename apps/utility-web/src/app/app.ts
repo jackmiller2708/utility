@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
-import { WorkbenchLayoutComponent } from './ui/index.js';
+import { WorkbenchLayoutComponent, RouteCurtainComponent } from './ui/index.js';
 import { RuntimeStatusService } from './core/index.js';
 
 const TOOL_ROUTES: Record<string, string> = {
@@ -18,7 +18,7 @@ const routeToToolId = (url: string): string | null => {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, WorkbenchLayoutComponent],
+  imports: [RouterOutlet, WorkbenchLayoutComponent, RouteCurtainComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

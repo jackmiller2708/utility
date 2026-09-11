@@ -58,13 +58,14 @@
       </div>
     } @else {
       <div class="flex-1 flex flex-col">
-        @for (row of ledgerRows; track row.key) {
+        @for (row of ledgerRows; track row.key; let i = $index) {
           <app-telemetry-row
             [label]="row.key"
             [srcValue]="row.src"
             [outValue]="row.out"
             [filled]="row.filled"
             [tone]="row.tone"
+            [index]="i"
           ></app-telemetry-row>
         }
       </div>
@@ -75,7 +76,7 @@
           [class.pointer-events-none]="!artifact()"
           [class.opacity-45]="!artifact()"
           [attr.aria-label]="artifact() ? ('Download ' + artifact()!.name + ', size ' + formatBytes(artifact()!.size)) : null"
-          class="inline-flex items-center gap-2 border-2 border-riso-blue text-riso-blue hover:bg-riso-blue hover:text-paper-fresh rounded-sm px-[18px] py-2.5 text-sm font-bold transition-colors cursor-pointer"
+          class="inline-flex items-center gap-2 border-2 border-riso-blue text-riso-blue hover:bg-riso-blue hover:text-paper-fresh rounded-sm px-[18px] py-2.5 text-sm font-bold transition-colors duration-shift ease-run cursor-pointer active:shadow-stamped"
         >
           <app-icon name="download" className="w-4 h-4"></app-icon>
           <span>Export</span>

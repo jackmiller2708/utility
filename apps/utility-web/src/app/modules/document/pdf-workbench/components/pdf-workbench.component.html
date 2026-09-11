@@ -33,9 +33,10 @@
         } @else {
           <app-file-summary-card
             [name]="selectedPdf.name"
-            [dimensions]="service.isInspecting() ? 'Reading…' : (inspectResult ? inspectResult.pages + ' page' + (inspectResult.pages === 1 ? '' : 's') : '')"
+            [dimensions]="service.isInspecting() ? 'Reading' : (inspectResult ? inspectResult.pages + ' page' + (inspectResult.pages === 1 ? '' : 's') : '')"
             [sizeFormatted]="service.formatBytes(selectedPdf.size)"
             [previewUrl]="null"
+            [loading]="service.isInspecting()"
             itemLabel="document"
             (changeFile)="service.resetPdf()"
           ></app-file-summary-card>
@@ -72,7 +73,7 @@
                   <button
                     type="button"
                     (click)="service.clearRange()"
-                    class="text-xs font-mono font-bold tracking-[0.04em] text-riso-blue hover:text-riso-blue-hover cursor-pointer"
+                    class="text-xs font-mono font-bold tracking-[0.04em] text-riso-blue hover:text-riso-blue-hover active:opacity-60 transition-colors duration-shift ease-run cursor-pointer"
                   >
                     ALL PAGES
                   </button>
@@ -160,10 +161,11 @@
         [title]="galleryTitle()"
         [items]="galleryItems()"
         [loading]="service.isProcessing()"
-        [elapsedLabel]="elapsedLabel()"
+        [job]="service.activeJob()"
         emptyTitle="No output yet"
         emptyMessage="Render pages or extract images to see results here."
         (downloadAllClicked)="downloadAll()"
+        (cancelJob)="service.cancelActiveJob()"
       ></app-gallery-grid>
     </section>
   </div>

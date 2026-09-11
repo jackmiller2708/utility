@@ -8,11 +8,14 @@
     <div class="font-bold text-ink text-sm truncate">
       {{ name() }}
     </div>
-    <div class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted mt-0.5 truncate">
-      @if (dimensions()) {
-        {{ dimensions() }} &middot;
+    <div class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted mt-0.5 truncate flex items-center gap-1.5">
+      @if (loading()) {
+        <span class="reg-cross reg-cross-spin text-riso-pink shrink-0"></span>
       }
-      {{ sizeFormatted() }}
+      @if (dimensions()) {
+        <span>{{ dimensions() }} &middot;</span>
+      }
+      <span>{{ sizeFormatted() }}</span>
     </div>
   </div>
   <app-button variant="ghost" size="sm" (clicked)="requestRemoval()">
@@ -21,7 +24,7 @@
 </div>
 
 @if (confirmingRemoval()) {
-  <div class="mt-4 bg-paper-fresh border border-riso-red rounded-sm p-4" role="alertdialog">
+  <div #removalAlert class="mt-4 bg-paper-fresh border border-riso-red rounded-sm p-4" role="alertdialog">
     <div class="text-sm font-bold text-ink">Remove this {{ itemLabel() }}?</div>
     <div class="text-sm leading-relaxed text-ink-muted mt-1">
       Any results go with it. You can drop the {{ itemLabel() }} back in any time.
@@ -30,14 +33,14 @@
       <button
         type="button"
         (click)="confirmRemoval()"
-        class="bg-riso-red text-paper-fresh rounded-sm px-4 py-2 text-sm font-bold cursor-pointer active:shadow-stamped"
+        class="bg-riso-red text-paper-fresh rounded-sm px-4 py-2 text-sm font-bold cursor-pointer hover:opacity-90 active:shadow-stamped transition-opacity duration-shift ease-run"
       >
         Remove
       </button>
       <button
         type="button"
         (click)="cancelRemoval()"
-        class="bg-transparent text-ink-muted rounded-sm px-4 py-2 text-sm font-bold cursor-pointer hover:text-ink"
+        class="bg-transparent text-ink-muted rounded-sm px-4 py-2 text-sm font-bold cursor-pointer hover:text-ink active:opacity-60 transition-colors duration-shift ease-run"
       >
         Keep it
       </button>

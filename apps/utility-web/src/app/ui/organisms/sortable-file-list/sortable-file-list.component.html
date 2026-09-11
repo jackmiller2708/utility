@@ -1,6 +1,7 @@
 <div class="flex flex-col gap-2">
   @for (item of items(); track item.id; let i = $index) {
     <div
+      #row
       draggable="true"
       (dragstart)="onDragStart(i, $event)"
       (dragover)="onDragOver(i, $event)"
@@ -9,7 +10,7 @@
       (dragend)="onDragEnd()"
       [class.border-riso-pink]="dragOverIndex() === i"
       [class.border-paper-deckle]="dragOverIndex() !== i"
-      class="flex items-center gap-3 bg-paper-fresh border rounded-sm px-3 py-2.5 transition-colors"
+      class="flex items-center gap-3 bg-paper-fresh border rounded-sm px-3 py-2.5 transition-colors duration-shift ease-run"
     >
       <span class="text-ink-faint cursor-grab active:cursor-grabbing shrink-0" title="Drag to reorder">
         <app-icon name="grip" className="w-4 h-4"></app-icon>

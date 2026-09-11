@@ -3,46 +3,7 @@ import { INestApplication } from "@nestjs/common";
 import request from "supertest";
 import sharp from "sharp";
 import { AppModule } from "./../src/app.module.js";
-
-/** Minimal valid multi-page PDF, built by hand so the e2e suite needs no PDF-authoring dependency. */
-function buildTestPdf(pages: number): Buffer {
-  const pageObjNumStart = 3;
-  const contentObjNum = pageObjNumStart + pages;
-  const objs: Buffer[] = [];
-  objs.push(Buffer.from(`<< /Type /Catalog /Pages 2 0 R >>`));
-  const kids = Array.from({ length: pages }, (_, i) => `${pageObjNumStart + i} 0 R`).join(" ");
-  objs.push(Buffer.from(`<< /Type /Pages /Kids [${kids}] /Count ${pages} >>`));
-  for (let i = 0; i < pages; i++) {
-    objs.push(
-      Buffer.from(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 100 100] /Contents ${contentObjNum} 0 R >>`)
-    );
-  }
-  const content = Buffer.from("1 0 0 RG 0 0 50 50 re S");
-  objs.push(
-    Buffer.concat([Buffer.from(`<< /Length ${content.length} >>\nstream\n`), content, Buffer.from("\nendstream")])
-  );
-
-  const chunks: Buffer[] = [Buffer.from("%PDF-1.4\n")];
-  const offsets: number[] = [0];
-  let pos = chunks[0].length;
-  objs.forEach((body, idx) => {
-    offsets.push(pos);
-    const header = Buffer.from(`${idx + 1} 0 obj\n`);
-    const footer = Buffer.from("\nendobj\n");
-    chunks.push(header, body, footer);
-    pos += header.length + body.length + footer.length;
-  });
-  const xrefOffset = pos;
-  const n = objs.length + 1;
-  let xref = `xref\n0 ${n}\n0000000000 65535 f \n`;
-  for (let i = 1; i < offsets.length; i++) {
-    xref += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
-  }
-  const trailer = `trailer\n<< /Size ${n} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
-  chunks.push(Buffer.from(xref), Buffer.from(trailer));
-
-  return Buffer.concat(chunks);
-}
+import { buildTestPdf } from "./support/pdf-fixtures.js";
 
 describe("Utility API (e2e)", () => {
   let app: INestApplication;
@@ -154,7 +115,7 @@ describe("Utility API (e2e)", () => {
   });
 
   it("POST /api/v1/tools/pdf.inspect reports page count via the generic operation route", async () => {
-    const testPdfBuffer = buildTestPdf(3);
+    const testPdfBuffer = buildTestPdf({ pages: 3 });
 
     const res = await request(app.getHttpServer())
       .post("/api/v1/tools/pdf.inspect")
@@ -165,7 +126,7 @@ describe("Utility API (e2e)", () => {
   });
 
   it("POST /api/v1/tools/pdf.render-pages renders each page as a downloadable artifact", async () => {
-    const testPdfBuffer = buildTestPdf(2);
+    const testPdfBuffer = buildTestPdf({ pages: 2 });
 
     const res = await request(app.getHttpServer())
       .post("/api/v1/tools/pdf.render-pages")
@@ -185,7 +146,7 @@ describe("Utility API (e2e)", () => {
   });
 
   it("POST /api/v1/tools/pdf.extract-images returns an empty list for an image-free PDF", async () => {
-    const testPdfBuffer = buildTestPdf(1);
+    const testPdfBuffer = buildTestPdf({ pages: 1 });
 
     const res = await request(app.getHttpServer())
       .post("/api/v1/tools/pdf.extract-images")
@@ -209,7 +170,7 @@ describe("Utility API (e2e)", () => {
   });
 
   it("POST /api/v1/tools/pdf.split extracts a page range as a downloadable PDF", async () => {
-    const testPdfBuffer = buildTestPdf(10);
+    const testPdfBuffer = buildTestPdf({ pages: 10 });
 
     const res = await request(app.getHttpServer())
       .post("/api/v1/tools/pdf.split")
@@ -227,7 +188,7 @@ describe("Utility API (e2e)", () => {
   });
 
   it("POST /api/v1/tools/pdf.split rejects a request with no ranges", async () => {
-    const testPdfBuffer = buildTestPdf(3);
+    const testPdfBuffer = buildTestPdf({ pages: 3 });
 
     await request(app.getHttpServer())
       .post("/api/v1/tools/pdf.split")
@@ -237,8 +198,8 @@ describe("Utility API (e2e)", () => {
   });
 
   it("POST /api/v1/tools/pdf.merge combines multiple PDFs into one", async () => {
-    const first = buildTestPdf(2);
-    const second = buildTestPdf(3);
+    const first = buildTestPdf({ pages: 2 });
+    const second = buildTestPdf({ pages: 3 });
 
     const res = await request(app.getHttpServer())
       .post("/api/v1/tools/pdf.merge")
@@ -256,7 +217,7 @@ describe("Utility API (e2e)", () => {
   });
 
   it("POST /api/v1/tools/pdf.merge rejects fewer than two files", async () => {
-    const only = buildTestPdf(2);
+    const only = buildTestPdf({ pages: 2 });
 
     await request(app.getHttpServer())
       .post("/api/v1/tools/pdf.merge")

@@ -7,7 +7,7 @@
         <button
           type="button"
           (click)="downloadAllClicked.emit()"
-          class="inline-flex items-center gap-2 border-2 border-riso-blue text-riso-blue hover:bg-riso-blue hover:text-paper-fresh rounded-sm px-3 py-1.5 text-xs font-mono font-bold tracking-[0.04em] transition-colors cursor-pointer"
+          class="inline-flex items-center gap-2 border-2 border-riso-blue text-riso-blue hover:bg-riso-blue hover:text-paper-fresh rounded-sm px-3 py-1.5 text-xs font-mono font-bold tracking-[0.04em] transition-colors duration-shift ease-run cursor-pointer active:shadow-stamped"
         >
           <app-icon name="download" className="w-3.5 h-3.5"></app-icon>
           <span>DOWNLOAD ALL</span>
@@ -20,9 +20,29 @@
     @if (loading()) {
       <div class="h-full flex flex-col items-center justify-center gap-3 text-center" role="status" aria-live="polite">
         <span class="reg-cross reg-cross-spin text-riso-pink" style="width:18px;height:18px"></span>
-        <span class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">
-          Working{{ elapsedLabel() ? ' · ' + elapsedLabel() : '…' }}
-        </span>
+
+        @if (job(); as activeJob) {
+          @let progress = activeJob.progress;
+          <span data-ledger class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">
+            @if (progress && progress.total > 0) {
+              {{ progress.completed }} / {{ progress.total }}
+              @if (progress.message) {
+                <span class="text-ink-faint">&mdash; {{ progress.message }}</span>
+              }
+            } @else {
+              QUEUED&hellip;
+            }
+          </span>
+          <button
+            type="button"
+            (click)="cancelJob.emit()"
+            class="text-xs font-mono font-bold tracking-[0.04em] text-riso-red hover:opacity-75 active:opacity-60 transition-opacity duration-shift ease-run cursor-pointer"
+          >
+            CANCEL
+          </button>
+        } @else {
+          <span class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">Working&hellip;</span>
+        }
       </div>
     } @else if (items().length > 0) {
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

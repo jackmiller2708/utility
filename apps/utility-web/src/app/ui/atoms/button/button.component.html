@@ -23,7 +23,7 @@
   [class.text-ink-faint]="variant() === 'ghost'"
   [class.hover:text-ink]="variant() === 'ghost'"
   [class.border-transparent]="variant() !== 'secondary'"
-  class="inline-flex items-center justify-center gap-2 rounded-sm font-bold border-2 transition-colors cursor-pointer max-w-full min-w-0 disabled:opacity-45 disabled:cursor-not-allowed active:shadow-stamped"
+  class="inline-flex items-center justify-center gap-2 rounded-sm font-bold border-2 transition-colors duration-shift ease-run cursor-pointer max-w-full min-w-0 disabled:opacity-45 disabled:cursor-not-allowed active:shadow-stamped"
 >
   @if (loading()) {
     <span class="reg-cross reg-cross-spin"></span>

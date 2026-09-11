@@ -69,13 +69,6 @@ export class MergeSplitComponent {
     }));
   });
 
-  readonly elapsedLabel = computed(() => {
-    if (!this.service.isProcessing()) {
-      return null;
-    }
-    return this.service.formatSeconds(this.service.elapsedSeconds());
-  });
-
   onModeSelected(modeId: string): void {
     this.service.setMode(modeId as 'split' | 'merge');
   }

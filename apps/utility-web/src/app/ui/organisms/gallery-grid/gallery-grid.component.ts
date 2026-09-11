@@ -1,8 +1,10 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, effect, inject, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BadgeComponent } from '../../atoms/badge/badge.component.js';
 import { IconComponent } from '../../atoms/icon/icon.component.js';
 import { GalleryTileComponent } from '../../molecules/gallery-tile/gallery-tile.component.js';
+import { MotionService } from '../../../core/index.js';
+import type { JobModel } from '../../../domain/index.js';
 
 export interface GalleryItem {
   readonly id: string;
@@ -23,8 +25,34 @@ export class GalleryGridComponent {
   readonly title = input<string>('Results');
   readonly items = input<readonly GalleryItem[]>([]);
   readonly loading = input<boolean>(false);
-  readonly elapsedLabel = input<string | null>(null);
+  /** When set, the loading state shows this job's real completed/total ledger and a cancel control; while submission is still in flight (job not yet registered), it falls back to a generic "Working…" message. */
+  readonly job = input<JobModel | null>(null);
   readonly emptyTitle = input<string>('No output yet');
   readonly emptyMessage = input<string>('Run an action on the left to see results here.');
   readonly downloadAllClicked = output<void>();
+  readonly cancelJob = output<void>();
+
+  private readonly motion = inject(MotionService);
+  private readonly hostRef = inject(ElementRef<HTMLElement>);
+  private _seenFirstRender = false;
+  private _previousCount = 0;
+
+  constructor() {
+    /** Pulled Sheet — the same focal completion moment as a job ticket, reused here rather than a second invented entrance, since results appearing IS a job completing. */
+    effect(() => {
+      const count = this.items().length;
+
+      if (!this._seenFirstRender) {
+        this._seenFirstRender = true;
+        this._previousCount = count;
+        return;
+      }
+
+      if (count > 0 && this._previousCount === 0) {
+        this.motion.pulledSheet(this.hostRef.nativeElement);
+      }
+
+      this._previousCount = count;
+    });
+  }
 }

@@ -2,11 +2,18 @@ import { Component, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BadgeComponent } from '../../atoms/badge/badge.component.js';
 
+const isFileDrag = (event: DragEvent): boolean => !!event.dataTransfer?.types.includes('Files');
+
 @Component({
   selector: 'app-dropzone',
   standalone: true,
   imports: [CommonModule, BadgeComponent],
   templateUrl: './dropzone.component.html',
+  host: {
+    '(window:dragenter)': 'onWindowDragEnter($event)',
+    '(window:dragleave)': 'onWindowDragLeave($event)',
+    '(window:drop)': 'onWindowDrop()',
+  },
 })
 export class DropzoneComponent {
   accept = input<string>('image/png,image/jpeg,image/webp,image/avif,image/gif');
@@ -18,7 +25,36 @@ export class DropzoneComponent {
   fileSelected = output<File>();
   filesSelected = output<File[]>();
 
+  /** Cursor is over this exact plate. */
   isDragging = signal(false);
+  /** A file is being dragged somewhere over the page, not yet over this plate — the earlier, quieter invitation. */
+  isFileOverDocument = signal(false);
+
+  private dragEnterDepth = 0;
+
+  /** window:dragenter/dragleave bubble with every child crossed, so depth-count rather than toggle on a single event, and ignore any drag that isn't carrying files (e.g. dragging selected text). */
+  onWindowDragEnter(event: DragEvent): void {
+    if (!isFileDrag(event)) {
+      return;
+    }
+    this.dragEnterDepth++;
+    this.isFileOverDocument.set(true);
+  }
+
+  onWindowDragLeave(event: DragEvent): void {
+    if (!isFileDrag(event)) {
+      return;
+    }
+    this.dragEnterDepth = Math.max(0, this.dragEnterDepth - 1);
+    if (this.dragEnterDepth === 0) {
+      this.isFileOverDocument.set(false);
+    }
+  }
+
+  onWindowDrop(): void {
+    this.dragEnterDepth = 0;
+    this.isFileOverDocument.set(false);
+  }
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
@@ -33,6 +69,8 @@ export class DropzoneComponent {
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragging.set(false);
+    this.isFileOverDocument.set(false);
+    this.dragEnterDepth = 0;
     this.emitFiles(event.dataTransfer?.files ?? null);
   }
 

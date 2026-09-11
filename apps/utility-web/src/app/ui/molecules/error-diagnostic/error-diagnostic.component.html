@@ -4,7 +4,7 @@
     <button
       type="button"
       (click)="retryClicked.emit()"
-      class="inline-flex items-center gap-1 px-2 py-1 text-xs font-mono font-bold rounded-sm bg-riso-red text-paper-fresh transition-colors cursor-pointer shrink-0"
+      class="inline-flex items-center gap-1 px-2 py-1 text-xs font-mono font-bold rounded-sm bg-riso-red text-paper-fresh transition-colors duration-shift ease-run cursor-pointer shrink-0 active:shadow-stamped"
       [attr.aria-label]="retryLabel()"
     >
       <app-icon name="play" className="w-3 h-3"></app-icon>

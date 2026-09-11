@@ -1,6 +1,7 @@
 import { Context, Effect, Layer } from "effect";
 import * as path from "node:path";
 import { FileSystem, Process, ProcessError, WorkspaceInstance } from "@utility/runtime";
+import { ProgressReporter } from "@utility/toolkit";
 import { InvalidPdfError, PdfProcessingError } from "./errors.js";
 
 export interface PdfMetadata {
@@ -20,24 +21,31 @@ export interface PageRange {
   readonly lastPage: number;
 }
 
+/** Pages rendered/scanned per `pdftoppm`/`pdfimages` invocation when progress reporting is active. Balances real incremental progress against per-process spawn overhead. */
+const PROGRESS_CHUNK_SIZE = 10;
+
 export interface PdfService {
   readonly inspect: (inputPath: string) => Effect.Effect<PdfMetadata, InvalidPdfError>;
 
   readonly renderPages: (
     inputPath: string,
     workspace: WorkspaceInstance,
-    options?: RenderPagesOptions
+    options?: RenderPagesOptions,
+    onProgress?: ProgressReporter
   ) => Effect.Effect<readonly string[], InvalidPdfError | PdfProcessingError>;
 
   readonly extractImages: (
     inputPath: string,
-    workspace: WorkspaceInstance
+    workspace: WorkspaceInstance,
+    onProgress?: ProgressReporter,
+    totalPages?: number
   ) => Effect.Effect<readonly string[], InvalidPdfError | PdfProcessingError>;
 
   readonly splitRanges: (
     inputPath: string,
     workspace: WorkspaceInstance,
-    ranges: readonly PageRange[]
+    ranges: readonly PageRange[],
+    onProgress?: ProgressReporter
   ) => Effect.Effect<readonly string[], InvalidPdfError | PdfProcessingError>;
 
   readonly merge: (
@@ -62,6 +70,39 @@ const mapProcessFailure = (operation: string) => (err: ProcessError) =>
         message: `${operation} failed: ${err.message}`,
         cause: err,
       });
+
+/** Lists every PNG in the workspace's output dir whose name starts with any of the given prefixes, sorted for stable ordering. */
+const listPngOutputs = (
+  fs: FileSystem,
+  workspace: WorkspaceInstance,
+  matchesPrefix: (name: string) => boolean,
+  operation: string
+): Effect.Effect<readonly string[], PdfProcessingError> =>
+  fs.listDirectory(workspace.outputDir).pipe(
+    Effect.mapError(
+      (err) =>
+        new PdfProcessingError({
+          operation,
+          message: `Failed to list ${operation} output: ${err.message}`,
+          cause: err,
+        })
+    ),
+    Effect.map((entries) =>
+      entries
+        .filter((name) => name.endsWith(".png") && matchesPrefix(name))
+        .sort()
+        .map((name) => path.join(workspace.outputDir, name))
+    )
+  );
+
+/** Splits an inclusive [first, last] page range into contiguous chunks of at most `size` pages. */
+const chunkRange = (first: number, last: number, size: number): Array<{ start: number; end: number }> => {
+  const chunks: Array<{ start: number; end: number }> = [];
+  for (let start = first; start <= last; start += size) {
+    chunks.push({ start, end: Math.min(start + size - 1, last) });
+  }
+  return chunks;
+};
 
 export const PopplerPdfServiceLive = Layer.effect(
   PdfService,
@@ -95,70 +136,83 @@ export const PopplerPdfServiceLive = Layer.effect(
             )
           ),
 
-      renderPages: (inputPath: string, workspace: WorkspaceInstance, options = {}) =>
+      renderPages: (inputPath: string, workspace: WorkspaceInstance, options = {}, onProgress) =>
         Effect.gen(function* () {
           const dpi = options.dpi ?? 150;
           const outputPrefix = workspace.allocateOutputPath("page");
-          const args = ["-png", "-r", String(dpi)];
-
-          if (options.firstPage) {
-            args.push("-f", String(options.firstPage));
-          }
-          if (options.lastPage) {
-            args.push("-l", String(options.lastPage));
-          }
-
-          args.push(inputPath, outputPrefix);
-
-          yield* process
-            .spawn({ executable: "pdftoppm", args })
-            .pipe(Effect.mapError(mapProcessFailure("pdf.render-pages")));
-
           const prefixName = path.basename(outputPrefix);
-          const entries = yield* fs.listDirectory(workspace.outputDir).pipe(
-            Effect.mapError(
-              (err) =>
-                new PdfProcessingError({
-                  operation: "pdf.render-pages",
-                  message: `Failed to list rendered pages: ${err.message}`,
-                  cause: err,
-                })
-            )
-          );
 
-          return entries
-            .filter((name) => name.startsWith(`${prefixName}-`) && name.endsWith(".png"))
-            .sort()
-            .map((name) => path.join(workspace.outputDir, name));
+          // pdftoppm names each file by its real page number (page-<N>.png), so a shared
+          // prefix across chunked invocations never collides — safe to call repeatedly.
+          if (!onProgress || !options.firstPage || !options.lastPage) {
+            const args = ["-png", "-r", String(dpi)];
+            if (options.firstPage) {
+              args.push("-f", String(options.firstPage));
+            }
+            if (options.lastPage) {
+              args.push("-l", String(options.lastPage));
+            }
+            args.push(inputPath, outputPrefix);
+
+            yield* process.spawn({ executable: "pdftoppm", args }).pipe(Effect.mapError(mapProcessFailure("pdf.render-pages")));
+
+            return yield* listPngOutputs(fs, workspace, (name) => name.startsWith(`${prefixName}-`), "pdf.render-pages");
+          }
+
+          const total = options.lastPage - options.firstPage + 1;
+          let completed = 0;
+
+          for (const chunk of chunkRange(options.firstPage, options.lastPage, PROGRESS_CHUNK_SIZE)) {
+            yield* process
+              .spawn({
+                executable: "pdftoppm",
+                args: ["-png", "-r", String(dpi), "-f", String(chunk.start), "-l", String(chunk.end), inputPath, outputPrefix],
+              })
+              .pipe(Effect.mapError(mapProcessFailure("pdf.render-pages")));
+
+            completed += chunk.end - chunk.start + 1;
+            onProgress({ completed, total, message: `Rendered page ${chunk.end} of ${options.lastPage}` });
+          }
+
+          return yield* listPngOutputs(fs, workspace, (name) => name.startsWith(`${prefixName}-`), "pdf.render-pages");
         }),
 
-      extractImages: (inputPath: string, workspace: WorkspaceInstance) =>
+      extractImages: (inputPath: string, workspace: WorkspaceInstance, onProgress, totalPages) =>
         Effect.gen(function* () {
-          const outputPrefix = workspace.allocateOutputPath("image");
+          if (!onProgress || !totalPages) {
+            const outputPrefix = workspace.allocateOutputPath("image");
+            const prefixName = path.basename(outputPrefix);
 
-          yield* process
-            .spawn({ executable: "pdfimages", args: ["-png", inputPath, outputPrefix] })
-            .pipe(Effect.mapError(mapProcessFailure("pdf.extract-images")));
+            yield* process
+              .spawn({ executable: "pdfimages", args: ["-png", inputPath, outputPrefix] })
+              .pipe(Effect.mapError(mapProcessFailure("pdf.extract-images")));
 
-          const prefixName = path.basename(outputPrefix);
-          const entries = yield* fs.listDirectory(workspace.outputDir).pipe(
-            Effect.mapError(
-              (err) =>
-                new PdfProcessingError({
-                  operation: "pdf.extract-images",
-                  message: `Failed to list extracted images: ${err.message}`,
-                  cause: err,
-                })
-            )
-          );
+            return yield* listPngOutputs(fs, workspace, (name) => name.startsWith(`${prefixName}-`), "pdf.extract-images");
+          }
 
-          return entries
-            .filter((name) => name.startsWith(`${prefixName}-`) && name.endsWith(".png"))
-            .sort()
-            .map((name) => path.join(workspace.outputDir, name));
+          // pdfimages restarts its own counter at -000 on every invocation, so each chunk
+          // MUST get a distinct prefix or a later chunk silently overwrites an earlier one.
+          // Zero-padded start page keeps prefixes in the right lexicographic order too.
+          let completed = 0;
+
+          for (const chunk of chunkRange(1, totalPages, PROGRESS_CHUNK_SIZE)) {
+            const chunkPrefix = workspace.allocateOutputPath(`image_p${String(chunk.start).padStart(6, "0")}`);
+
+            yield* process
+              .spawn({
+                executable: "pdfimages",
+                args: ["-png", "-f", String(chunk.start), "-l", String(chunk.end), inputPath, chunkPrefix],
+              })
+              .pipe(Effect.mapError(mapProcessFailure("pdf.extract-images")));
+
+            completed = chunk.end;
+            onProgress({ completed, total: totalPages, message: `Scanned page ${chunk.end} of ${totalPages}` });
+          }
+
+          return yield* listPngOutputs(fs, workspace, (name) => name.startsWith("image_p"), "pdf.extract-images");
         }),
 
-      splitRanges: (inputPath: string, workspace: WorkspaceInstance, ranges: readonly PageRange[]) =>
+      splitRanges: (inputPath: string, workspace: WorkspaceInstance, ranges: readonly PageRange[], onProgress) =>
         Effect.forEach(
           ranges,
           (range, index) =>
@@ -181,6 +235,12 @@ export const PopplerPdfServiceLive = Layer.effect(
                   ],
                 })
                 .pipe(Effect.mapError(mapProcessFailure("pdf.split")));
+
+              onProgress?.({
+                completed: index + 1,
+                total: ranges.length,
+                message: `Split range ${index + 1} of ${ranges.length} (pages ${range.firstPage}-${range.lastPage})`,
+              });
 
               return outputPath;
             }),

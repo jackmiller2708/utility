@@ -64,13 +64,6 @@ export class PdfWorkbenchComponent {
     return `≈${this.service.formatSeconds(estimate.seconds)} · ~${this.service.formatBytes(estimate.bytes)}`;
   });
 
-  readonly elapsedLabel = computed(() => {
-    if (!this.service.isProcessing()) {
-      return null;
-    }
-    return this.service.formatSeconds(this.service.elapsedSeconds());
-  });
-
   onDpiSelected(dpiId: string): void {
     this.service.updateDpi(Number(dpiId));
   }
