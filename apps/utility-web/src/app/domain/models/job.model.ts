@@ -13,6 +13,8 @@ export interface JobModelParams {
   readonly completedAt: string | null;
   /** Human-readable label for the ledger tag (e.g. the source filename). Not part of the wire DTO — attached client-side by JobTrackerService at submission time. */
   readonly label?: string;
+  /** Groups jobs submitted together as one batch (e.g. N files resized with one settings form). Not part of the wire DTO — attached client-side by JobTrackerService at submission time; the backend has no batch concept, every job is independent. */
+  readonly batchId?: string;
 }
 
 const ACTIVE_STATUSES: readonly JobStatus[] = ['pending', 'running'];
@@ -29,6 +31,7 @@ export class JobModel {
   readonly startedAt: string | null;
   readonly completedAt: string | null;
   readonly label?: string;
+  readonly batchId?: string;
 
   constructor(params: JobModelParams) {
     this.id = params.id;
@@ -41,6 +44,7 @@ export class JobModel {
     this.startedAt = params.startedAt;
     this.completedAt = params.completedAt;
     this.label = params.label;
+    this.batchId = params.batchId;
   }
 
   get isActive(): boolean {
@@ -53,6 +57,10 @@ export class JobModel {
 
   withLabel(label: string | undefined): JobModel {
     return new JobModel({ ...this, label });
+  }
+
+  withBatchId(batchId: string | undefined): JobModel {
+    return new JobModel({ ...this, batchId });
   }
 }
 

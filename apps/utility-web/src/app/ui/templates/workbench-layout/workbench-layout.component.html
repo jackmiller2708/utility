@@ -10,7 +10,9 @@
       <app-sidebar
         [tools]="tools()"
         [activeToolId]="activeToolId()"
+        [onRecentRoute]="onRecentRoute()"
         (selectedToolId)="toolSelected.emit($event)"
+        (recentSelected)="recentSelected.emit()"
       ></app-sidebar>
     </aside>
 
@@ -27,6 +29,8 @@
       [jobs]="jobTracker.jobs()"
       (cancelJob)="jobTracker.cancel($event)"
       (dismissJob)="jobTracker.dismiss($event)"
+      (cancelBatch)="jobTracker.cancelBatch($event)"
+      (dismissBatch)="jobTracker.dismissBatch($event)"
     ></app-job-tray>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-center gap-2 font-mono text-xs font-bold tracking-[0.04em] text-press-text-muted">

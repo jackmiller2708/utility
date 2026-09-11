@@ -1,12 +1,33 @@
-import type { ArtifactModel, JobModel } from '../../../../domain/index.js';
-import type { PdfRenderPagesOutput, PdfExtractImagesOutput } from '@utility/protocol';
+import type { ArtifactModel, JobModel, ToolParameterModel } from '../../../../domain/index.js';
+import type { PdfRenderPagesOutput, PdfExtractImagesOutput, PdfInspectOutput } from '@utility/protocol';
 
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { ApiClientService } from '../../../../core/services/api-client.service.js';
-import { JobTrackerService } from '../../../../core/index.js';
+import { JobTrackerService, RuntimeStatusService } from '../../../../core/index.js';
 import { ArtifactModelsFromPdfRenderPagesOutput, ArtifactModelsFromPdfExtractImagesOutput } from '../../../../domain/index.js';
 import { Either, Option } from 'effect';
 import { finalize } from 'rxjs';
+
+export type PdfWorkbenchMode = 'single' | 'batch';
+export type PdfBatchOperation = 'pdf.inspect' | 'pdf.render-pages' | 'pdf.extract-images';
+
+export interface BatchFileRow {
+  readonly id: string;
+  readonly file: File;
+}
+
+export interface BatchInspectRow {
+  readonly fileName: string;
+  readonly pages: number;
+  readonly title?: string;
+  readonly author?: string;
+}
+
+/** See image-resize's `MAX_BATCH_FILES` for why: bounds concurrent server-side jobs and keeps the file list from pushing the settings and submit button below it off-screen. */
+const MAX_BATCH_FILES = 25;
+
+let pdfBatchRowIdCounter = 0;
+const nextPdfBatchRowId = () => `pdf_batch_row_${++pdfBatchRowIdCounter}`;
 
 export interface PdfFileDetails {
   readonly file: File;
@@ -64,6 +85,151 @@ const DEFAULT_RANGE_SIZE = 10;
 export class PdfWorkbenchService {
   private readonly _apiClient = inject(ApiClientService);
   private readonly _jobTracker = inject(JobTrackerService);
+  private readonly _runtimeStatus = inject(RuntimeStatusService);
+
+  // Batch mode state
+  private readonly _mode = signal<PdfWorkbenchMode>('single');
+  private readonly _batchOperation = signal<PdfBatchOperation>('pdf.render-pages');
+  private readonly _batchFiles = signal<readonly BatchFileRow[]>([]);
+  private readonly _batchDpi = signal<number>(150);
+  private readonly _batchFirstPage = signal<number | null>(null);
+  private readonly _batchLastPage = signal<number | null>(null);
+  private readonly _activeBatchId = signal<Option.Option<string>>(Option.none());
+  private readonly _isBatchSubmitting = signal<boolean>(false);
+  private readonly _batchArtifactResults = signal<readonly ArtifactModel[]>([]);
+  private readonly _batchInspectResults = signal<readonly BatchInspectRow[]>([]);
+  private readonly _batchLimitNotice = signal<string | null>(null);
+  private readonly _collectedBatchJobIds = new Set<string>();
+
+  readonly mode = this._mode.asReadonly();
+  readonly batchOperation = this._batchOperation.asReadonly();
+  readonly batchFiles = this._batchFiles.asReadonly();
+  readonly batchDpi = this._batchDpi.asReadonly();
+  readonly batchArtifactResults = this._batchArtifactResults.asReadonly();
+  readonly batchInspectResults = this._batchInspectResults.asReadonly();
+  readonly batchLimitNotice = this._batchLimitNotice.asReadonly();
+  readonly maxBatchFiles = MAX_BATCH_FILES;
+
+  readonly batchOperationTiles = [
+    { id: 'pdf.inspect', label: 'INSPECT' },
+    { id: 'pdf.render-pages', label: 'RENDER PAGES' },
+    { id: 'pdf.extract-images', label: 'EXTRACT IMAGES' },
+  ];
+
+  readonly isRenderBatch = computed(() => this._batchOperation() === 'pdf.render-pages');
+  readonly isInspectBatch = computed(() => this._batchOperation() === 'pdf.inspect');
+
+  /**
+   * Non-file, non-dpi parameters of the active batch operation. DPI renders as its own tile
+   * group below (an absolute quality tier, reused directly from single mode's own DPI options —
+   * unlike single mode's page-range auto-nudge, which depends on one file's page count and has
+   * no equivalent across N unrelated files, so it's dropped here rather than faked); render-pages'
+   * firstPage/lastPage have no bespoke logic left once that nudge doesn't apply, so they fall
+   * through to the generic renderer. inspect/extract-images declare no non-file parameters at
+   * all, so this — and the form it drives — is empty for them.
+   */
+  readonly batchParameters = computed<readonly ToolParameterModel[]>(() => {
+    const tool = this._runtimeStatus.tools().find((t) => t.id === 'pdf');
+    const op = tool?.operations.find((o) => o.id === this._batchOperation());
+    return (op?.parameters ?? []).filter((p) => p.type !== 'file' && p.name !== 'dpi');
+  });
+
+  readonly batchFormValues = computed<Readonly<Record<string, unknown>>>(() => ({
+    firstPage: this._batchFirstPage(),
+    lastPage: this._batchLastPage(),
+  }));
+
+  readonly batchJobs = computed<readonly JobModel[]>(() => {
+    const id = this._activeBatchId();
+    if (Option.isNone(id)) {
+      return [];
+    }
+    return this._jobTracker.jobs().filter((job) => job.batchId === id.value);
+  });
+
+  readonly isBatchActive = computed(() => this._isBatchSubmitting() || this.batchJobs().some((job) => job.isActive));
+  readonly canSubmitBatch = computed(() => this._batchFiles().length > 0 && !this.isBatchActive());
+
+  setMode(mode: PdfWorkbenchMode): void {
+    this._mode.set(mode);
+  }
+
+  setBatchOperation(operation: string): void {
+    this._batchOperation.set(operation as PdfBatchOperation);
+  }
+
+  addBatchFiles(files: readonly File[]): void {
+    const room = Math.max(0, MAX_BATCH_FILES - this._batchFiles().length);
+    const accepted = files.slice(0, room);
+    const rejectedCount = files.length - accepted.length;
+
+    const rows = accepted.map((file) => ({ id: nextPdfBatchRowId(), file }));
+    this._batchFiles.update((list) => [...list, ...rows]);
+
+    this._batchLimitNotice.set(rejectedCount > 0
+      ? `Batch limit is ${MAX_BATCH_FILES} files — ${rejectedCount} file${rejectedCount === 1 ? '' : 's'} not added.`
+      : null);
+  }
+
+  removeBatchFile(id: string): void {
+    this._batchFiles.update((list) => list.filter((row) => row.id !== id));
+    this._batchLimitNotice.set(null);
+  }
+
+  clearBatchFiles(): void {
+    this._batchFiles.set([]);
+    this._batchLimitNotice.set(null);
+  }
+
+  reorderBatchFiles(fromIndex: number, toIndex: number): void {
+    this._batchFiles.update((rows) => {
+      const next = [...rows];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  }
+
+  updateBatchDpi(dpi: number): void {
+    this._batchDpi.set(dpi);
+  }
+
+  setBatchFormValues(values: Readonly<Record<string, unknown>>): void {
+    const firstPage = values['firstPage'];
+    const lastPage = values['lastPage'];
+    this._batchFirstPage.set(typeof firstPage === 'number' ? firstPage : null);
+    this._batchLastPage.set(typeof lastPage === 'number' ? lastPage : null);
+  }
+
+  executeBatch(): void {
+    if (!this.canSubmitBatch()) {
+      return;
+    }
+
+    const operation = this._batchOperation();
+    const settings = operation === 'pdf.render-pages'
+      ? { dpi: this._batchDpi(), firstPage: this._batchFirstPage(), lastPage: this._batchLastPage() }
+      : {};
+
+    this._batchArtifactResults.set([]);
+    this._batchInspectResults.set([]);
+    this._collectedBatchJobIds.clear();
+    this._isBatchSubmitting.set(true);
+
+    this._jobTracker.submitBatch$(operation, this._batchFiles().map((row) => row.file), settings)
+      .pipe(finalize(() => this._isBatchSubmitting.set(false)))
+      .subscribe(({ batchId }) => this._activeBatchId.set(Option.some(batchId)));
+  }
+
+  resetBatch(): void {
+    this._batchFiles.set([]);
+    this._batchArtifactResults.set([]);
+    this._batchInspectResults.set([]);
+    this._batchLimitNotice.set(null);
+    this._activeBatchId.set(Option.none());
+    this._collectedBatchJobIds.clear();
+  }
+
   private readonly _selectedPdf = signal<Option.Option<PdfFileDetails>>(Option.none());
   private readonly _inspectResult = signal<Option.Option<PdfInspectResult>>(Option.none());
   private readonly _isInspecting = signal<boolean>(false);
@@ -170,6 +336,37 @@ export class PdfWorkbenchService {
         this._lastResult.set({ action, items });
       } else if (job.status === 'failed') {
         this._errorMessage.set(Option.some(job.error ?? 'Operation failed'));
+      }
+    });
+
+    /**
+     * Each batch job completing hands over its result exactly once. Unlike image-resize's batch
+     * (one job → one artifact), every PDF batch operation's result shape differs: inspect returns
+     * plain data (no artifact at all), render-pages and extract-images each return an *array* of
+     * artifacts per file — so a batch of N files can produce far more than N results.
+     */
+    effect(() => {
+      for (const job of this.batchJobs()) {
+        if (job.status !== 'completed' || this._collectedBatchJobIds.has(job.id)) {
+          continue;
+        }
+        this._collectedBatchJobIds.add(job.id);
+
+        if (job.operationId === 'pdf.inspect') {
+          const result = job.result as PdfInspectOutput;
+          this._batchInspectResults.update((list) => [...list, {
+            fileName: job.label ?? 'file',
+            pages: result.pages,
+            title: result.title,
+            author: result.author,
+          }]);
+        } else if (job.operationId === 'pdf.render-pages') {
+          const artifacts = ArtifactModelsFromPdfRenderPagesOutput.from(job.result as PdfRenderPagesOutput);
+          this._batchArtifactResults.update((list) => [...list, ...artifacts]);
+        } else if (job.operationId === 'pdf.extract-images') {
+          const artifacts = ArtifactModelsFromPdfExtractImagesOutput.from(job.result as PdfExtractImagesOutput);
+          this._batchArtifactResults.update((list) => [...list, ...artifacts]);
+        }
       }
     });
   }

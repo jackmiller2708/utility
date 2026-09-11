@@ -23,6 +23,7 @@ export class SortableFileListComponent {
   items = input<readonly SortableFileItem[]>([]);
   reorder = output<{ fromIndex: number; toIndex: number }>();
   remove = output<string>();
+  clearAll = output<void>();
 
   readonly dragIndex = signal<number | null>(null);
   readonly dragOverIndex = signal<number | null>(null);

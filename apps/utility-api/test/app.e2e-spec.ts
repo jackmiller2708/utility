@@ -100,6 +100,62 @@ describe("Utility API (e2e)", () => {
     expect(downloadedMeta.format).toBe("webp");
   });
 
+  it("GET /api/v1/artifacts supports search, operation filtering, and cursor pagination", async () => {
+    const uniquePrefix = `pgtest-${Date.now()}`;
+
+    for (let i = 0; i < 3; i++) {
+      const buf = await sharp({
+        create: { width: 10, height: 10, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } },
+      })
+        .png()
+        .toBuffer();
+
+      await request(app.getHttpServer())
+        .post("/api/v1/tools/image.resize")
+        .attach("file", buf, `${uniquePrefix}-${i}.png`)
+        .field("width", 5)
+        .expect(201);
+    }
+
+    // Search finds exactly the 3 artifacts just created, by name substring.
+    const searchRes = await request(app.getHttpServer())
+      .get(`/api/v1/artifacts?q=${uniquePrefix}`)
+      .expect(200);
+
+    expect(searchRes.body.artifacts).toHaveLength(3);
+    expect(searchRes.body.artifacts.every((a: { name: string }) => a.name.includes(uniquePrefix))).toBe(true);
+    expect(searchRes.body.nextCursor).toBeNull();
+
+    // The operation filter matches (all three came from image.resize)...
+    const opRes = await request(app.getHttpServer())
+      .get(`/api/v1/artifacts?q=${uniquePrefix}&operation=image.resize`)
+      .expect(200);
+    expect(opRes.body.artifacts).toHaveLength(3);
+
+    // ...and excludes them under an unrelated operation.
+    const wrongOpRes = await request(app.getHttpServer())
+      .get(`/api/v1/artifacts?q=${uniquePrefix}&operation=pdf.inspect`)
+      .expect(200);
+    expect(wrongOpRes.body.artifacts).toHaveLength(0);
+
+    // Cursor pagination pages through the 3 matches two at a time with no overlap.
+    const page1 = await request(app.getHttpServer())
+      .get(`/api/v1/artifacts?q=${uniquePrefix}&limit=2`)
+      .expect(200);
+    expect(page1.body.artifacts).toHaveLength(2);
+    expect(page1.body.nextCursor).not.toBeNull();
+
+    const page2 = await request(app.getHttpServer())
+      .get(`/api/v1/artifacts?q=${uniquePrefix}&limit=2&cursor=${encodeURIComponent(page1.body.nextCursor)}`)
+      .expect(200);
+    expect(page2.body.artifacts).toHaveLength(1);
+    expect(page2.body.nextCursor).toBeNull();
+
+    const page1Ids = page1.body.artifacts.map((a: { id: string }) => a.id);
+    const page2Ids = page2.body.artifacts.map((a: { id: string }) => a.id);
+    expect(page1Ids.some((id: string) => page2Ids.includes(id))).toBe(false);
+  });
+
   it("GET /api/v1/tools returns pdf tool and its operations", async () => {
     const res = await request(app.getHttpServer())
       .get("/api/v1/tools")

@@ -62,6 +62,23 @@ describe("Jobs API (e2e)", () => {
     expect((final.result as { pages: number }).pages).toBe(6);
   });
 
+  it("fails a job cleanly instead of silently dropping extra files on a single-file operation", async () => {
+    const first = buildTestPdf({ pages: 2 });
+    const second = buildTestPdf({ pages: 3 });
+
+    // pdf.inspect declares a singular "file" parameter, not "files" — two uploads must
+    // not silently process only the first and drop the second (see prepareJobInput's guard).
+    const submitRes = await request(app.getHttpServer())
+      .post("/api/v1/jobs/pdf.inspect")
+      .attach("file", first, "first.pdf")
+      .attach("file", second, "second.pdf")
+      .expect(201);
+
+    const final = await waitForTerminalStatus(app, submitRes.body.jobId);
+    expect(final.status).toBe("failed");
+    expect(final.error).toMatch(/single file/i);
+  });
+
   it("runs pdf.render-pages as a job with real, increasing progress", async () => {
     const pdfBuffer = buildTestPdf({ pages: 22 });
 

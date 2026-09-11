@@ -1,4 +1,4 @@
-import type { ImageResizeOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, PdfSplitOutput, PdfMergeOutput } from '@utility/protocol';
+import type { ImageResizeOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, PdfSplitOutput, PdfMergeOutput, ArtifactResponse } from '@utility/protocol';
 import type { From } from '@utility/adapter';
 
 export interface ArtifactModelParams {
@@ -8,6 +8,7 @@ export interface ArtifactModelParams {
   readonly size: number;
   readonly checksum?: string;
   readonly createdAt: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
 export class ArtifactModel {
@@ -17,6 +18,7 @@ export class ArtifactModel {
   readonly size: number;
   readonly checksum?: string;
   readonly createdAt: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
 
   constructor(params: ArtifactModelParams) {
     this.id = params.id;
@@ -25,6 +27,13 @@ export class ArtifactModel {
     this.size = params.size;
     this.checksum = params.checksum;
     this.createdAt = params.createdAt;
+    this.metadata = params.metadata;
+  }
+
+  /** The operation that produced this artifact (e.g. "image.resize"), when known — attached by every operation at save time. */
+  get sourceOperation(): string | null {
+    const op = this.metadata?.['operation'];
+    return typeof op === 'string' ? op : null;
   }
 }
 
@@ -53,6 +62,14 @@ export const ArtifactModelsFromPdfSplitOutput: From<PdfSplitOutput, readonly Art
 
 export const ArtifactModelFromPdfMergeOutput: From<PdfMergeOutput, ArtifactModel> = {
   from: (dto) => new ArtifactModel(dto.artifact),
+};
+
+export const ArtifactModelFromArtifactResponse: From<ArtifactResponse, ArtifactModel> = {
+  from: (dto) => new ArtifactModel(dto),
+};
+
+export const ArtifactModelsFromArtifactResponseList: From<readonly ArtifactResponse[], readonly ArtifactModel[]> = {
+  from: (dto) => dto.map((artifact) => ArtifactModelFromArtifactResponse.from(artifact)),
 };
 
 export interface ArtifactFileDetails {

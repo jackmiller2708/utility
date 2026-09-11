@@ -5,6 +5,7 @@ import {
   Query,
   Res,
   UseGuards,
+  BadRequestException,
 } from "@nestjs/common";
 import type { Response } from "express";
 import { Effect } from "effect";
@@ -20,11 +21,24 @@ export class ArtifactsController {
   constructor(private readonly effectRuntime: EffectRuntimeService) {}
 
   @Get()
-  async listArtifacts() {
+  async listArtifacts(
+    @Query("limit") limitParam?: string,
+    @Query("cursor") cursor?: string,
+    @Query("q") search?: string,
+    @Query("operation") operation?: string
+  ) {
+    let limit: number | undefined;
+    if (limitParam !== undefined) {
+      limit = parseInt(limitParam, 10);
+      if (!Number.isFinite(limit)) {
+        throw new BadRequestException("limit must be a number");
+      }
+    }
+
     return this.effectRuntime.runPromise(
       Effect.gen(function* () {
         const store = yield* ArtifactStore;
-        return yield* store.listArtifacts();
+        return yield* store.listArtifacts({ limit, cursor, search, operation });
       })
     );
   }

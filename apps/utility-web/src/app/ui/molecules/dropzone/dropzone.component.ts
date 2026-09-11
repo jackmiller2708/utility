@@ -12,7 +12,7 @@ const isFileDrag = (event: DragEvent): boolean => !!event.dataTransfer?.types.in
   host: {
     '(window:dragenter)': 'onWindowDragEnter($event)',
     '(window:dragleave)': 'onWindowDragLeave($event)',
-    '(window:drop)': 'onWindowDrop()',
+    '(window:drop)': 'onWindowDrop($event)',
   },
 })
 export class DropzoneComponent {
@@ -51,9 +51,19 @@ export class DropzoneComponent {
     }
   }
 
-  onWindowDrop(): void {
+  /**
+   * A drop anywhere on the page lands here too, since the event bubbles from wherever it landed
+   * up to `window`. `onDrop` below stops propagation for a drop directly on this plate, so this
+   * only runs for drops elsewhere on the page — without it, the browser's default action for an
+   * unhandled file drop is to navigate the tab to the file, discarding the page. Widening capture
+   * to the whole page (not just the dashed rect) is deliberate: the plate is still the visible
+   * target, but a near-miss drop should still land the file rather than punishing imprecision.
+   */
+  onWindowDrop(event: DragEvent): void {
+    event.preventDefault();
     this.dragEnterDepth = 0;
     this.isFileOverDocument.set(false);
+    this.emitFiles(event.dataTransfer?.files ?? null);
   }
 
   onDragOver(event: DragEvent): void {
@@ -68,6 +78,7 @@ export class DropzoneComponent {
 
   onDrop(event: DragEvent): void {
     event.preventDefault();
+    event.stopPropagation();
     this.isDragging.set(false);
     this.isFileOverDocument.set(false);
     this.dragEnterDepth = 0;

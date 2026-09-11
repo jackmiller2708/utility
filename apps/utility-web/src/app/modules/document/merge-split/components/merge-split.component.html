@@ -124,20 +124,29 @@
         }
 
         @if (service.mode() === 'merge') {
-          <app-dropzone
-            [title]="service.mergeFiles().length > 0 ? 'Drop more PDFs or browse' : 'Drop PDFs or browse'"
-            accept="application/pdf"
-            [supportedFormats]="['PDF']"
-            [multiple]="true"
-            [showPasteHint]="false"
-            (filesSelected)="onMergeFilesSelected($event)"
-          ></app-dropzone>
+          @if (service.mergeFiles().length < service.maxMergeFiles) {
+            <app-dropzone
+              [title]="service.mergeFiles().length > 0 ? 'Drop more PDFs or browse' : 'Drop PDFs or browse'"
+              accept="application/pdf"
+              [supportedFormats]="['PDF']"
+              [multiple]="true"
+              [showPasteHint]="false"
+              (filesSelected)="onMergeFilesSelected($event)"
+            ></app-dropzone>
+          }
+
+          @if (service.mergeLimitNotice(); as notice) {
+            <div class="p-3 rounded-sm border border-riso-gold bg-riso-gold/10 text-xs font-mono font-bold text-ink flex items-start gap-2" role="status">
+              <span class="flex-1 min-w-0 break-words">{{ notice }}</span>
+            </div>
+          }
 
           @if (mergeFileItems().length > 0) {
             <app-sortable-file-list
               [items]="mergeFileItems()"
               (reorder)="onMergeFileReorder($event)"
               (remove)="service.removeMergeFile($event)"
+              (clearAll)="service.clearMergeFiles()"
             ></app-sortable-file-list>
           }
 

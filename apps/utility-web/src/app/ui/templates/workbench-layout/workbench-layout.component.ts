@@ -18,5 +18,7 @@ export class WorkbenchLayoutComponent {
   authStatus = input<AuthStatusModel | null>(null);
   tools = input<readonly ToolModel[]>([]);
   activeToolId = input<string>('image');
+  onRecentRoute = input<boolean>(false);
   toolSelected = output<string>();
+  recentSelected = output<void>();
 }

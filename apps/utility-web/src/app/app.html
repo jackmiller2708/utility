@@ -2,7 +2,9 @@
   [authStatus]="runtimeStatus.authStatus()"
   [tools]="runtimeStatus.tools()"
   [activeToolId]="activeToolId()"
+  [onRecentRoute]="onRecentRoute()"
   (toolSelected)="selectTool($event)"
+  (recentSelected)="selectRecent()"
 >
   <router-outlet></router-outlet>
 </app-workbench-layout>

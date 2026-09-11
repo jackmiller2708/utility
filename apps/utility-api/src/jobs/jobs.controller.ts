@@ -62,10 +62,25 @@ function prepareJobInput(
   op: Operation<any, any, any, any>,
   files: readonly MulterUploadedFile[],
   body: Record<string, string>
-): Effect.Effect<Record<string, unknown>, FileSystemError> {
+): Effect.Effect<Record<string, unknown>, FileSystemError | Error> {
   return Effect.gen(function* () {
     const input: Record<string, unknown> = {};
     const fileParam = op.parameters.find((p) => p.type === "file");
+
+    // A "files" parameter (e.g. pdf.merge) is the only one built to take more than one
+    // upload; every other operation's own contract is exactly one file. Without this guard,
+    // extra uploads to a singular "file" param would be written to the workspace (each
+    // resolved through `prepareJobInput`'s numbered-prefix naming below) but silently
+    // dropped from the built input, since only `filenames[0]` is ever assigned to it —
+    // exactly the shape a future batch-upload UI could trigger by accident. A batch is
+    // multiple independent jobs (one `POST` per file), not multiple files in one job.
+    if (fileParam && fileParam.name !== "files" && files.length > 1) {
+      return yield* Effect.fail(
+        new Error(
+          `Operation "${op.id}" accepts a single file ("${fileParam.name}"); received ${files.length}. Submit one job per file instead of batching files into one job.`
+        )
+      );
+    }
 
     if (fileParam && files.length > 0) {
       const filenames: string[] = [];

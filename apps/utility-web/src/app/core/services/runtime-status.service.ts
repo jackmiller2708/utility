@@ -1,7 +1,9 @@
-import type { AuthStatusResponse, ToolInfo } from '@utility/protocol';
+import type { AuthStatusResponse } from '@utility/protocol';
+import type { ToolModel } from '../../domain/index.js';
 
 import { Injectable, inject, signal } from '@angular/core';
 import { ApiClientService } from './api-client.service.js';
+import { ToolModelsFromToolsListResponse } from '../../domain/index.js';
 import { Either } from 'effect';
 
 @Injectable({
@@ -11,7 +13,7 @@ export class RuntimeStatusService {
   private readonly apiClient = inject(ApiClientService);
 
   readonly authStatus = signal<AuthStatusResponse | null>(null);
-  readonly tools = signal<readonly ToolInfo[]>([]);
+  readonly tools = signal<readonly ToolModel[]>([]);
   readonly isConnected = signal(false);
 
   refreshStatus(): void {
@@ -27,7 +29,7 @@ export class RuntimeStatusService {
     }));
 
     this.apiClient.getTools$().subscribe(Either.match({
-      onRight: (res) => this.tools.set(res.tools),
+      onRight: (res) => this.tools.set(ToolModelsFromToolsListResponse.from(res)),
       onLeft: () => {
         // Fallback registered tools description for local UI preview
         this.tools.set([{

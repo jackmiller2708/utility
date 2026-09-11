@@ -6,8 +6,40 @@ import { Artifact, ArtifactId } from "@utility/domain";
 import { FileSystem } from "./filesystem.js";
 import { ArtifactError, ArtifactNotFoundError } from "./errors.js";
 
+const DEFAULT_ARTIFACT_LIST_LIMIT = 30;
+const MAX_ARTIFACT_LIST_LIMIT = 200;
+
+/** Opaque to callers — just the sort key of the last artifact on the previous page. */
+const encodeArtifactCursor = (art: Artifact): string => `${art.createdAt}|${art.id}`;
+
+const decodeArtifactCursor = (cursor: string): { createdAt: string; id: string } | null => {
+  const separatorIndex = cursor.indexOf("|");
+  if (separatorIndex === -1) {
+    return null;
+  }
+  return { createdAt: cursor.slice(0, separatorIndex), id: cursor.slice(separatorIndex + 1) };
+};
+
 export interface ArtifactStoreConfig {
   readonly storageDir?: string;
+}
+
+export interface ArtifactListQuery {
+  /** Capped at `MAX_ARTIFACT_LIST_LIMIT`; defaults to `DEFAULT_ARTIFACT_LIST_LIMIT`. */
+  readonly limit?: number;
+  /** Opaque — pass back exactly what the previous page's `nextCursor` returned. */
+  readonly cursor?: string;
+  /** Case-insensitive substring match on the artifact's name. */
+  readonly search?: string;
+  /** Exact match on `metadata.operation` (e.g. "image.resize"). */
+  readonly operation?: string;
+}
+
+export interface ArtifactListResult {
+  readonly artifacts: readonly Artifact[];
+  readonly nextCursor: string | null;
+  /** Count of artifacts matching `search`/`operation` across the whole store, not just this page — already computed as a side effect of locating the page, so it costs nothing extra to return. */
+  readonly total: number;
 }
 
 export interface ArtifactStore {
@@ -22,7 +54,7 @@ export interface ArtifactStore {
 
   readonly getArtifactPath: (id: ArtifactId) => Effect.Effect<string, ArtifactNotFoundError>;
 
-  readonly listArtifacts: () => Effect.Effect<readonly Artifact[]>;
+  readonly listArtifacts: (query?: ArtifactListQuery) => Effect.Effect<ArtifactListResult>;
 
   readonly deleteArtifact: (id: ArtifactId) => Effect.Effect<void, ArtifactNotFoundError | ArtifactError>;
 }
@@ -182,8 +214,41 @@ export const makeArtifactStore = (config: ArtifactStoreConfig = {}) =>
           Effect.map((art) => path.join(storageDir, `${art.id}_${art.name}`))
         );
 
-      const listArtifacts = (): Effect.Effect<readonly Artifact[]> =>
-        Effect.sync(() => Array.from(artifactsMap.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+      const listArtifacts = (query: ArtifactListQuery = {}): Effect.Effect<ArtifactListResult> =>
+        Effect.sync(() => {
+          const limit = Math.min(Math.max(query.limit ?? DEFAULT_ARTIFACT_LIST_LIMIT, 1), MAX_ARTIFACT_LIST_LIMIT);
+          const search = query.search?.trim().toLowerCase();
+
+          let matches = Array.from(artifactsMap.values()).sort((a, b) => {
+            // createdAt alone can collide (e.g. a batch's jobs completing in the same millisecond);
+            // id is a monotonic Date.now()-prefixed string, so it breaks ties deterministically.
+            const byDate = b.createdAt.localeCompare(a.createdAt);
+            return byDate !== 0 ? byDate : b.id.localeCompare(a.id);
+          });
+
+          if (search) {
+            matches = matches.filter((art) => art.name.toLowerCase().includes(search));
+          }
+          if (query.operation) {
+            matches = matches.filter((art) => art.metadata?.["operation"] === query.operation);
+          }
+
+          let startIndex = 0;
+          if (query.cursor) {
+            const decoded = decodeArtifactCursor(query.cursor);
+            if (decoded) {
+              const cursorIndex = matches.findIndex((art) => art.createdAt === decoded.createdAt && art.id === decoded.id);
+              // An unknown/stale cursor (e.g. the artifact it pointed to was deleted) falls back
+              // to the top of the (filtered) list rather than failing the request.
+              startIndex = cursorIndex === -1 ? 0 : cursorIndex + 1;
+            }
+          }
+
+          const page = matches.slice(startIndex, startIndex + limit);
+          const nextCursor = startIndex + limit < matches.length ? encodeArtifactCursor(page[page.length - 1]) : null;
+
+          return { artifacts: page, nextCursor, total: matches.length };
+        });
 
       const deleteArtifact = (id: ArtifactId): Effect.Effect<void, ArtifactNotFoundError | ArtifactError> =>
         Effect.gen(function* () {

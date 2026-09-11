@@ -1,6 +1,6 @@
-import { ButtonComponent, BadgeComponent, InputComponent, ToggleComponent, IconComponent, DropzoneComponent, FileSummaryCardComponent, TelemetryDeckComponent, TileGroupComponent, ErrorDiagnosticComponent } from '@app/ui';
+import { ButtonComponent, BadgeComponent, InputComponent, ToggleComponent, IconComponent, DropzoneComponent, FileSummaryCardComponent, TelemetryDeckComponent, TileGroupComponent, ErrorDiagnosticComponent, SortableFileListComponent, SortableFileItem, OperationFormComponent, GalleryGridComponent, GalleryItem } from '@app/ui';
 import { ImageResizeService } from '../services/image-resize.service';
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OptionPipe } from '@app/core/pipes/option.pipe';
 
@@ -19,6 +19,9 @@ import { OptionPipe } from '@app/core/pipes/option.pipe';
     TelemetryDeckComponent,
     TileGroupComponent,
     ErrorDiagnosticComponent,
+    SortableFileListComponent,
+    OperationFormComponent,
+    GalleryGridComponent,
     OptionPipe
   ],
   providers: [ImageResizeService],
@@ -31,6 +34,60 @@ import { OptionPipe } from '@app/core/pipes/option.pipe';
 })
 export class ImageResizeComponent {
   readonly service = inject(ImageResizeService);
+
+  readonly modeTiles = [
+    { id: 'single', label: 'SINGLE' },
+    { id: 'batch', label: 'BATCH' },
+  ];
+
+  readonly batchFileItems = computed<readonly SortableFileItem[]>(() =>
+    this.service.batchFiles().map((row) => ({
+      id: row.id,
+      name: row.file.name,
+      sizeFormatted: this.service.formatBytes(row.file.size),
+    }))
+  );
+
+  readonly batchGalleryItems = computed<readonly GalleryItem[]>(() =>
+    this.service.batchResults().map((artifact) => ({
+      id: artifact.id,
+      label: artifact.name,
+      sizeFormatted: this.service.formatBytes(artifact.size),
+      previewUrl: this.service.getArtifactFileUrl(artifact.id),
+      downloadUrl: this.service.getArtifactDownloadUrl(artifact.id),
+    }))
+  );
+
+  readonly batchTitle = computed(() => {
+    if (this.service.isBatchActive()) {
+      return 'Resizing';
+    }
+    return this.service.batchResults().length > 0 ? 'Resized Images' : 'Results';
+  });
+
+  onModeSelected(modeId: string): void {
+    this.service.setMode(modeId as 'single' | 'batch');
+  }
+
+  onBatchFileReorder(event: { fromIndex: number; toIndex: number }): void {
+    this.service.reorderBatchFiles(event.fromIndex, event.toIndex);
+  }
+
+  downloadAllBatch(): void {
+    this.batchGalleryItems().forEach((item, index) => {
+      if (!item.downloadUrl) {
+        return;
+      }
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = item.downloadUrl!;
+        link.rel = 'noopener';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }, index * 150);
+    });
+  }
 
   readonly fitTiles = [
     { id: 'inside', label: 'FIT' },

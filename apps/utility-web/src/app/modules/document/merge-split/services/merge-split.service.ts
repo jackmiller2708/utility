@@ -42,6 +42,9 @@ export interface ErrorDiagnostic {
   suggestion: string;
 }
 
+/** Same rationale as the batch tools' file cap: bounds how many inspect requests fire at once and keeps the list from pushing the merge button below it off-screen. */
+const MAX_MERGE_FILES = 25;
+
 let rowIdCounter = 0;
 const nextRowId = () => `row_${++rowIdCounter}`;
 
@@ -65,6 +68,7 @@ export class MergeSplitService {
 
   // Merge state
   private readonly _mergeFiles = signal<readonly MergeFileRow[]>([]);
+  private readonly _mergeLimitNotice = signal<string | null>(null);
 
   readonly mode = this._mode.asReadonly();
   readonly activeAction = this._activeAction.asReadonly();
@@ -83,6 +87,8 @@ export class MergeSplitService {
   readonly ranges = this._ranges.asReadonly();
 
   readonly mergeFiles = this._mergeFiles.asReadonly();
+  readonly mergeLimitNotice = this._mergeLimitNotice.asReadonly();
+  readonly maxMergeFiles = MAX_MERGE_FILES;
 
   readonly hasValidRange = computed(() => this._ranges().some((r) => r.firstPage != null && r.lastPage != null && r.firstPage <= r.lastPage));
   readonly canMerge = computed(() => this._mergeFiles().length >= 2);
@@ -141,6 +147,7 @@ export class MergeSplitService {
     this._inspectResult.set(Option.none());
     this._ranges.set([{ id: nextRowId(), firstPage: null, lastPage: null }]);
     this._mergeFiles.set([]);
+    this._mergeLimitNotice.set(null);
     this._lastResult.set(null);
     this._errorMessage.set(Option.none());
   }
@@ -225,7 +232,15 @@ export class MergeSplitService {
     this._errorMessage.set(Option.none());
     this._lastResult.set(null);
 
-    const newRows: MergeFileRow[] = files.map((file) => ({ id: nextRowId(), file, pages: null, inspecting: true }));
+    const room = Math.max(0, MAX_MERGE_FILES - this._mergeFiles().length);
+    const accepted = files.slice(0, room);
+    const rejectedCount = files.length - accepted.length;
+
+    this._mergeLimitNotice.set(rejectedCount > 0
+      ? `Merge limit is ${MAX_MERGE_FILES} files — ${rejectedCount} file${rejectedCount === 1 ? '' : 's'} not added.`
+      : null);
+
+    const newRows: MergeFileRow[] = accepted.map((file) => ({ id: nextRowId(), file, pages: null, inspecting: true }));
     this._mergeFiles.update((rows) => [...rows, ...newRows]);
 
     for (const row of newRows) {
@@ -246,6 +261,12 @@ export class MergeSplitService {
 
   removeMergeFile(id: string): void {
     this._mergeFiles.update((rows) => rows.filter((r) => r.id !== id));
+    this._mergeLimitNotice.set(null);
+  }
+
+  clearMergeFiles(): void {
+    this._mergeFiles.set([]);
+    this._mergeLimitNotice.set(null);
   }
 
   reorderMergeFiles(fromIndex: number, toIndex: number): void {

@@ -1,0 +1,110 @@
+<div class="flex flex-col gap-6 min-w-0">
+  <div class="flex flex-col gap-2 min-w-0">
+    <div class="flex items-end gap-4 flex-wrap">
+      <h1 class="text-[clamp(1.875rem,3.2vw,2.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-press-text">
+        Recent
+      </h1>
+      <app-badge variant="blue" surface="press">{{ service.total() }}</app-badge>
+    </div>
+    <p class="text-[0.9375rem] leading-relaxed text-press-text-muted max-w-[70ch]">
+      Everything you've produced, across every tool — the durable record once a tab's own files clear.
+    </p>
+  </div>
+
+  <div class="relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift min-w-0">
+    <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
+
+    <div class="px-6 py-5 border-b border-paper-hairline flex flex-col gap-4">
+      <app-input
+        type="text"
+        placeholder="Search by filename…"
+        ariaLabel="Search recent artifacts by filename"
+        [mono]="false"
+        [value]="service.searchQuery()"
+        (valueChange)="onSearchInput($event)"
+      ></app-input>
+
+      <app-tile-group
+        [tiles]="operationTiles()"
+        [activeId]="activeOperationTile()"
+        activeInk="blue"
+        (tileSelected)="onOperationTileSelected($event)"
+      ></app-tile-group>
+    </div>
+
+    @if (service.isLoading()) {
+      <div class="p-6 flex flex-col gap-4" role="status" aria-label="Loading recent artifacts">
+        @for (row of [1,2,3,4,5]; track row) {
+          <div class="flex items-center gap-4">
+            <span class="h-10 w-10 shrink-0 bg-paper-hairline rounded-sm animate-pulse"></span>
+            <span class="h-3 flex-1 max-w-[220px] bg-paper-hairline rounded-sm animate-pulse"></span>
+            <span class="h-3 w-16 bg-paper-hairline rounded-sm animate-pulse"></span>
+          </div>
+        }
+      </div>
+    } @else if (service.errorMessage(); as error) {
+      <div class="p-10 flex flex-col items-center text-center gap-2">
+        <span class="text-sm font-bold text-riso-red">Couldn't load recent artifacts</span>
+        <span class="text-xs font-mono text-ink-faint">{{ error }}</span>
+      </div>
+    } @else if (service.artifacts().length === 0) {
+      @if (service.isFiltered()) {
+        <div class="p-10 flex flex-col items-center text-center gap-3">
+          <app-icon name="clock" className="w-6 h-6 text-ink-faint"></app-icon>
+          <span class="text-sm font-bold text-ink">No matches</span>
+          <span class="text-xs text-ink-muted max-w-[40ch]">Nothing matches this search or filter. Try a different filename, or switch back to All.</span>
+        </div>
+      } @else {
+        <div class="p-10 flex flex-col items-center text-center gap-3">
+          <app-icon name="clock" className="w-6 h-6 text-ink-faint"></app-icon>
+          <span class="text-sm font-bold text-ink">Nothing here yet</span>
+          <span class="text-xs text-ink-muted max-w-[40ch]">Run a tool and its output will show up here — every artifact you produce stays downloadable even after the source file clears.</span>
+        </div>
+      }
+    } @else {
+      @for (group of service.groupedByDay(); track group.label) {
+        <div class="px-6 pt-5 pb-2 first:pt-6">
+          <h3 class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">{{ group.label.toUpperCase() }}</h3>
+        </div>
+
+        @for (artifact of group.artifacts; track artifact.id) {
+          <div class="flex items-center gap-4 px-6 py-3 border-b border-paper-hairline last:border-b-0 flex-wrap">
+            <div class="shrink-0 w-10 h-10 rounded-sm border border-paper-deckle bg-paper-fresh flex items-center justify-center overflow-hidden">
+              @if (isImage(artifact.mimeType)) {
+                <img [src]="service.getArtifactFileUrl(artifact.id)" [alt]="artifact.name" class="w-full h-full object-cover" />
+              } @else {
+                <app-icon name="document" className="w-4 h-4 text-ink-faint"></app-icon>
+              }
+            </div>
+
+            <div class="flex-1 min-w-[140px]">
+              <div class="text-sm font-bold text-ink truncate">{{ artifact.name }}</div>
+              @if (artifact.sourceOperation; as op) {
+                <div class="text-[0.6875rem] font-mono text-ink-faint capitalize">{{ operationLabel(op) }}</div>
+              }
+            </div>
+
+            <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5">{{ service.formatBytes(artifact.size) }}</span>
+            <span class="font-mono text-xs text-ink-faint w-16 text-right shrink-0">{{ service.formatTime(artifact.createdAt) }}</span>
+
+            <a
+              [href]="service.getArtifactDownloadUrl(artifact.id)"
+              [attr.aria-label]="'Download ' + artifact.name"
+              class="shrink-0 text-ink-faint hover:text-riso-blue transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
+            >
+              <app-icon name="download" className="w-4 h-4"></app-icon>
+            </a>
+          </div>
+        }
+      }
+
+      @if (service.hasMore()) {
+        <div class="p-6 flex justify-center border-t border-paper-hairline">
+          <app-button variant="secondary" [loading]="service.isLoadingMore()" (clicked)="service.loadMore()">
+            Load more
+          </app-button>
+        </div>
+      }
+    }
+  </div>
+</div>

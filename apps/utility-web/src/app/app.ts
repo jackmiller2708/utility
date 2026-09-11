@@ -27,6 +27,7 @@ export class App implements OnInit {
   readonly runtimeStatus = inject(RuntimeStatusService);
 
   readonly activeToolId = signal<string>(routeToToolId(this.router.url) ?? 'image');
+  readonly onRecentRoute = signal<boolean>(this.router.url.startsWith('/recent'));
 
   ngOnInit(): void {
     this.runtimeStatus.refreshStatus();
@@ -34,6 +35,8 @@ export class App implements OnInit {
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event) => {
+        this.onRecentRoute.set(event.urlAfterRedirects.startsWith('/recent'));
+
         const toolId = routeToToolId(event.urlAfterRedirects);
         if (toolId) {
           this.activeToolId.set(toolId);
@@ -48,5 +51,9 @@ export class App implements OnInit {
     if (route) {
       this.router.navigate([route]);
     }
+  }
+
+  selectRecent(): void {
+    this.router.navigate(['/recent']);
   }
 }

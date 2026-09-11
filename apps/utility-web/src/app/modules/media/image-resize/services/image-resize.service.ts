@@ -1,10 +1,31 @@
-import type { ArtifactModel, ArtifactFileDetails } from '../../../../domain/index.js';
+import type { ArtifactModel, ArtifactFileDetails, ToolParameterModel, JobModel } from '../../../../domain/index.js';
+import type { ImageResizeOutput } from '@utility/protocol';
 
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { ApiClientService } from '../../../../core/services/api-client.service.js';
+import { JobTrackerService, RuntimeStatusService } from '../../../../core/index.js';
 import { ArtifactModelFromImageResizeOutput } from '../../../../domain/index.js';
 import { Either, Option } from 'effect';
 import { finalize } from 'rxjs';
+
+export type ImageResizeMode = 'single' | 'batch';
+
+export interface BatchFileRow {
+  readonly id: string;
+  readonly file: File;
+}
+
+/**
+ * A batch submits every file as its own concurrent job (`JobTrackerService.submitBatch$`'s
+ * `forkJoin`) — each of which spawns its own Sharp process server-side. With no cap, a large
+ * accidental drop (a whole folder) would fire dozens of simultaneous resizes on one local
+ * machine, and the file list would grow past the settings and submit button below it. 25 is
+ * generous for the realistic case (a shoot, a batch of screenshots) while keeping both bounded.
+ */
+const MAX_BATCH_FILES = 25;
+
+let batchRowIdCounter = 0;
+const nextBatchRowId = () => `batch_row_${++batchRowIdCounter}`;
 
 export interface ImageResizeFormState {
   targetWidth: Option.Option<number>;
@@ -42,6 +63,130 @@ export interface SizeDelta {
 @Injectable()
 export class ImageResizeService {
   private readonly _apiClient = inject(ApiClientService);
+  private readonly _jobTracker = inject(JobTrackerService);
+  private readonly _runtimeStatus = inject(RuntimeStatusService);
+
+  // Batch mode state
+  private readonly _mode = signal<ImageResizeMode>('single');
+  private readonly _batchFiles = signal<readonly BatchFileRow[]>([]);
+  private readonly _batchSettings = signal<Readonly<Record<string, unknown>>>({
+    fit: 'inside',
+    withoutEnlargement: true,
+    quality: 80,
+  });
+  private readonly _activeBatchId = signal<Option.Option<string>>(Option.none());
+  private readonly _isBatchSubmitting = signal<boolean>(false);
+  private readonly _batchResults = signal<readonly ArtifactModel[]>([]);
+  private readonly _batchLimitNotice = signal<string | null>(null);
+  private readonly _collectedBatchJobIds = new Set<string>();
+
+  readonly mode = this._mode.asReadonly();
+  readonly batchFiles = this._batchFiles.asReadonly();
+  readonly batchSettings = this._batchSettings.asReadonly();
+  readonly batchResults = this._batchResults.asReadonly();
+  readonly batchLimitNotice = this._batchLimitNotice.asReadonly();
+  readonly maxBatchFiles = MAX_BATCH_FILES;
+
+  /** `image.resize`'s own declared parameters (label, type, options, min/max), minus the file param OperationFormComponent already excludes — read from the same tool registry the sidebar discovers tools from, not duplicated here. */
+  readonly batchParameters = computed<readonly ToolParameterModel[]>(() => {
+    const tool = this._runtimeStatus.tools().find((t) => t.id === 'image');
+    return tool?.operations.find((op) => op.id === 'image.resize')?.parameters ?? [];
+  });
+
+  readonly batchJobs = computed<readonly JobModel[]>(() => {
+    const id = this._activeBatchId();
+    if (Option.isNone(id)) {
+      return [];
+    }
+    return this._jobTracker.jobs().filter((job) => job.batchId === id.value);
+  });
+
+  readonly isBatchActive = computed(() => this._isBatchSubmitting() || this.batchJobs().some((job) => job.isActive));
+  readonly canSubmitBatch = computed(() => this._batchFiles().length > 0 && !this.isBatchActive());
+
+  constructor() {
+    /** Each batch job completing hands over its artifact exactly once — mirrors PdfWorkbenchService's single-job terminal effect, just fired per job instead of once. */
+    effect(() => {
+      for (const job of this.batchJobs()) {
+        if (job.status === 'completed' && !this._collectedBatchJobIds.has(job.id)) {
+          this._collectedBatchJobIds.add(job.id);
+          const artifact = ArtifactModelFromImageResizeOutput.from(job.result as ImageResizeOutput);
+          this._batchResults.update((list) => [...list, artifact]);
+        }
+      }
+    });
+  }
+
+  setMode(mode: ImageResizeMode): void {
+    this._mode.set(mode);
+  }
+
+  addBatchFiles(files: readonly File[]): void {
+    const room = Math.max(0, MAX_BATCH_FILES - this._batchFiles().length);
+    const accepted = files.slice(0, room);
+    const rejectedCount = files.length - accepted.length;
+
+    const rows = accepted.map((file) => ({ id: nextBatchRowId(), file }));
+    this._batchFiles.update((list) => [...list, ...rows]);
+
+    this._batchLimitNotice.set(rejectedCount > 0
+      ? `Batch limit is ${MAX_BATCH_FILES} files — ${rejectedCount} file${rejectedCount === 1 ? '' : 's'} not added.`
+      : null);
+  }
+
+  removeBatchFile(id: string): void {
+    this._batchFiles.update((list) => list.filter((row) => row.id !== id));
+    this._batchLimitNotice.set(null);
+  }
+
+  clearBatchFiles(): void {
+    this._batchFiles.set([]);
+    this._batchLimitNotice.set(null);
+  }
+
+  reorderBatchFiles(fromIndex: number, toIndex: number): void {
+    this._batchFiles.update((rows) => {
+      const next = [...rows];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  }
+
+  setBatchSettings(values: Readonly<Record<string, unknown>>): void {
+    this._batchSettings.set(values);
+  }
+
+  executeBatch(): void {
+    if (!this.canSubmitBatch()) {
+      return;
+    }
+
+    this._batchResults.set([]);
+    this._collectedBatchJobIds.clear();
+    this._isBatchSubmitting.set(true);
+
+    this._jobTracker.submitBatch$('image.resize', this._batchFiles().map((row) => row.file), this._batchSettings())
+      .pipe(finalize(() => this._isBatchSubmitting.set(false)))
+      .subscribe(({ batchId }) => this._activeBatchId.set(Option.some(batchId)));
+  }
+
+  resetBatch(): void {
+    this._batchFiles.set([]);
+    this._batchResults.set([]);
+    this._batchLimitNotice.set(null);
+    this._activeBatchId.set(Option.none());
+    this._collectedBatchJobIds.clear();
+  }
+
+  getArtifactFileUrl(id: string): string {
+    return this._apiClient.getArtifactFileUrl(id);
+  }
+
+  getArtifactDownloadUrl(id: string): string {
+    return this._apiClient.getArtifactDownloadUrl(id);
+  }
+
   private readonly _selectedImage = signal<Option.Option<ArtifactFileDetails>>(Option.none());
   private readonly _resultArtifact = signal<Option.Option<ArtifactModel>>(Option.none());
   private readonly _isProcessing = signal<boolean>(false);

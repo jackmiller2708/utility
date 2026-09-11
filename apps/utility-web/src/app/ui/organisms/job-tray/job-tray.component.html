@@ -20,16 +20,26 @@
 
     @if (expanded()) {
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-        @for (job of jobs(); track job.id; let i = $index) {
-          <app-job-ticket
-            [job]="job"
-            [index]="i"
-            [compact]="true"
-            [leaving]="isLeaving(job.id)"
-            (cancelled)="cancelJob.emit($event)"
-            (dismissed)="requestDismiss($event)"
-            (leftView)="onLeftView(job.id)"
-          ></app-job-ticket>
+        @for (entry of entries(); track (entry.kind === 'batch' ? entry.batchId : entry.job.id); let i = $index) {
+          @if (entry.kind === 'job') {
+            <app-job-ticket
+              [job]="entry.job"
+              [index]="i"
+              [compact]="true"
+              [leaving]="isLeaving(entry.job.id)"
+              (cancelled)="cancelJob.emit($event)"
+              (dismissed)="requestDismiss($event)"
+              (leftView)="onLeftView(entry.job.id)"
+            ></app-job-ticket>
+          } @else {
+            <app-batch-ticket
+              [jobs]="entry.jobs"
+              [index]="i"
+              (cancelled)="cancelBatch.emit(entry.batchId)"
+              (dismissed)="dismissBatch.emit(entry.batchId)"
+              (jobCancelled)="cancelJob.emit($event)"
+            ></app-batch-ticket>
+          }
         }
       </div>
     }

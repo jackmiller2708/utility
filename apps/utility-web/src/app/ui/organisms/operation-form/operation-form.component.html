@@ -1,0 +1,49 @@
+<div class="flex flex-col gap-5 min-w-0">
+  @for (param of fields(); track param.name) {
+    <div class="min-w-0">
+      @switch (param.type) {
+        @case ('boolean') {
+          <app-toggle
+            [label]="param.label"
+            [description]="param.description ?? ''"
+            [checked]="booleanValue(param)"
+            (checkedChange)="setValue(param.name, $event)"
+          ></app-toggle>
+        }
+        @case ('select') {
+          @if (useTiles(param)) {
+            <app-tile-group
+              [heading]="param.label"
+              [tiles]="tileItems(param)"
+              [activeId]="stringValue(param)"
+              activeInk="blue"
+              (tileSelected)="setValue(param.name, $event)"
+            ></app-tile-group>
+          } @else {
+            <label [for]="'op-form-' + param.name" class="text-sm font-bold text-ink block mb-1.5">{{ param.label }}</label>
+            <app-select
+              [id]="'op-form-' + param.name"
+              [options]="selectOptions(param)"
+              [value]="stringValue(param)"
+              (valueChange)="setValue(param.name, $event)"
+            ></app-select>
+          }
+        }
+        @default {
+          <label [for]="'op-form-' + param.name" class="text-sm font-bold text-ink block mb-1.5">{{ param.label }}</label>
+          <app-input
+            [id]="'op-form-' + param.name"
+            [type]="param.type === 'number' ? 'number' : 'text'"
+            [value]="param.type === 'number' ? numberValue(param) : stringValue(param)"
+            [placeholder]="param.required ? '' : 'Optional'"
+            (valueChange)="setValue(param.name, $event)"
+          ></app-input>
+        }
+      }
+
+      @if (param.description && param.type !== 'boolean') {
+        <p class="mt-1 text-xs text-ink-faint">{{ param.description }}</p>
+      }
+    </div>
+  }
+</div>

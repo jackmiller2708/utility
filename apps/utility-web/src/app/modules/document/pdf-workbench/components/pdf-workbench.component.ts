@@ -1,4 +1,4 @@
-import { ButtonComponent, BadgeComponent, InputComponent, DropzoneComponent, FileSummaryCardComponent, GalleryGridComponent, TileGroupComponent, ErrorDiagnosticComponent, GalleryItem } from '@app/ui';
+import { ButtonComponent, BadgeComponent, InputComponent, DropzoneComponent, FileSummaryCardComponent, GalleryGridComponent, TileGroupComponent, ErrorDiagnosticComponent, GalleryItem, SortableFileListComponent, SortableFileItem, OperationFormComponent } from '@app/ui';
 import { PdfWorkbenchService } from '../services/pdf-workbench.service';
 import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -17,6 +17,8 @@ import { OptionPipe } from '@app/core/pipes/option.pipe';
     GalleryGridComponent,
     TileGroupComponent,
     ErrorDiagnosticComponent,
+    SortableFileListComponent,
+    OperationFormComponent,
     OptionPipe,
   ],
   providers: [PdfWorkbenchService],
@@ -26,7 +28,71 @@ import { OptionPipe } from '@app/core/pipes/option.pipe';
 export class PdfWorkbenchComponent {
   readonly service = inject(PdfWorkbenchService);
 
+  readonly modeTiles = [
+    { id: 'single', label: 'SINGLE' },
+    { id: 'batch', label: 'BATCH' },
+  ];
+
   readonly dpiTiles = this.service.dpiOptions.map((dpi) => ({ id: String(dpi), label: `${dpi} DPI` }));
+
+  readonly batchFileItems = computed<readonly SortableFileItem[]>(() =>
+    this.service.batchFiles().map((row) => ({
+      id: row.id,
+      name: row.file.name,
+      sizeFormatted: this.service.formatBytes(row.file.size),
+    }))
+  );
+
+  readonly batchGalleryItems = computed<readonly GalleryItem[]>(() =>
+    this.service.batchArtifactResults().map((artifact) => ({
+      id: artifact.id,
+      label: artifact.name,
+      sizeFormatted: this.service.formatBytes(artifact.size),
+      previewUrl: this.service.getArtifactFileUrl(artifact.id),
+      downloadUrl: this.service.getArtifactDownloadUrl(artifact.id),
+    }))
+  );
+
+  readonly batchTitle = computed(() => {
+    if (this.service.isBatchActive()) {
+      return 'Working';
+    }
+    if (this.service.isInspectBatch()) {
+      return this.service.batchInspectResults().length > 0 ? 'Inspected' : 'Results';
+    }
+    if (this.service.batchArtifactResults().length === 0) {
+      return 'Results';
+    }
+    return this.service.batchOperation() === 'pdf.render-pages' ? 'Rendered Pages' : 'Extracted Images';
+  });
+
+  onModeSelected(modeId: string): void {
+    this.service.setMode(modeId as 'single' | 'batch');
+  }
+
+  onBatchFileReorder(event: { fromIndex: number; toIndex: number }): void {
+    this.service.reorderBatchFiles(event.fromIndex, event.toIndex);
+  }
+
+  onBatchDpiSelected(dpiId: string): void {
+    this.service.updateBatchDpi(Number(dpiId));
+  }
+
+  downloadAllBatch(): void {
+    this.batchGalleryItems().forEach((item, index) => {
+      if (!item.downloadUrl) {
+        return;
+      }
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = item.downloadUrl!;
+        link.rel = 'noopener';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }, index * 150);
+    });
+  }
 
   readonly galleryTitle = computed(() => {
     const action = this.service.activeAction();

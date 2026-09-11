@@ -12,3 +12,11 @@ export const ArtifactSchema = Schema.Struct({
 });
 
 export type ArtifactResponse = typeof ArtifactSchema.Type;
+
+export const ArtifactListResponseSchema = Schema.Struct({
+  artifacts: Schema.Array(ArtifactSchema),
+  nextCursor: Schema.NullOr(Schema.String),
+  total: Schema.Number,
+});
+
+export type ArtifactListResponse = typeof ArtifactListResponseSchema.Type;

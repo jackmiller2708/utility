@@ -1,8 +1,15 @@
-import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, AuthStatusResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse } from '@utility/protocol';
+import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse } from '@utility/protocol';
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClientService } from './http-client.service.js';
 import { API_CONFIG } from '../tokens/api-config.token.js';
+
+export interface ArtifactListQuery {
+  readonly limit?: number;
+  readonly cursor?: string;
+  readonly search?: string;
+  readonly operation?: string;
+}
 
 interface ImageResizeOptions {
   width?: number | null;
@@ -158,8 +165,46 @@ export class ApiClientService {
     return this.http.delete<JobCancelResponse>(`${this.config.baseUrl}/jobs/${id}`);
   }
 
+  listArtifacts$(query: ArtifactListQuery = {}) {
+    const params = new URLSearchParams();
+    if (query.limit != null) {
+      params.set('limit', String(query.limit));
+    }
+    if (query.cursor) {
+      params.set('cursor', query.cursor);
+    }
+    if (query.search) {
+      params.set('q', query.search);
+    }
+    if (query.operation) {
+      params.set('operation', query.operation);
+    }
+
+    const queryString = params.toString();
+    return this.http.get<ArtifactListResponse>(`${this.config.baseUrl}/artifacts${queryString ? '?' + queryString : ''}`);
+  }
+
   getArtifact$(id: string) {
     return this.http.get<ArtifactResponse>(`${this.config.baseUrl}/artifacts/${id}`);
+  }
+
+  /**
+   * Generic job submission for a single file plus arbitrary scalar parameters — the client-side
+   * counterpart to the backend's parameter-driven `POST /jobs/:operationId` route. Used by batch
+   * mode, which submits N independent jobs (one per file) against one shared settings object,
+   * rather than needing a bespoke per-operation method like the tool-specific `submit*Job$` calls.
+   */
+  submitJob$(operationId: string, file: File, params: Readonly<Record<string, unknown>>) {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== '') {
+        formData.append(key, String(value));
+      }
+    }
+
+    return this.http.post<JobSubmittedResponse>(`${this.config.baseUrl}/jobs/${operationId}`, formData);
   }
 
   getArtifactFileUrl(id: string): string {
