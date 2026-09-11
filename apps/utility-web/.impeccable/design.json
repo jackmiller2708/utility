@@ -1,56 +1,144 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-10T17:55:00.000Z",
+  "generatedAt": "2026-09-11T08:45:00.000Z",
   "title": "Design System: Utility Platform",
   "extensions": {
     "colorMeta": {
       "primary": {
         "role": "primary",
-        "displayName": "Electric Indigo",
-        "canonical": "#6366f1",
-        "tonalRamp": ["#1e1b4b", "#312e81", "#3730a3", "#4338ca", "#4f46e5", "#6366f1", "#818cf8", "#a5b4fc", "#c7d2fe", "#e0e7ff"]
+        "displayName": "Riso Pink",
+        "canonical": "#FF3EA5",
+        "tonalRamp": ["#4d0029", "#8a0049", "#c7006a", "#ff0088", "#ff3da5", "#ff7ac1", "#ffb3db", "#ffe5f3"]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Riso Pink, Second Pass",
+        "canonical": "#D91E85",
+        "tonalRamp": ["#430929", "#79114a", "#af186b", "#e01f89", "#e755a6", "#ef8bc2", "#f6bcdc", "#fce9f3"]
+      },
+      "primary-subtle": {
+        "role": "primary",
+        "displayName": "Riso Pink, Pooled",
+        "canonical": "#3D1730",
+        "tonalRamp": ["#38152c", "#64264f", "#903672", "#b94692", "#ca72ac", "#db9fc6", "#eac7de", "#f8ecf4"]
       },
       "secondary": {
         "role": "secondary",
-        "displayName": "Electric Cyan",
-        "canonical": "#06b6d4",
-        "tonalRamp": ["#083344", "#164e63", "#155e75", "#0e7490", "#0891b2", "#06b6d4", "#22d3ee", "#67e8f9", "#a5f3fc", "#cffafe"]
+        "displayName": "Riso Blue",
+        "canonical": "#0078BF",
+        "tonalRamp": ["#00304d", "#00578a", "#007dc7", "#00a0ff", "#3db7ff", "#7aceff", "#b3e3ff", "#e5f6ff"]
       },
-      "neutral-bg": {
+      "secondary-hover": {
+        "role": "secondary",
+        "displayName": "Riso Blue, Second Pass",
+        "canonical": "#005B94",
+        "tonalRamp": ["#002f4d", "#00558a", "#007ac7", "#009dff", "#3db4ff", "#7accff", "#b3e2ff", "#e5f5ff"]
+      },
+      "accent-success": {
+        "role": "tertiary",
+        "displayName": "Riso Mint",
+        "canonical": "#12A66B",
+        "tonalRamp": ["#07452c", "#0d7c50", "#13b374", "#19e694", "#50ecae", "#87f2c8", "#baf8df", "#e8fdf4"]
+      },
+      "accent-warning": {
+        "role": "tertiary",
+        "displayName": "Riso Gold",
+        "canonical": "#E8A200",
+        "tonalRamp": ["#4d3500", "#8a6000", "#c78b00", "#ffb200", "#ffc53d", "#ffd77a", "#ffe8b3", "#fff7e5"]
+      },
+      "accent-danger": {
+        "role": "tertiary",
+        "displayName": "Riso Red",
+        "canonical": "#E23B2E",
+        "tonalRamp": ["#430d09", "#791811", "#af2318", "#e02d1f", "#e75f55", "#ef928b", "#f6c0bc", "#fceae9"]
+      },
+      "canvas-bg": {
         "role": "neutral",
-        "displayName": "Obsidian Dark",
-        "canonical": "#09090b",
-        "tonalRamp": ["#09090b", "#121215", "#18181b", "#27272a", "#3f3f46", "#52525b", "#71717a", "#a1a1aa", "#d4d4d8", "#f4f4f5"]
+        "displayName": "Press Black",
+        "canonical": "#16130F",
+        "tonalRamp": ["#2d271f", "#524738", "#766651", "#988367", "#b0a18c", "#c9beb0", "#e0dad2", "#f5f3f0"]
+      },
+      "canvas-elevated": {
+        "role": "neutral",
+        "displayName": "Press Elevated",
+        "canonical": "#1E1A14",
+        "tonalRamp": ["#2e281f", "#534837", "#776750", "#998566", "#b1a28b", "#cabfaf", "#e0dad1", "#f5f3f0"]
+      },
+      "canvas-border": {
+        "role": "neutral",
+        "displayName": "Press Line",
+        "canonical": "#332C21",
+        "tonalRamp": ["#2e281e", "#544836", "#79684e", "#9b8664", "#b3a389", "#cbc0ae", "#e1dbd1", "#f5f3f0"]
+      },
+      "canvas-text": {
+        "role": "neutral",
+        "displayName": "Press Text",
+        "canonical": "#EFE6D2",
+        "tonalRamp": ["#382d14", "#665124", "#937534", "#bc9643", "#ccb070", "#dcc99d", "#ebe0c7", "#f8f5ec"]
+      },
+      "canvas-text-muted": {
+        "role": "neutral",
+        "displayName": "Press Text, Muted",
+        "canonical": "#B4A98D",
+        "tonalRamp": ["#2e2a1e", "#534b37", "#786c4f", "#9a8b65", "#b2a78a", "#cac3af", "#e1dcd1", "#f5f3f0"]
+      },
+      "neutral-surface": {
+        "role": "neutral",
+        "displayName": "Stock",
+        "canonical": "#F6F0E3",
+        "tonalRamp": ["#3a2d13", "#685221", "#977630", "#c1983e", "#d0b06c", "#dfc99b", "#ece0c5", "#f9f5ec"]
+      },
+      "neutral-elevated": {
+        "role": "neutral",
+        "displayName": "Fresh Sheet",
+        "canonical": "#FCF8ED",
+        "tonalRamp": ["#42330b", "#765c14", "#aa851c", "#dbaa24", "#e3be59", "#ecd38d", "#f4e5bd", "#fbf6e9"]
+      },
+      "neutral-border": {
+        "role": "neutral",
+        "displayName": "Deckle Edge",
+        "canonical": "#D9CEB4",
+        "tonalRamp": ["#332b1a", "#5b4e2e", "#847143", "#a99056", "#beab7e", "#d2c6a7", "#e5decc", "#f6f4ee"]
+      },
+      "neutral-border-subtle": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#E7DFC8",
+        "tonalRamp": ["#352e17", "#60522a", "#8a763c", "#b2984d", "#c4b078", "#d7c9a3", "#e8e0ca", "#f7f5ed"]
+      },
+      "neutral-text": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#221D16",
+        "tonalRamp": ["#2e281e", "#544736", "#79674e", "#9b8464", "#b3a289", "#cbbfae", "#e1dad1", "#f5f3f0"]
+      },
+      "neutral-text-muted": {
+        "role": "neutral",
+        "displayName": "Ink, Muted",
+        "canonical": "#6E6656",
+        "tonalRamp": ["#2b2822", "#4d483c", "#706857", "#8f8570", "#aaa292", "#c5bfb5", "#dddad4", "#f4f3f1"]
+      },
+      "neutral-text-subtle": {
+        "role": "neutral",
+        "displayName": "Ink, Faint",
+        "canonical": "#9C927A",
+        "tonalRamp": ["#2c2921", "#4f493b", "#726955", "#92876d", "#aca490", "#c6c1b3", "#dedbd3", "#f4f3f0"]
       }
     },
     "typographyMeta": {
-      "display": {
-        "displayName": "Display",
-        "purpose": "Workbench main headers and feature titles."
-      },
-      "label": {
-        "displayName": "Telemetry / Monospace",
-        "purpose": "Dimensions, SHA-256 digests, and file metrics."
-      }
+      "display": { "displayName": "Display", "purpose": "Masthead headers and major tool titles, set like a zine cover line." },
+      "headline": { "displayName": "Headline", "purpose": "Card headers, job titles, panel sections." },
+      "title": { "displayName": "Title", "purpose": "Form section labels, modal headers, sidebar group names." },
+      "body": { "displayName": "Body", "purpose": "Field labels, helper copy, explanations, system messages." },
+      "label": { "displayName": "Label / Ledger", "purpose": "Stamped job-ticket tags, dimension readouts, hashes, status pills — always Courier Prime." }
     },
     "shadows": [
-      {
-        "name": "glow-accent",
-        "value": "0 0 20px -3px rgba(99, 102, 241, 0.25)",
-        "purpose": "Subtle radiant glow for active execution buttons."
-      },
-      {
-        "name": "elevation-low",
-        "value": "0 4px 12px -2px rgba(0, 0, 0, 0.5)",
-        "purpose": "Tonal flyouts and comparison overlays."
-      }
+      { "name": "paper-lift", "value": "2px 3px 0 rgba(22, 19, 15, 0.35)", "purpose": "The standard card/panel shadow — a sheet sitting a few millimeters above the press-room floor." },
+      { "name": "stamped-down", "value": "inset 1px 1px 0 rgba(34, 29, 22, 0.25)", "purpose": "Pressed/active state for buttons and tabs — the ink just struck the paper." }
     ],
     "motion": [
-      {
-        "name": "ease-standard",
-        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
-        "purpose": "Default smooth easing for hover and state changes."
-      }
+      { "name": "reg-spin", "value": "steps(4) 1.1s infinite, 0deg -> 90deg", "purpose": "Registration-cross loading indicator standing in for a spinner." },
+      { "name": "ink-pulse", "value": "opacity 1 -> .35 -> 1, ease-in-out 2s infinite", "purpose": "Runtime status dot pulse — an ink dot, never a blurred glow ring." }
     ],
     "breakpoints": [
       { "name": "sm", "value": "640px" },
@@ -61,71 +149,99 @@
   },
   "components": [
     {
-      "name": "Primary Action Button",
+      "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Affirmative execution trigger for running tool operations.",
-      "html": "<button class=\"ds-btn-primary\">Execute Operation</button>",
-      "css": ".ds-btn-primary { background: #6366f1; color: #ffffff; padding: 8px 16px; border-radius: 8px; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: background 0.15s ease, transform 0.1s ease; } .ds-btn-primary:hover { background: #4f46e5; } .ds-btn-primary:active { transform: scale(0.98); }"
+      "description": "The one ink reserved for the action that commits — run the job, download the artifact.",
+      "html": "<button class=\"ds-btn-primary\">Resize</button>",
+      "css": ".ds-btn-primary { background: #FF3EA5; color: #221D16; font-family: Archivo, sans-serif; font-weight: 800; font-size: 0.9375rem; padding: 12px 22px; border: 2px solid transparent; border-radius: 2px; cursor: pointer; transition: background 0.15s; } .ds-btn-primary:hover { background: #D91E85; } .ds-btn-primary:focus-visible { outline: 2px solid #FF3EA5; outline-offset: 2px; } .ds-btn-primary:active { box-shadow: inset 1px 1px 0 rgba(34,29,22,0.25); }"
     },
     {
-      "name": "Telemetry Chip",
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A 'second pass' commit — outline fills solid on hover. Used for export/download.",
+      "html": "<button class=\"ds-btn-secondary\">Export</button>",
+      "css": ".ds-btn-secondary { background: transparent; color: #0078BF; font-family: Archivo, sans-serif; font-weight: 700; font-size: 0.9375rem; padding: 10px 18px; border: 2px solid #0078BF; border-radius: 2px; cursor: pointer; transition: background 0.15s, color 0.15s; } .ds-btn-secondary:hover { background: #0078BF; color: #FCF8ED; } .ds-btn-secondary:focus-visible { outline: 2px solid #FF3EA5; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ledger Tag",
       "kind": "chip",
-      "refersTo": "chip-telemetry",
-      "description": "Monospace metric indicator for file size, resolution, and hash digests.",
-      "html": "<span class=\"ds-chip-telemetry\">1920 &times; 1080 &middot; 420 KB</span>",
-      "css": ".ds-chip-telemetry { display: inline-flex; align-items: center; background: #18181b; border: 1px solid #27272a; color: #a1a1aa; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 4px; }"
+      "refersTo": "ledger-tag",
+      "description": "Stamped job-ticket tag for any number the user must trust — bytes, pixels, hash, format.",
+      "html": "<span class=\"ds-ledger-tag\">3024&times;4032</span>",
+      "css": ".ds-ledger-tag { display: inline-flex; align-items: center; background: #FCF8ED; border: 1px solid #D9CEB4; color: #221D16; font-family: 'Courier Prime', monospace; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 1px; }"
     },
     {
-      "name": "Workbench Card Container",
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "A ruled fill-in field, like a spec sheet — bottom rule echoes under the value, pink registration mark on focus.",
+      "html": "<div class=\"ds-field\"><input class=\"ds-input\" type=\"number\" value=\"800\" placeholder=\"Auto\" /><span class=\"ds-field-suffix\">PX</span></div>",
+      "css": ".ds-field { position: relative; width: 100%; } .ds-input { width: 100%; box-sizing: border-box; padding: 10px 12px; background: #FCF8ED; border: 1px solid #D9CEB4; border-bottom: 2px solid #221D16; border-radius: 1px; color: #221D16; font-family: Archivo, sans-serif; font-size: 0.875rem; font-weight: 700; } .ds-input:focus { border-color: #FF3EA5; outline: none; } .ds-field-suffix { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-family: 'Courier Prime', monospace; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; color: #9C927A; }"
+    },
+    {
+      "name": "Paper Card",
       "kind": "card",
       "refersTo": "card",
-      "description": "Tonal containment surface for parameter forms and previews.",
-      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Operation Parameters</div><div class=\"ds-card-body\">Configure output dimensions and fit strategy.</div></div>",
-      "css": ".ds-card { background: #121215; border: 1px solid #27272a; border-radius: 12px; padding: 24px; color: #f4f4f5; font-family: Inter, sans-serif; } .ds-card-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; } .ds-card-body { font-size: 14px; color: #a1a1aa; }"
+      "description": "A sheet of working stock lifted off the press-room floor — every form, preview, and readout lives on one of these.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-header\">Your image</div><div class=\"ds-card-body\">Drop in a file, pick a size, see both side by side.</div></div>",
+      "css": ".ds-card { background: #F6F0E3; border: 1px solid #D9CEB4; border-radius: 3px; box-shadow: 2px 3px 0 rgba(22,19,15,0.35); font-family: Archivo, sans-serif; } .ds-card-header { padding: 20px 24px; border-bottom: 1px solid #E7DFC8; font-size: 1.25rem; font-weight: 800; color: #221D16; } .ds-card-body { padding: 24px; font-size: 0.9375rem; line-height: 1.55; color: #6E6656; }"
+    },
+    {
+      "name": "Tile Group",
+      "kind": "chip",
+      "refersTo": "tile-group",
+      "description": "Stamped tiles for presets, fit modes, and export formats — a chosen plate punched into the rail. Pink marks a primary shortcut, blue marks a setting.",
+      "html": "<div class=\"ds-tile-group\"><button class=\"ds-tile ds-tile-active-pink\">50%</button><button class=\"ds-tile\">25%</button><button class=\"ds-tile\">1080p</button></div>",
+      "css": ".ds-tile-group { display: flex; gap: 8px; flex-wrap: wrap; } .ds-tile { background: #FCF8ED; border: 1px solid #D9CEB4; color: #221D16; font-family: 'Courier Prime', monospace; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; padding: 8px 12px; border-radius: 1px; cursor: pointer; } .ds-tile-active-pink { background: #FF3EA5; border-color: #FF3EA5; color: #221D16; } .ds-tile-active-blue { background: #0078BF; border-color: #0078BF; color: #FCF8ED; } .ds-tile:hover { border-color: #221D16; } .ds-tile:focus-visible { outline: 2px solid #FF3EA5; outline-offset: 2px; }"
+    },
+    {
+      "name": "Dropzone",
+      "kind": "custom",
+      "refersTo": "dropzone",
+      "description": "An unprinted plate waiting for a job — dashed cut-line border, fluorescent pink wash bleeds in on active drag.",
+      "html": "<div class=\"ds-dropzone\"><p class=\"ds-dropzone-title\">Drop image or browse</p><div class=\"ds-dropzone-hint\">PNG &middot; JPEG &middot; WEBP &middot; AVIF</div></div>",
+      "css": ".ds-dropzone { border: 2px dashed #9C927A; background: #FCF8ED; border-radius: 3px; padding: 40px 24px; text-align: center; cursor: pointer; transition: border-color 0.15s; } .ds-dropzone-title { margin: 0; font-family: Archivo, sans-serif; font-size: 1.5rem; font-weight: 900; letter-spacing: -0.01em; color: #221D16; } .ds-dropzone-hint { margin-top: 10px; font-family: 'Courier Prime', monospace; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; color: #6E6656; } .ds-dropzone:hover { border-color: #FF3EA5; }"
+    },
+    {
+      "name": "Ledger Row",
+      "kind": "custom",
+      "refersTo": "telemetry-row",
+      "description": "Signature component: one row of the 'What changes' ledger — key, source value, arrow, stamped output tag.",
+      "html": "<div class=\"ds-ledger-row\"><span class=\"ds-ledger-key\">DIMENSIONS</span><span class=\"ds-ledger-src\">3024&times;4032</span><span class=\"ds-ledger-arrow\">&rarr;</span><span class=\"ds-ledger-out\">1512&times;2016</span></div>",
+      "css": ".ds-ledger-row { display: flex; align-items: center; gap: 16px; padding: 12px 24px; border-bottom: 1px solid #E7DFC8; font-family: 'Courier Prime', monospace; } .ds-ledger-key { flex: 0 0 140px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; color: #6E6656; } .ds-ledger-src { flex: 1; font-size: 0.8125rem; font-weight: 700; color: #221D16; } .ds-ledger-arrow { color: #9C927A; font-size: 0.75rem; } .ds-ledger-out { flex: 1; font-size: 0.8125rem; font-weight: 700; background: #FCF8ED; border: 1px solid #D9CEB4; border-radius: 1px; padding: 2px 8px; color: #221D16; }"
     }
   ],
   "narrative": {
-    "northStar": "The Precision Instrument Workbench",
-    "overview": "The Utility Platform design system models a high-performance local capability workstation. It balances developer-grade density with immediate tactile feedback, treating file transformations, schema parameter forms, and system telemetry as first-class physical instruments.",
+    "northStar": "The Print Run",
+    "overview": "Utility Web is redesigned as a risograph studio, not a developer console. Every transformation is staged like a job going through the press: the source file is a plate, each output format or size is one spot-color pass, and the finished artifact is a printed sheet pulled off the drum and set out to dry. Designers and creators already read this world fluently — it is the world of zines, small-run posters, and DIY publishing, not command lines or telemetry dashboards. Nothing here is a photo of a risograph; it is that print shop's actual grammar rebuilt as interface: flat spot-color ink, cut-paper edges, registration crosses, one ink at a time.\n\nThe system runs on two surfaces at once. The press room — a warm, near-black canvas, the room the machine sits in at night — carries navigation, chrome, and atmosphere. Every sheet of actual work sits on paper: a warm uncoated cream stock lifted off that dark table, carrying dark ink text at real contrast. The press room sets the mood; the paper does the reading.\n\nColor is earned like ink, not decoration. A risograph print costs one run per color — so the interface spends spot color the same way: pink for the one action that matters, blue for information, mint and gold and red for outcome states, and nothing else.",
     "keyCharacteristics": [
-      "Tactile Dark Canvas: Deep obsidian backdrop with 1px zinc borders and tonal surface separation.",
-      "Instrument Telemetry: Monospace badges, live file size deltas, dimension chips, and SHA-256 fingerprints.",
-      "Intent-Driven Forms: Clean, modular parameter groups with immediate validation and one-click smart presets.",
-      "Zero-Friction Ergonomics: Seamless drag-and-drop zones, instant live preview comparison, and clear state transitions."
+      "Press Room, Paper Sheets: Dark ink-black canvas for chrome and wayfinding; warm cream paper cards for every working surface, form, and readout.",
+      "One Ink at a Time: Spot color (pink, blue, mint, gold, red) is reserved for action and state — never decoration, never more than one dominant ink per view.",
+      "Cut-Paper Geometry: Square-cut corners, deckle-edge borders, and registration crosses stand in for the soft glass-panel rounding of a generic dashboard.",
+      "The Ink Ledger: Every number a designer must trust — dimensions, file size, format, hash — sets in typewritten monospace, stamped like a job ticket, never floating loose in body type."
     ],
     "rules": [
-      {
-        "name": "The Execution Rarity Rule",
-        "body": "Electric Indigo is reserved strictly for primary execution and active tool selection. Never use it for background decoration or passive text.",
-        "section": "colors"
-      },
-      {
-        "name": "The Telemetry Monospace Rule",
-        "body": "Any data representing sizes (KB/MB), dimensions (W×H), execution duration (ms), or hashes (SHA-256) must use monospace formatting and neutral-to-cyan status coloring.",
-        "section": "colors"
-      },
-      {
-        "name": "The Metric Precision Rule",
-        "body": "All numbers denoting file size, dimensions, memory, or time must render in tabular monospace (font-mono) to prevent layout shift during live updates.",
-        "section": "typography"
-      },
-      {
-        "name": "The Tonal Boundary Rule",
-        "body": "Surfaces separate via 1px border contrast (#27272a) and background value stepping, never via heavy diffuse shadows.",
-        "section": "elevation"
-      }
+      { "name": "The Overprint Rule", "body": "A light spot ink (pink, gold, mint) always carries dark ink text; a deeper spot ink (blue, red) carries paper-cream or white text.", "section": "colors" },
+      { "name": "The One-Ink Rule", "body": "No view runs more than one dominant spot color at a time. A card, a form, a toolbar owns exactly one accent ink for its primary action; every other color in view is neutral until it is that surface's turn to matter.", "section": "colors" },
+      { "name": "The Ledger Rule", "body": "Anything the user must trust as fact — bytes, pixels, W×H, duration, a SHA-256 digest, a format name — sets in Courier Prime, tabular, stamped like a job ticket. Never render a number the user must trust in the body face.", "section": "colors" },
+      { "name": "The Masthead Rule", "body": "Display and headline sizes always carry the heaviest available weight (900/800) — a light or regular zine masthead is a contradiction in terms.", "section": "typography" },
+      { "name": "The No-Glow Rule", "body": "Nothing in this system emits light. Active and focus states are communicated by ink color and the registration mark, never by a blurred halo.", "section": "elevation" }
     ],
     "dos": [
-      "Do use tabular monospace (font-mono) for all byte counts, dimensions, hashes, and operation identifiers.",
-      "Do show before/after comparison previews and explicit delta metrics (e.g. -42.8% reduction) for every transformation.",
-      "Do preserve the dark-first obsidian canvas hierarchy (#09090b canvas, #121215 panel, #18181b elevated surface).",
-      "Do provide one-click quick presets alongside granular numeric inputs for common dimensions and formats."
+      "Do put every number the user must trust — size, dimensions, hashes, durations — in Courier Prime, tabular, stamped like a ledger.",
+      "Do keep all functional content (forms, previews, telemetry) on a paper surface with dark ink text; the press-room dark only ever carries chrome.",
+      "Do pair light spot inks with dark text and deep spot inks with light text (The Overprint Rule) — never guess contrast.",
+      "Do spend spot color on exactly one thing per view: the action, or the state, never both, never decoration.",
+      "Do show before/after comparison and explicit size deltas as stamped ledger tags, exactly as before."
     ],
     "donts": [
+      "Don't put body copy, form labels, or data directly on the press-room dark canvas — that surface is for wayfinding only.",
+      "Don't use soft glows, blurred shadows, or rounded glass panels — depth is a hard paper-lift offset, never a blur.",
+      "Don't run two spot colors as equals in one view; one ink leads, the rest stay neutral until it's their turn.",
+      "Don't render the registration cross, stamp texture, or paper grain as literal 3D skeuomorphism — this is flat graphic print language, not a photo of paper.",
       "Don't expose shell commands, raw filesystem paths, or backend runtime syntax to the user.",
-      "Don't use primary Electric Indigo (#6366f1) for non-actionable elements or decorative headers.",
-      "Don't use heavy drop shadows or bright white surfaces that break the dark workstation immersion.",
       "Don't trigger destructive actions or discard uploaded files without explicit confirmation."
     ]
   }
