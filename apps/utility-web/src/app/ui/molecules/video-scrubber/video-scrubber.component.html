@@ -1,0 +1,40 @@
+<div class="flex flex-col gap-3 min-w-0">
+  <div class="relative bg-press border border-press-line rounded-lg overflow-hidden aspect-video">
+    <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
+    @if (src()) {
+      <video
+        #video
+        [src]="src()!"
+        controls
+        preload="metadata"
+        class="w-full h-full object-contain bg-press"
+        (loadedmetadata)="onVideoLoaded()"
+        (timeupdate)="onTimeUpdate()"
+        (seeked)="onTimeUpdate()"
+      ></video>
+    } @else {
+      <div class="w-full h-full flex items-center justify-center text-press-text-muted text-sm font-mono font-bold tracking-[0.04em]">NO SOURCE</div>
+    }
+  </div>
+
+  <div class="flex items-center gap-3 min-w-0">
+    <span
+      #ledger
+      data-ledger
+      class="shrink-0 font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5"
+    >{{ formatTime(currentSeconds()) }} / {{ formatTime(durationSeconds()) }}</span>
+
+    <input
+      type="range"
+      class="video-scrub-track flex-1 min-w-0"
+      min="0"
+      [max]="durationSeconds() || 0"
+      step="0.05"
+      [value]="currentSeconds()"
+      [disabled]="disabled() || !src()"
+      (input)="onScrub($event)"
+      (change)="onScrubCommit()"
+      aria-label="Video position, in seconds"
+    />
+  </div>
+</div>

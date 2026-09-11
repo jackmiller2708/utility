@@ -4,6 +4,7 @@ import request from "supertest";
 import sharp from "sharp";
 import { AppModule } from "./../src/app.module.js";
 import { buildTestPdf } from "./support/pdf-fixtures.js";
+import { buildTestVideo } from "./support/media-fixtures.js";
 
 describe("Utility API (e2e)", () => {
   let app: INestApplication;
@@ -279,5 +280,126 @@ describe("Utility API (e2e)", () => {
       .post("/api/v1/tools/pdf.merge")
       .attach("files", only, "only.pdf")
       .expect(400);
+  });
+
+  it("GET /api/v1/tools returns the media tool and its operations", async () => {
+    const res = await request(app.getHttpServer())
+      .get("/api/v1/tools")
+      .expect(200);
+
+    const mediaTool = res.body.tools.find((t: { id: string }) => t.id === "media");
+    expect(mediaTool).toBeDefined();
+    expect(mediaTool.operations.map((op: { id: string }) => op.id).sort()).toEqual([
+      "media.extract-audio",
+      "media.inspect",
+      "media.thumbnail",
+      "media.transcode",
+    ]);
+  });
+
+  it("POST /api/v1/tools/media.inspect reports duration and stream info via the generic operation route", async () => {
+    const testVideoBuffer = buildTestVideo({ durationSeconds: 2, withAudio: true });
+
+    const res = await request(app.getHttpServer())
+      .post("/api/v1/tools/media.inspect")
+      .attach("file", testVideoBuffer, "clip.mp4")
+      .expect(201);
+
+    expect(res.body.durationSeconds).toBeGreaterThan(0);
+    expect(res.body.video).not.toBeNull();
+    expect(res.body.audio).not.toBeNull();
+  });
+
+  it("POST /api/v1/tools/media.thumbnail captures a downloadable frame", async () => {
+    const testVideoBuffer = buildTestVideo({ durationSeconds: 2 });
+
+    const res = await request(app.getHttpServer())
+      .post("/api/v1/tools/media.thumbnail")
+      .attach("file", testVideoBuffer, "clip.mp4")
+      .field("width", 32)
+      .field("format", "png")
+      .expect(201);
+
+    expect(res.body.artifact.mimeType).toBe("image/png");
+    expect(res.body.artifact.name).toBe("clip_thumbnail.png");
+
+    const downloadRes = await request(app.getHttpServer())
+      .get(`/api/v1/artifacts/${res.body.artifact.id}/download`)
+      .expect(200);
+    expect(downloadRes.headers["content-type"]).toBe("image/png");
+  });
+
+  it("POST /api/v1/tools/media.extract-audio produces a downloadable audio artifact", async () => {
+    const testVideoBuffer = buildTestVideo({ durationSeconds: 2, withAudio: true });
+
+    const res = await request(app.getHttpServer())
+      .post("/api/v1/tools/media.extract-audio")
+      .attach("file", testVideoBuffer, "clip.mp4")
+      .field("format", "mp3")
+      .expect(201);
+
+    expect(res.body.artifact.mimeType).toBe("audio/mpeg");
+    expect(res.body.artifact.name).toBe("clip_audio.mp3");
+
+    const downloadRes = await request(app.getHttpServer())
+      .get(`/api/v1/artifacts/${res.body.artifact.id}/download`)
+      .expect(200);
+    expect(downloadRes.headers["content-type"]).toBe("audio/mpeg");
+  });
+
+  it("POST /api/v1/tools/media.transcode re-encodes to the requested format and resolution", async () => {
+    const testVideoBuffer = buildTestVideo({ durationSeconds: 2, withAudio: true });
+
+    const res = await request(app.getHttpServer())
+      .post("/api/v1/tools/media.transcode")
+      .attach("file", testVideoBuffer, "clip.mp4")
+      .field("format", "mp4")
+      .field("resolution", "360p")
+      .field("quality", 50)
+      .expect(201);
+
+    expect(res.body.artifact.mimeType).toBe("video/mp4");
+    expect(res.body.artifact.name).toBe("clip_transcoded.mp4");
+
+    const downloadRes = await request(app.getHttpServer())
+      .get(`/api/v1/artifacts/${res.body.artifact.id}/download`)
+      .expect(200);
+    expect(downloadRes.headers["content-type"]).toBe("video/mp4");
+  });
+
+  it("POST /api/v1/tools/media.inspect rejects a non-media file", async () => {
+    await request(app.getHttpServer())
+      .post("/api/v1/tools/media.inspect")
+      .attach("file", Buffer.from("this is not a video"), "not-a-video.mp4")
+      .expect(400);
+  });
+
+  it("POST /api/v1/jobs/media.transcode runs the transcode asynchronously with progress and cancellation support", async () => {
+    const testVideoBuffer = buildTestVideo({ durationSeconds: 2, withAudio: true });
+
+    const submitRes = await request(app.getHttpServer())
+      .post("/api/v1/jobs/media.transcode")
+      .attach("file", testVideoBuffer, "clip.mp4")
+      .field("format", "mp4")
+      .field("resolution", "360p")
+      .expect(201);
+
+    expect(submitRes.body).toHaveProperty("jobId");
+    const jobId = submitRes.body.jobId;
+
+    let job: { status: string; result?: { artifact: { mimeType: string } } } | undefined;
+    for (let i = 0; i < 100; i++) {
+      const pollRes = await request(app.getHttpServer())
+        .get(`/api/v1/jobs/${jobId}`)
+        .expect(200);
+      job = pollRes.body;
+      if (job?.status === "completed" || job?.status === "failed") {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
+    expect(job?.status).toBe("completed");
+    expect(job?.result?.artifact.mimeType).toBe("video/mp4");
   });
 });

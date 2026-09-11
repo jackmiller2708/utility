@@ -115,6 +115,24 @@ export const makeArtifactStore = (config: ArtifactStoreConfig = {}) =>
             return "application/pdf";
           case ".json":
             return "application/json";
+          case ".mp3":
+            return "audio/mpeg";
+          case ".aac":
+            return "audio/aac";
+          case ".wav":
+            return "audio/wav";
+          case ".flac":
+            return "audio/flac";
+          case ".ogg":
+            return "audio/ogg";
+          case ".mp4":
+            return "video/mp4";
+          case ".webm":
+            return "video/webm";
+          case ".mov":
+            return "video/quicktime";
+          case ".mkv":
+            return "video/x-matroska";
           default:
             return "application/octet-stream";
         }

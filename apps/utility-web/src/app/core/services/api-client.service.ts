@@ -1,4 +1,4 @@
-import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse } from '@utility/protocol';
+import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, MediaInspectOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse } from '@utility/protocol';
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClientService } from './http-client.service.js';
@@ -107,6 +107,13 @@ export class ApiClientService {
     formData.append('file', file, file.name);
 
     return this.http.post<PdfExtractImagesOutput>(`${this.config.baseUrl}/tools/pdf.extract-images`, formData);
+  }
+
+  inspectMedia$(file: File) {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    return this.http.post<MediaInspectOutput>(`${this.config.baseUrl}/tools/media.inspect`, formData);
   }
 
   submitSplitJob$(file: File, ranges: readonly { firstPage: number; lastPage: number }[]) {

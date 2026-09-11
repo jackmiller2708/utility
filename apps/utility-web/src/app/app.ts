@@ -6,6 +6,7 @@ import { RuntimeStatusService } from './core/index.js';
 
 const TOOL_ROUTES: Record<string, string> = {
   image: '/media/image-resize',
+  media: '/media/video-audio',
   pdf: '/document/pdf',
   'pdf-merge-split': '/document/merge-split',
 };

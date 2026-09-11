@@ -15,6 +15,7 @@ export * from './molecules/error-diagnostic/error-diagnostic.component.js';
 export * from './molecules/gallery-tile/gallery-tile.component.js';
 export * from './molecules/job-ticket/job-ticket.component.js';
 export * from './molecules/batch-ticket/batch-ticket.component.js';
+export * from './molecules/video-scrubber/video-scrubber.component.js';
 
 // Organisms
 export * from './organisms/header/header.component.js';

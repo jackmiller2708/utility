@@ -12,6 +12,8 @@ export interface GalleryItem {
   readonly sizeFormatted: string;
   readonly previewUrl: string | null;
   readonly downloadUrl: string | null;
+  /** How the tile plays its preview — a still image (default), a video with native controls, or an audio track with no visual frame to show. */
+  readonly kind?: 'image' | 'video' | 'audio';
 }
 
 @Component({

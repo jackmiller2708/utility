@@ -34,6 +34,12 @@ import {
   InvalidPdfError,
   PdfProcessingError,
 } from "@utility/pdf";
+import {
+  mediaTool,
+  FfmpegMediaServiceLive,
+  InvalidMediaError,
+  MediaProcessingError,
+} from "@utility/media";
 import { SecurityError, ValidationError } from "@utility/domain";
 
 // Compose the full Live layer
@@ -44,7 +50,8 @@ export const AppLive = Layer.mergeAll(
   ArtifactStoreLive.pipe(Layer.provide(FileSystemLive)),
   SharpImageServiceLive,
   PopplerPdfServiceLive.pipe(Layer.provide(Layer.mergeAll(ProcessLive, FileSystemLive))),
-  makeToolRegistry([imageTool, pdfTool, pdfMergeSplitTool]),
+  FfmpegMediaServiceLive.pipe(Layer.provide(ProcessLive)),
+  makeToolRegistry([imageTool, pdfTool, pdfMergeSplitTool, mediaTool]),
   JobRegistryLive
 ).pipe(Layer.orDie);
 
@@ -118,6 +125,14 @@ export class EffectRuntimeService implements OnModuleInit {
     }
 
     if (error instanceof PdfProcessingError) {
+      return new BadRequestException(error.message);
+    }
+
+    if (error instanceof InvalidMediaError) {
+      return new BadRequestException(error.message);
+    }
+
+    if (error instanceof MediaProcessingError) {
       return new BadRequestException(error.message);
     }
 

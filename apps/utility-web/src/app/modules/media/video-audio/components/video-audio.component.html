@@ -1,0 +1,346 @@
+<div class="flex flex-col gap-6 min-w-0">
+  <div class="flex flex-col gap-2 min-w-0">
+    <div class="flex items-end gap-4 flex-wrap">
+      <h1 class="text-[clamp(1.875rem,3.2vw,2.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-press-text">
+        Video &amp; audio
+      </h1>
+      <app-badge variant="pink" surface="press">media</app-badge>
+    </div>
+    <p class="text-[0.9375rem] leading-relaxed text-press-text-muted max-w-[70ch]">
+      Drop in a video or audio file to see what's inside, pull a frame, lift out the soundtrack, or run it back through the press at a new size.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 min-w-0">
+    <section class="lg:col-span-5 min-w-0 relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift">
+      <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
+
+      <div class="px-6 py-5 border-b border-paper-hairline">
+        <h2 class="text-xl font-extrabold text-ink">{{ service.mode() === 'batch' ? 'Your files' : 'Your file' }}</h2>
+      </div>
+
+      <div class="p-6 flex flex-col gap-6 min-w-0">
+        <app-tile-group
+          [tiles]="modeTiles"
+          [activeId]="service.mode()"
+          activeInk="pink"
+          (tileSelected)="onModeSelected($event)"
+        ></app-tile-group>
+
+        @if (service.mode() === 'batch') {
+          <app-tile-group
+            heading="OPERATION"
+            [tiles]="service.batchOperationTiles"
+            [activeId]="service.batchOperation()"
+            activeInk="blue"
+            (tileSelected)="service.setBatchOperation($event)"
+          ></app-tile-group>
+
+          @if (service.batchFiles().length === 0) {
+            <app-dropzone
+              title="Drop video or audio files, or browse"
+              accept="video/*,audio/*"
+              [supportedFormats]="['MP4', 'MOV', 'WEBM', 'MKV', 'MP3', 'WAV']"
+              [multiple]="true"
+              (filesSelected)="service.addBatchFiles($event)"
+            ></app-dropzone>
+          } @else {
+            <app-sortable-file-list
+              [items]="batchFileItems()"
+              (reorder)="onBatchFileReorder($event)"
+              (remove)="service.removeBatchFile($event)"
+              (clearAll)="service.clearBatchFiles()"
+            ></app-sortable-file-list>
+
+            @if (service.batchFiles().length < service.maxBatchFiles) {
+              <app-dropzone
+                title="Drop more files or browse"
+                accept="video/*,audio/*"
+                [supportedFormats]="['MP4', 'MOV', 'WEBM', 'MKV', 'MP3', 'WAV']"
+                [multiple]="true"
+                [showPasteHint]="false"
+                (filesSelected)="service.addBatchFiles($event)"
+              ></app-dropzone>
+            }
+          }
+
+          @if (service.batchLimitNotice(); as notice) {
+            <div class="p-3 rounded-sm border border-riso-gold bg-riso-gold/10 text-xs font-mono font-bold text-ink flex items-start gap-2" role="status">
+              <span class="flex-1 min-w-0 break-words">{{ notice }}</span>
+            </div>
+          }
+
+          @if (service.isTranscodeBatch()) {
+            <app-tile-group
+              heading="QUALITY"
+              [tiles]="qualityTiles"
+              [activeId]="qualityTileId(service.batchQuality())"
+              activeInk="blue"
+              (tileSelected)="onBatchQualitySelected($event)"
+            ></app-tile-group>
+          }
+
+          <app-operation-form
+            [parameters]="service.batchParameters()"
+            [values]="service.batchSettings()"
+            (valuesChange)="service.setBatchFormValues($event)"
+          ></app-operation-form>
+
+          <div class="border-t border-paper-hairline pt-5 flex flex-col gap-3 min-w-0">
+            <app-button
+              variant="primary"
+              size="lg"
+              class="[&>button]:w-full"
+              [disabled]="!service.canSubmitBatch()"
+              [loading]="service.isBatchActive()"
+              (clicked)="service.executeBatch()"
+            >
+              @if (service.isBatchActive()) {
+                <span>Working&hellip;</span>
+              } @else {
+                <span>Run {{ service.batchFiles().length || '' }} file{{ service.batchFiles().length === 1 ? '' : 's' }}</span>
+              }
+            </app-button>
+          </div>
+        }
+
+        @if (service.mode() === 'single') {
+        @let selectedFile = service.selectedFile();
+        @let inspectResult = service.inspectResult();
+
+        @if (!selectedFile) {
+          <app-dropzone
+            title="Drop video or audio file, or browse"
+            accept="video/*,audio/*"
+            [supportedFormats]="['MP4', 'MOV', 'WEBM', 'MKV', 'MP3', 'WAV']"
+            (fileSelected)="service.setFile($event)"
+          ></app-dropzone>
+        } @else {
+          <app-file-summary-card
+            [name]="selectedFile.name"
+            [dimensions]="service.isInspecting() ? 'Reading' : (inspectResult ? service.formatDuration(inspectResult.durationSeconds) : '')"
+            [sizeFormatted]="service.formatBytes(selectedFile.size)"
+            [previewUrl]="null"
+            [loading]="service.isInspecting()"
+            itemLabel="file"
+            (changeFile)="service.resetFile()"
+          ></app-file-summary-card>
+        }
+
+        @if (inspectResult) {
+          <div class="flex flex-wrap gap-1.5">
+            <app-badge variant="neutral">{{ service.formatLabel(inspectResult.format) }}</app-badge>
+            @if (inspectResult.video) {
+              <app-badge variant="neutral">{{ inspectResult.video.width }}&times;{{ inspectResult.video.height }} @{{ inspectResult.video.fps }}FPS</app-badge>
+              <app-badge variant="neutral">{{ inspectResult.video.codec.toUpperCase() }}</app-badge>
+            }
+            @if (inspectResult.audio) {
+              <app-badge variant="neutral">{{ inspectResult.audio.codec.toUpperCase() }} &middot; {{ inspectResult.audio.channels }}CH</app-badge>
+            }
+          </div>
+        }
+
+        @if (selectedFile && inspectResult) {
+          <div class="flex flex-col gap-3 min-w-0 border-t border-paper-hairline pt-5">
+            <h3 class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">THUMBNAIL</h3>
+            <p class="text-sm leading-relaxed text-ink-muted max-w-[70ch]">
+              Drag the playhead in the preview to pick the exact frame, then capture it as a still image.
+            </p>
+
+            <app-operation-form
+              [parameters]="service.thumbnailParameters()"
+              [values]="service.thumbnailSettings()"
+              (valuesChange)="service.setThumbnailFormValues($event)"
+            ></app-operation-form>
+
+            <app-button
+              variant="primary"
+              size="lg"
+              class="[&>button]:w-full"
+              [disabled]="service.isProcessing()"
+              [loading]="service.isProcessing() && service.activeOperation() === 'media.thumbnail'"
+              (clicked)="service.executeThumbnail()"
+            >
+              @if (service.isProcessing() && service.activeOperation() === 'media.thumbnail') {
+                <span>Capturing…</span>
+              } @else {
+                <span>Capture at {{ service.formatDuration(service.thumbnailTimestamp() ?? 0) }}</span>
+              }
+            </app-button>
+          </div>
+
+          <div class="flex flex-col gap-3 min-w-0 border-t border-paper-hairline pt-5">
+            <h3 class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">EXTRACT AUDIO</h3>
+            <p class="text-sm leading-relaxed text-ink-muted max-w-[70ch]">
+              Pulls the soundtrack out as a standalone audio file, or re-encodes an audio-only source.
+            </p>
+
+            <app-operation-form
+              [parameters]="service.audioParameters()"
+              [values]="service.audioSettings()"
+              (valuesChange)="service.setAudioFormValues($event)"
+            ></app-operation-form>
+
+            <app-button
+              variant="secondary"
+              size="lg"
+              class="[&>button]:w-full"
+              [disabled]="service.isProcessing()"
+              [loading]="service.isProcessing() && service.activeOperation() === 'media.extract-audio'"
+              (clicked)="service.executeExtractAudio()"
+            >
+              @if (service.isProcessing() && service.activeOperation() === 'media.extract-audio') {
+                <span>Extracting…</span>
+              } @else {
+                <span>Extract audio</span>
+              }
+            </app-button>
+          </div>
+
+          @if (inspectResult.video) {
+            <div class="flex flex-col gap-3 min-w-0 border-t border-paper-hairline pt-5">
+              <h3 class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">TRANSCODE</h3>
+              <p class="text-sm leading-relaxed text-ink-muted max-w-[70ch]">
+                Re-encode to a different container, resolution, or size.
+              </p>
+
+              <app-tile-group
+                heading="QUALITY"
+                [tiles]="qualityTiles"
+                [activeId]="qualityTileId(service.quality())"
+                activeInk="blue"
+                (tileSelected)="onQualitySelected($event)"
+              ></app-tile-group>
+
+              <app-operation-form
+                [parameters]="service.transcodeParameters()"
+                [values]="service.transcodeSettings()"
+                (valuesChange)="service.setTranscodeFormValues($event)"
+              ></app-operation-form>
+
+              <app-button
+                variant="secondary"
+                size="lg"
+                class="[&>button]:w-full"
+                [disabled]="service.isProcessing()"
+                [loading]="service.isProcessing() && service.activeOperation() === 'media.transcode'"
+                (clicked)="service.executeTranscode()"
+              >
+                @if (service.isProcessing() && service.activeOperation() === 'media.transcode') {
+                  <span>Transcoding…</span>
+                } @else {
+                  <span>Transcode</span>
+                }
+              </app-button>
+            </div>
+          }
+        }
+
+        @if (service.errorDiagnostic() | option; as diag) {
+          <app-error-diagnostic
+            [title]="diag.title"
+            [message]="diag.message"
+            [suggestion]="diag.suggestion"
+            retryLabel="Retry"
+            (retryClicked)="service.retryLastOperation()"
+          ></app-error-diagnostic>
+        }
+        }
+      </div>
+    </section>
+
+    <section class="lg:col-span-7 min-w-0 flex flex-col gap-6">
+      @if (service.mode() === 'single') {
+        @let selectedFile = service.selectedFile();
+        @let inspectResult = service.inspectResult();
+
+        <div class="relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift min-w-0">
+          <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
+          <div class="px-6 py-5 border-b border-paper-hairline">
+            <h2 class="text-xl font-extrabold text-ink">Source</h2>
+          </div>
+          <div class="p-6">
+            @if (selectedFile && inspectResult?.video) {
+              <app-video-scrubber
+                [src]="selectedFile.previewUrl"
+                [durationSeconds]="inspectResult.durationSeconds"
+                [seekTo]="service.thumbnailTimestamp()"
+                (timeChange)="service.updateThumbnailTimestamp($event)"
+              ></app-video-scrubber>
+            } @else if (selectedFile && inspectResult && !inspectResult.video) {
+              <audio [src]="selectedFile.previewUrl" controls preload="metadata" class="w-full"></audio>
+            } @else {
+              <div class="h-24 flex items-center justify-center text-sm text-ink-faint">
+                Drop a file on the left to preview it here.
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (transcodeSizeDelta(); as delta) {
+          <div class="flex flex-wrap gap-1.5">
+            <span class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted self-center">SIZE DELTA</span>
+            <app-badge [variant]="delta.grew ? 'gold' : 'mint'">{{ delta.grew ? '+' : '-' }}{{ delta.percent }}%</app-badge>
+          </div>
+        }
+
+        <app-gallery-grid
+          [title]="galleryTitle()"
+          [items]="galleryItems()"
+          [loading]="service.isProcessing()"
+          [job]="service.activeJob()"
+          emptyTitle="No output yet"
+          emptyMessage="Capture a thumbnail, extract audio, or transcode to see results here."
+          (downloadAllClicked)="downloadSingle()"
+          (cancelJob)="service.cancelActiveJob()"
+        ></app-gallery-grid>
+      } @else if (service.isInspectBatch()) {
+        <div class="relative h-full flex flex-col bg-paper border border-paper-deckle rounded-lg shadow-paper-lift min-w-0">
+          <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
+
+          <div class="px-6 py-5 border-b border-paper-hairline">
+            <h2 class="text-xl font-extrabold text-ink">{{ service.batchTitle() }}</h2>
+          </div>
+
+          <div class="flex-1 p-6">
+            @if (service.isBatchActive()) {
+              <div class="h-full flex flex-col items-center justify-center gap-3 text-center" role="status" aria-live="polite">
+                <span class="reg-cross reg-cross-spin text-riso-pink" style="width:18px;height:18px"></span>
+                <span class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">{{ service.batchInspectResults().length }} / {{ service.batchFiles().length }} inspected&hellip;</span>
+              </div>
+            } @else if (service.batchInspectResults().length === 0) {
+              <div class="h-full flex flex-col items-center justify-center gap-2 text-center">
+                <span class="text-sm font-bold text-ink">No output yet</span>
+                <span class="text-xs text-ink-faint max-w-[32ch]">Inspect a batch to see file details here.</span>
+              </div>
+            } @else {
+              <div class="flex flex-col">
+                @for (row of service.batchInspectResults(); track row.fileName) {
+                  <div class="flex items-center gap-4 py-3 border-b border-paper-hairline last:border-b-0 flex-wrap">
+                    <span class="flex-1 min-w-[140px] text-sm font-bold text-ink truncate">{{ row.fileName }}</span>
+                    <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5">{{ service.formatDuration(row.durationSeconds) }}</span>
+                    @if (row.video) {
+                      <span class="font-mono text-xs text-ink-faint truncate">{{ row.video.width }}&times;{{ row.video.height }}</span>
+                    }
+                    @if (row.audio) {
+                      <span class="font-mono text-xs text-ink-faint truncate">{{ row.audio.channels }}CH</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <app-gallery-grid
+          [title]="service.batchTitle()"
+          [items]="batchGalleryItems()"
+          [loading]="service.isBatchActive()"
+          emptyTitle="No output yet"
+          emptyMessage="Run a batch to see results here."
+          (downloadAllClicked)="downloadAllBatch()"
+        ></app-gallery-grid>
+      }
+    </section>
+  </div>
+</div>

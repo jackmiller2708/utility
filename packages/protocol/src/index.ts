@@ -1,4 +1,5 @@
 export * from "./artifact.js";
+export * from "./media.js";
 export * from "./tools.js";
 export * from "./image.js";
 export * from "./pdf.js";

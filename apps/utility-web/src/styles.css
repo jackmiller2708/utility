@@ -156,6 +156,48 @@ html, body {
   border-color: color-mix(in srgb, var(--color-riso-pink) 40%, var(--color-ink-faint));
 }
 
+/* Video scrubber — a ruled ledger track standing in for a native range input's default pill and glow, so scrubbing a timestamp reads as the same cut-paper world as every other control. */
+.video-scrub-track {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--color-paper-deckle);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.video-scrub-track::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 16px;
+  background: var(--color-riso-pink);
+  border: 1px solid var(--color-ink);
+  border-radius: 0;
+  cursor: pointer;
+  margin-top: -6px;
+}
+
+.video-scrub-track::-moz-range-thumb {
+  width: 12px;
+  height: 16px;
+  background: var(--color-riso-pink);
+  border: 1px solid var(--color-ink);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.video-scrub-track::-moz-range-track {
+  height: 4px;
+  background: var(--color-paper-deckle);
+  border-radius: 0;
+}
+
+.video-scrub-track:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reg-cross-spin,
   .pulse-slow,

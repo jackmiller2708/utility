@@ -13,4 +13,5 @@ export class GalleryTileComponent {
   sizeFormatted = input<string>('');
   previewUrl = input<string | null>(null);
   downloadUrl = input<string | null>(null);
+  kind = input<'image' | 'video' | 'audio'>('image');
 }

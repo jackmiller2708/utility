@@ -8,6 +8,16 @@ export interface Command {
   readonly cwd?: string;
   readonly env?: Readonly<Record<string, string>>;
   readonly timeoutMs?: number;
+  /**
+   * Called synchronously with each raw stdout/stderr chunk as the process emits it, in addition
+   * to (not instead of) the buffering that fills `ProcessResult`. Exists for tools like ffmpeg
+   * that report progress by writing periodic lines to a live stream while the process runs — a
+   * one-shot invocation with no equivalent to PDF's "call the binary N times, report progress
+   * between calls" trick, since a single ffmpeg encode is one long-running process, not many
+   * short ones. Optional and unused by every caller that doesn't need incremental progress.
+   */
+  readonly onStdout?: (chunk: string) => void;
+  readonly onStderr?: (chunk: string) => void;
 }
 
 export interface ProcessResult {
@@ -40,11 +50,15 @@ export const ProcessLive = Layer.succeed(
           let stderr = "";
 
           proc.stdout.on("data", (data) => {
-            stdout += data.toString();
+            const text = data.toString();
+            stdout += text;
+            command.onStdout?.(text);
           });
 
           proc.stderr.on("data", (data) => {
-            stderr += data.toString();
+            const text = data.toString();
+            stderr += text;
+            command.onStderr?.(text);
           });
 
           let timeoutId: NodeJS.Timeout | undefined;
