@@ -16,6 +16,7 @@ export * from './molecules/gallery-tile/gallery-tile.component.js';
 export * from './molecules/job-ticket/job-ticket.component.js';
 export * from './molecules/batch-ticket/batch-ticket.component.js';
 export * from './molecules/video-scrubber/video-scrubber.component.js';
+export * from './molecules/device-ticket/device-ticket.component.js';
 
 // Organisms
 export * from './organisms/header/header.component.js';
@@ -25,6 +26,7 @@ export * from './organisms/gallery-grid/gallery-grid.component.js';
 export * from './organisms/sortable-file-list/sortable-file-list.component.js';
 export * from './organisms/job-tray/job-tray.component.js';
 export * from './organisms/route-curtain/route-curtain.component.js';
+export * from './organisms/enrollment-gate/enrollment-gate.component.js';
 export * from './organisms/operation-form/operation-form.component.js';
 
 // Templates

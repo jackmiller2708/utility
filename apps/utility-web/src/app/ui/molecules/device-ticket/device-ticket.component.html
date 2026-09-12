@@ -1,0 +1,121 @@
+<div class="shrink-0 flex items-center justify-center w-5 h-5 mt-0.5">
+  @if (device().revoked) {
+    <span class="w-2 h-2 rounded-full bg-ink-faint"></span>
+  } @else if (!device().approved) {
+    <span class="w-2 h-2 rounded-full bg-riso-gold pulse-slow"></span>
+  } @else {
+    <span class="w-2 h-2 rounded-full bg-riso-mint"></span>
+  }
+</div>
+
+<div class="min-w-0 flex-1 flex flex-col gap-1.5">
+  <div class="flex items-center justify-between gap-2 min-w-0 flex-wrap">
+    <div class="flex items-center gap-2 min-w-0">
+      @if (editingName()) {
+        <input
+          #nameInput
+          type="text"
+          [value]="device().name"
+          (blur)="commitRename($event)"
+          (keydown.enter)="onEnterKey($event)"
+          (keydown.escape)="cancelRename()"
+          class="text-sm font-bold text-ink bg-paper-fresh border-b-2 border-b-riso-pink outline-none min-w-0 max-w-[220px]"
+        />
+      } @else {
+        <button
+          type="button"
+          [disabled]="device().revoked || !canManage()"
+          (click)="startRename()"
+          class="text-sm font-bold text-ink truncate enabled:hover:text-riso-pink transition-colors duration-shift ease-run enabled:cursor-pointer text-left disabled:opacity-70"
+          title="Rename this device"
+        >{{ device().name }}</button>
+      }
+
+      @if (isThisDevice()) {
+        <app-badge variant="pink">THIS DEVICE</app-badge>
+      }
+      @if (device().revoked) {
+        <app-badge variant="red">REVOKED</app-badge>
+      } @else if (!device().approved) {
+        <app-badge variant="gold">PENDING</app-badge>
+      }
+    </div>
+
+    @if (!device().revoked) {
+      @if (!device().approved) {
+        @if (canApprove()) {
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              [disabled]="approving()"
+              (click)="approveRequested.emit()"
+              class="bg-riso-pink text-ink rounded-sm px-3 py-1.5 text-xs font-bold cursor-pointer hover:bg-riso-pink-hover active:shadow-stamped transition-colors duration-shift ease-run disabled:opacity-60"
+            >{{ approving() ? 'Approving…' : 'Approve' }}</button>
+            <button
+              type="button"
+              [disabled]="approving() || revoking()"
+              (click)="revokeConfirmed.emit()"
+              class="bg-transparent text-ink-muted rounded-sm px-3 py-1.5 text-xs font-bold cursor-pointer hover:text-riso-red active:opacity-60 transition-colors duration-shift ease-run"
+            >{{ revoking() ? 'Rejecting…' : 'Reject' }}</button>
+          </div>
+        }
+      } @else if (canManage()) {
+        @if (confirming()) {
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-xs font-bold text-riso-red">Revoke access?</span>
+            <button
+              type="button"
+              [disabled]="revoking()"
+              (click)="revokeConfirmed.emit()"
+              class="bg-riso-red text-paper-fresh rounded-sm px-3 py-1.5 text-xs font-bold cursor-pointer hover:opacity-90 active:shadow-stamped transition-opacity duration-shift ease-run disabled:opacity-60"
+            >{{ revoking() ? 'Revoking…' : 'Revoke' }}</button>
+            <button
+              type="button"
+              [disabled]="revoking()"
+              (click)="revokeCancelled.emit()"
+              class="bg-transparent text-ink-muted rounded-sm px-3 py-1.5 text-xs font-bold cursor-pointer hover:text-ink active:opacity-60 transition-colors duration-shift ease-run"
+            >Keep</button>
+          </div>
+        } @else {
+          <button
+            type="button"
+            (click)="revokeRequested.emit()"
+            class="shrink-0 text-xs font-bold text-ink-faint hover:text-riso-red transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
+          >Revoke</button>
+        }
+      }
+    } @else if (canDelete()) {
+      @if (confirmingDelete()) {
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="text-xs font-bold text-riso-red">Delete permanently?</span>
+          <button
+            type="button"
+            [disabled]="deleting()"
+            (click)="deleteConfirmed.emit()"
+            class="bg-riso-red text-paper-fresh rounded-sm px-3 py-1.5 text-xs font-bold cursor-pointer hover:opacity-90 active:shadow-stamped transition-opacity duration-shift ease-run disabled:opacity-60"
+          >{{ deleting() ? 'Deleting…' : 'Delete' }}</button>
+          <button
+            type="button"
+            [disabled]="deleting()"
+            (click)="deleteCancelled.emit()"
+            class="bg-transparent text-ink-muted rounded-sm px-3 py-1.5 text-xs font-bold cursor-pointer hover:text-ink active:opacity-60 transition-colors duration-shift ease-run"
+          >Keep</button>
+        </div>
+      } @else {
+        <button
+          type="button"
+          (click)="deleteRequested.emit()"
+          class="shrink-0 text-xs font-bold text-ink-faint hover:text-riso-red transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
+        >Delete</button>
+      }
+    }
+  </div>
+
+  <div #ledger class="font-mono text-xs font-bold tracking-[0.04em] text-ink-muted" data-ledger>
+    @if (device().revoked && daysUntilPurge() !== null) {
+      REVOKED &mdash; PURGES IN {{ daysUntilPurge() }} {{ daysUntilPurge() === 1 ? 'DAY' : 'DAYS' }}
+    } @else {
+      LAST SEEN {{ lastSeenLabel() }}
+    }
+  </div>
+</div>

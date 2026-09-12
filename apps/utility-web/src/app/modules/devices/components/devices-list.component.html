@@ -1,0 +1,56 @@
+<div class="flex flex-col gap-4 min-w-0 sm:flex-row sm:items-end sm:justify-between">
+  <div class="flex flex-col gap-2 min-w-0">
+    <div class="flex items-end gap-4 flex-wrap">
+      <h1 class="text-[clamp(1.875rem,3.2vw,2.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-press-text">
+        Devices
+      </h1>
+      <app-badge variant="pink" surface="press">{{ service.devices().length }}</app-badge>
+    </div>
+    <p class="text-[0.9375rem] leading-relaxed text-press-text-muted max-w-[70ch]">
+      Every browser that has asked to run jobs on this press. Approve a new one to trust it, or revoke one and it&rsquo;ll need to ask again. Revoked devices purge themselves automatically after 30 days, or delete one immediately from here.
+    </p>
+  </div>
+</div>
+
+@if (service.isLoading() && service.devices().length === 0) {
+  <div class="flex flex-col gap-3" role="status" aria-label="Loading devices">
+    @for (row of [1, 2, 3]; track row) {
+      <div class="rounded-lg border border-paper-deckle bg-paper-fresh p-4 flex items-center gap-4">
+        <span class="h-3 flex-1 max-w-[220px] bg-paper-hairline rounded-sm animate-pulse"></span>
+        <span class="h-3 w-24 bg-paper-hairline rounded-sm animate-pulse"></span>
+      </div>
+    }
+  </div>
+} @else if (service.devices().length === 0) {
+  <div class="p-10 flex flex-col items-center text-center gap-3 rounded-lg border-2 border-dashed border-ink-faint bg-paper-fresh">
+    <app-icon name="stamp" className="w-6 h-6 text-ink-faint"></app-icon>
+    <span class="text-sm font-bold text-ink">No devices yet</span>
+    <span class="text-xs text-ink-muted max-w-[40ch]">Once a browser is trusted, it shows up here.</span>
+  </div>
+} @else {
+  <div class="flex flex-col gap-3">
+    @for (device of service.devices(); track device.deviceId; let i = $index) {
+      <app-device-ticket
+        [device]="device"
+        [index]="i"
+        [isThisDevice]="isThisDevice(device)"
+        [canManage]="canManage(device)"
+        [canApprove]="canApprove()"
+        [canDelete]="canDelete()"
+        [confirming]="confirmingId() === device.deviceId"
+        [revoking]="revokingId() === device.deviceId"
+        [approving]="approvingId() === device.deviceId"
+        [confirmingDelete]="confirmingDeleteId() === device.deviceId"
+        [deleting]="deletingId() === device.deviceId"
+        (renamed)="rename(device, $event)"
+        (revokeRequested)="requestRevoke(device.deviceId)"
+        (revokeCancelled)="cancelRevoke()"
+        (revokeConfirmed)="confirmRevoke(device)"
+        (approveRequested)="approveDevice(device)"
+        (deleteRequested)="requestDelete(device.deviceId)"
+        (deleteCancelled)="cancelDelete()"
+        (deleteConfirmed)="confirmDelete(device)"
+      ></app-device-ticket>
+    }
+  </div>
+}

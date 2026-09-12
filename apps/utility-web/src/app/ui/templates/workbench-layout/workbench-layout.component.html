@@ -1,7 +1,7 @@
 <app-header
-  [authStatus]="authStatus()"
   [activeJobCount]="jobTracker.activeCount()"
   (jobTrayToggled)="tray.expanded.set(true)"
+  (devicesClicked)="devicesSelected.emit()"
 ></app-header>
 
 <div class="flex-1 flex items-stretch flex-wrap">
@@ -10,9 +10,11 @@
     [activeToolId]="activeToolId()"
     [onRecentRoute]="onRecentRoute()"
     [onRecipesRoute]="onRecipesRoute()"
+    [onDevicesRoute]="onDevicesRoute()"
     (selectedToolId)="toolSelected.emit($event)"
     (recentSelected)="recentSelected.emit()"
     (recipesSelected)="recipesSelected.emit()"
+    (devicesSelected)="devicesSelected.emit()"
   ></app-sidebar>
 
   <main class="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-7 pb-12">

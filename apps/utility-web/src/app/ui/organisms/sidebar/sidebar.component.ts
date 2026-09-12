@@ -25,9 +25,12 @@ export class SidebarComponent {
   onRecentRoute = input<boolean>(false);
   /** True on the Recipes management routes (list, builder) — no tool is the active one there either. */
   onRecipesRoute = input<boolean>(false);
+  /** True on the Devices route — no tool is the active one there either. */
+  onDevicesRoute = input<boolean>(false);
   selectedToolId = output<string>();
   recentSelected = output<void>();
   recipesSelected = output<void>();
+  devicesSelected = output<void>();
 
   /** Grouped in first-seen order, matching the order the backend registers tools in — never re-sorted, so a category's position stays stable as tools inside it change. */
   readonly groups = computed<readonly ToolCategoryGroup[]>(() => {

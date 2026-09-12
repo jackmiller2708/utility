@@ -1,7 +1,6 @@
-import type { AuthStatusModel } from '../../../domain/index.js';
-
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DeviceTrustService } from '../../../core/index.js';
 
 @Component({
   selector: 'app-header',
@@ -14,7 +13,9 @@ import { CommonModule } from '@angular/common';
   },
 })
 export class HeaderComponent {
-  readonly authStatus = input<AuthStatusModel | null>(null);
+  readonly deviceTrust = inject(DeviceTrustService);
+
   readonly activeJobCount = input<number>(0);
   readonly jobTrayToggled = output<void>();
+  readonly devicesClicked = output<void>();
 }

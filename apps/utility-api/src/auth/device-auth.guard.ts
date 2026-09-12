@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { Request } from "express";
 import { DeviceAuthService } from "./device-auth.service.js";
+import { isLocalRequest } from "./request-locality.js";
 
 @Injectable()
 export class DeviceAuthGuard implements CanActivate {
@@ -13,15 +14,7 @@ export class DeviceAuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
-    const clientIp = request.ip || request.socket.remoteAddress || "";
-
-    const isLocal =
-      clientIp === "127.0.0.1" ||
-      clientIp === "::1" ||
-      clientIp === "::ffff:127.0.0.1" ||
-      clientIp === "localhost" ||
-      request.hostname === "localhost" ||
-      request.hostname === "127.0.0.1";
+    const isLocal = isLocalRequest(request);
 
     const deviceId = request.headers["x-device-id"] as string | undefined;
     const timestamp = request.headers["x-timestamp"] as string | undefined;

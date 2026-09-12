@@ -14,6 +14,8 @@ export const DeviceResponseSchema = Schema.Struct({
   createdAt: Schema.String,
   lastSeenAt: Schema.String,
   revoked: Schema.Boolean,
+  revokedAt: Schema.NullOr(Schema.String),
+  approved: Schema.Boolean,
 });
 
 export type DeviceResponse = typeof DeviceResponseSchema.Type;
@@ -25,3 +27,34 @@ export const AuthStatusResponseSchema = Schema.Struct({
 });
 
 export type AuthStatusResponse = typeof AuthStatusResponseSchema.Type;
+
+export const DeviceListResponseSchema = Schema.Array(DeviceResponseSchema);
+
+export type DeviceListResponse = typeof DeviceListResponseSchema.Type;
+
+export const RenameDeviceRequestSchema = Schema.Struct({
+  name: Schema.String,
+});
+
+export type RenameDeviceRequest = typeof RenameDeviceRequestSchema.Type;
+
+export const RevokeDeviceResponseSchema = Schema.Struct({
+  deviceId: Schema.String,
+  revoked: Schema.Boolean,
+});
+
+export type RevokeDeviceResponse = typeof RevokeDeviceResponseSchema.Type;
+
+export const ApproveDeviceResponseSchema = Schema.Struct({
+  deviceId: Schema.String,
+  approved: Schema.Boolean,
+});
+
+export type ApproveDeviceResponse = typeof ApproveDeviceResponseSchema.Type;
+
+export const DeleteDeviceResponseSchema = Schema.Struct({
+  deviceId: Schema.String,
+  deleted: Schema.Boolean,
+});
+
+export type DeleteDeviceResponse = typeof DeleteDeviceResponseSchema.Type;

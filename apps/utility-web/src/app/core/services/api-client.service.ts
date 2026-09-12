@@ -1,4 +1,4 @@
-import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, MediaInspectOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse, WorkflowResponse, WorkflowListResponse } from '@utility/protocol';
+import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, DeviceResponse, DeviceListResponse, RevokeDeviceResponse, ApproveDeviceResponse, DeleteDeviceResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, MediaInspectOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse, WorkflowResponse, WorkflowListResponse } from '@utility/protocol';
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClientService } from './http-client.service.js';
@@ -45,6 +45,30 @@ export class ApiClientService {
 
   getAuthStatus$() {
     return this.http.get<AuthStatusResponse>(`${this.config.baseUrl}/auth/status`);
+  }
+
+  enrollDevice$(name: string, publicKey: string) {
+    return this.http.post<DeviceResponse>(`${this.config.baseUrl}/auth/enroll`, { name, publicKey });
+  }
+
+  listDevices$() {
+    return this.http.get<DeviceListResponse>(`${this.config.baseUrl}/auth/devices`);
+  }
+
+  renameDevice$(deviceId: string, name: string) {
+    return this.http.patch<DeviceResponse>(`${this.config.baseUrl}/auth/devices/${deviceId}`, { name });
+  }
+
+  revokeDevice$(deviceId: string) {
+    return this.http.delete<RevokeDeviceResponse>(`${this.config.baseUrl}/auth/devices/${deviceId}`);
+  }
+
+  approveDevice$(deviceId: string) {
+    return this.http.post<ApproveDeviceResponse>(`${this.config.baseUrl}/auth/devices/${deviceId}/approve`, {});
+  }
+
+  deleteDevice$(deviceId: string) {
+    return this.http.post<DeleteDeviceResponse>(`${this.config.baseUrl}/auth/devices/${deviceId}/delete`, {});
   }
 
   getTools$() {

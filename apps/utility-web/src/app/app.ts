@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
-import { WorkbenchLayoutComponent, RouteCurtainComponent } from './ui/index.js';
+import { WorkbenchLayoutComponent, RouteCurtainComponent, EnrollmentGateComponent } from './ui/index.js';
 import { RuntimeStatusService } from './core/index.js';
 
 const TOOL_ROUTES: Record<string, string> = {
@@ -30,7 +30,7 @@ const routeToToolId = (url: string): string | null => {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, WorkbenchLayoutComponent, RouteCurtainComponent],
+  imports: [RouterOutlet, WorkbenchLayoutComponent, RouteCurtainComponent, EnrollmentGateComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -42,6 +42,7 @@ export class App implements OnInit {
   readonly onRecentRoute = signal<boolean>(this.router.url.startsWith('/recent'));
   /** True only on the Recipes management surfaces (list, builder) — not on `/recipes/:id`, which behaves like an ordinary tool page and highlights that specific sidebar row via `activeToolId` instead. */
   readonly onRecipesRoute = signal<boolean>(this.router.url === '/recipes' || this.router.url.startsWith('/recipes/new'));
+  readonly onDevicesRoute = signal<boolean>(this.router.url.startsWith('/devices'));
 
   ngOnInit(): void {
     this.runtimeStatus.refreshStatus();
@@ -52,6 +53,7 @@ export class App implements OnInit {
         const url = event.urlAfterRedirects;
         this.onRecentRoute.set(url.startsWith('/recent'));
         this.onRecipesRoute.set(url === '/recipes' || url.startsWith('/recipes/new'));
+        this.onDevicesRoute.set(url.startsWith('/devices'));
 
         const toolId = routeToToolId(url);
         if (toolId) {
@@ -81,5 +83,9 @@ export class App implements OnInit {
 
   selectRecipes(): void {
     this.router.navigate(['/recipes']);
+  }
+
+  selectDevices(): void {
+    this.router.navigate(['/devices']);
   }
 }

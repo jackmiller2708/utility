@@ -4,4 +4,7 @@ export * from './services/runtime-status.service.js';
 export * from './services/motion.service.js';
 export * from './services/job-tracker.service.js';
 export * from './services/route-curtain.service.js';
+export * from './services/device-identity.service.js';
+export * from './services/device-trust.service.js';
 export * from './guards/curtain-ready.guard.js';
+export * from './guards/device-trust.guard.js';

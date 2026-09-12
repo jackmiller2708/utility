@@ -1,0 +1,27 @@
+{$LAN_HOSTNAME:utility.home.arpa} {
+	tls internal
+
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	handle {
+		reverse_proxy web:4000
+	}
+}
+
+# Tailscale Funnel target (see docs/tailscale-funnel-setup.md). This host's
+# ISP uses CGNAT, so router port-forwarding to 80/443 can never work — no
+# public IP is ever reachable here. Tailscale's local daemon terminates
+# public HTTPS itself and forwards the decrypted request to this port over
+# loopback, so it stays plain HTTP with no hostname/TLS of its own; nothing
+# else can reach it since docker-compose.yml only publishes it on 127.0.0.1.
+:8443 {
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	handle {
+		reverse_proxy web:4000
+	}
+}

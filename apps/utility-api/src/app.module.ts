@@ -5,8 +5,17 @@ import { ToolsModule } from "./tools/tools.module.js";
 import { ArtifactsModule } from "./artifacts/artifacts.module.js";
 import { JobsModule } from "./jobs/jobs.module.js";
 import { WorkflowsModule } from "./workflows/workflows.module.js";
+import { HealthModule } from "./health/health.module.js";
 
 @Module({
-  imports: [EffectModule, AuthModule, ToolsModule, ArtifactsModule, JobsModule, WorkflowsModule],
+  imports: [
+    EffectModule,
+    AuthModule,
+    ToolsModule,
+    ArtifactsModule,
+    JobsModule,
+    WorkflowsModule,
+    HealthModule,
+  ],
 })
 export class AppModule {}

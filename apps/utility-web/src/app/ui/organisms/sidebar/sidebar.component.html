@@ -65,6 +65,22 @@
     <app-icon name="clock" className="w-3.5 h-3.5 shrink-0"></app-icon>
     <span class="truncate">Recent</span>
   </button>
+
+  <button
+    type="button"
+    (click)="devicesSelected.emit()"
+    [class.bg-riso-pink-pooled]="onDevicesRoute()"
+    [class.border-l-riso-pink]="onDevicesRoute()"
+    [class.text-press-text]="onDevicesRoute()"
+    [class.font-bold]="onDevicesRoute()"
+    [class.border-l-transparent]="!onDevicesRoute()"
+    [class.text-press-text-muted]="!onDevicesRoute()"
+    [class.hover:text-press-text]="!onDevicesRoute()"
+    class="w-full text-left pl-[17px] pr-5 py-2.5 text-sm border-l-[3px] active:bg-press-line transition-colors duration-shift ease-run flex items-center gap-2 cursor-pointer"
+  >
+    <app-icon name="stamp" className="w-3.5 h-3.5 shrink-0"></app-icon>
+    <span class="truncate">Devices</span>
+  </button>
 </div>
 
 <!-- Sandbox note -->

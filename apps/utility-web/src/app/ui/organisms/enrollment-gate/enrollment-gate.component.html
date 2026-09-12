@@ -1,0 +1,66 @@
+<div class="w-full max-w-sm bg-paper-fresh border border-paper-deckle rounded-lg shadow-paper-lift p-8 flex flex-col gap-5">
+  <div class="flex items-center gap-2 text-riso-pink">
+    <app-icon name="stamp" className="w-5 h-5"></app-icon>
+    <span class="text-[0.6875rem] font-mono font-bold tracking-[0.04em] text-ink-faint">NEW PLATE</span>
+  </div>
+
+  @if (pending() === 'pending') {
+    <div>
+      <h2 class="text-xl font-extrabold text-ink leading-tight">Waiting for approval</h2>
+      <p class="text-sm text-ink-muted leading-relaxed mt-1.5">
+        This device is registered but not trusted yet. Ask whoever runs this server to approve it from the Devices page &mdash; this screen updates on its own once they do.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2.5 py-1">
+      <span class="w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-slow"></span>
+      <span class="text-xs pt-[4.5px] font-mono font-bold tracking-[0.04em] text-ink-muted">STILL WAITING&hellip;</span>
+    </div>
+
+    <div class="text-[0.6875rem] font-mono font-bold tracking-[0.04em] text-ink-faint leading-relaxed">
+      THIS BROWSER ONLY &mdash; APPROVE OR REVOKE ANY TIME FROM DEVICES
+    </div>
+  } @else {
+    <div>
+      <h2 class="text-xl font-extrabold text-ink leading-tight">Trust this device</h2>
+      <p class="text-sm text-ink-muted leading-relaxed mt-1.5">
+        This browser hasn&rsquo;t run a job on this press before. Name it and ask to be trusted &mdash; whoever runs this server approves it once, and this device won&rsquo;t need to ask again.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="device-name" class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">DEVICE NAME</label>
+      <app-input
+        id="device-name"
+        [value]="name()"
+        placeholder="e.g. Jack&rsquo;s Laptop"
+        [mono]="false"
+        [disabled]="enrolling()"
+        (valueChange)="onNameInput($event)"
+        (keydown.enter)="submit()"
+      ></app-input>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="text-sm text-riso-red leading-relaxed">{{ errorMessage() }}</div>
+    }
+
+    <button
+      type="button"
+      [disabled]="enrolling() || !name().trim()"
+      (click)="submit()"
+      class="w-full bg-riso-pink text-ink rounded-sm px-4 py-2.5 text-sm font-bold cursor-pointer hover:bg-riso-pink-hover active:shadow-stamped transition-colors duration-shift ease-run disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+    >
+      @if (enrolling()) {
+        <span class="reg-cross reg-cross-spin"></span>
+        <span>Asking to be trusted&hellip;</span>
+      } @else {
+        <span>Ask to be trusted</span>
+      }
+    </button>
+
+    <div class="text-[0.6875rem] font-mono font-bold tracking-[0.04em] text-ink-faint leading-relaxed">
+      THIS BROWSER ONLY &mdash; REVOKE ANY TIME FROM DEVICES
+    </div>
+  }
+</div>

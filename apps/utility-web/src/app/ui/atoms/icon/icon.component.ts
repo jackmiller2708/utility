@@ -16,7 +16,8 @@ export type IconName =
   | 'close'
   | 'chevron'
   | 'stack'
-  | 'plus';
+  | 'plus'
+  | 'stamp';
 
 @Component({
   selector: 'app-icon',

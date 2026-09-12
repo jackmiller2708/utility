@@ -21,16 +21,31 @@
       </button>
     }
 
-    @if (authStatus()) {
-      <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono">
-        <span class="relative w-2 h-2 rounded-full bg-riso-mint shrink-0 pulse-slow"></span>
-        <span class="font-bold pt-[4.5px] leading-none tracking-[0.04em] text-press-text">READY</span>
-      </div>
-    } @else {
-      <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono">
-        <span class="relative w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-fast"></span>
-        <span class="font-bold pt-[4.5px] leading-none tracking-[0.04em] text-press-text-muted">STARTING&hellip;</span>
-      </div>
-    }
+    <button
+      type="button"
+      (click)="devicesClicked.emit()"
+      class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono rounded-sm hover:bg-press active:bg-press-line cursor-pointer transition-colors duration-shift ease-run"
+      [attr.aria-label]="deviceTrust.trusted() === 'trusted' ? 'This device is trusted — open Devices' : 'This device is not trusted — open Devices'"
+      title="Devices"
+    >
+      @switch (deviceTrust.trusted()) {
+        @case ('trusted') {
+          <span class="relative w-2 h-2 rounded-full bg-riso-mint shrink-0"></span>
+          <span class="font-bold pt-[4.5px] leading-none tracking-[0.04em] text-press-text">TRUSTED</span>
+        }
+        @case ('checking') {
+          <span class="relative w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-fast"></span>
+          <span class="font-bold pt-[4.5px] leading-none tracking-[0.04em] text-press-text-muted">CONNECTING&hellip;</span>
+        }
+        @case ('pending') {
+          <span class="relative w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-slow"></span>
+          <span class="font-bold pt-[4.5px] leading-none tracking-[0.04em] text-press-text-muted">WAITING FOR APPROVAL</span>
+        }
+        @default {
+          <span class="relative w-2 h-2 rounded-full bg-riso-red shrink-0"></span>
+          <span class="font-bold pt-[4.5px] leading-none tracking-[0.04em] text-press-text-muted">NOT TRUSTED</span>
+        }
+      }
+    </button>
   </div>
 </div>

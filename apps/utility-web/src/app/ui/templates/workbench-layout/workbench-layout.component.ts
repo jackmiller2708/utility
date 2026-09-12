@@ -21,7 +21,9 @@ export class WorkbenchLayoutComponent {
   readonly activeToolId = input<string>('image');
   readonly onRecentRoute = input<boolean>(false);
   readonly onRecipesRoute = input<boolean>(false);
+  readonly onDevicesRoute = input<boolean>(false);
   readonly toolSelected = output<string>();
   readonly recentSelected = output<void>();
   readonly recipesSelected = output<void>();
+  readonly devicesSelected = output<void>();
 }

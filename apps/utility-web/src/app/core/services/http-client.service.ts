@@ -25,6 +25,10 @@ export class HttpClientService {
     return this._http.put<T>(url, body, options) as Observable<HttpResponse<T>>;
   }
 
+  patch<T>(url: string, body: any, options?: HttpOptions) {
+    return this._http.patch<T>(url, body, options) as Observable<HttpResponse<T>>;
+  }
+
   delete<T>(url: string, options?: HttpOptions){
     return this._http.delete<T>(url, options) as Observable<HttpResponse<T>>;
   }

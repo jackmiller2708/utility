@@ -2,3 +2,6 @@ dist/
 node_modules/
 
 *tsbuildinfo
+
+.env
+caddy-local-ca.crt

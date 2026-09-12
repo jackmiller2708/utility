@@ -6,8 +6,12 @@ async function bootstrap() {
 
   app.setGlobalPrefix("api/v1");
 
+  const corsOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
+    : ["http://localhost:4200", "http://127.0.0.1:4200", "http://localhost:3000"];
+
   app.enableCors({
-    origin: ["http://localhost:4200", "http://127.0.0.1:4200", "http://localhost:3000"],
+    origin: corsOrigins,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: [
       "Content-Type",

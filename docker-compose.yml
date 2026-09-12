@@ -1,0 +1,72 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/utility-api/Dockerfile
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      CORS_ORIGINS: https://${LAN_HOSTNAME:-utility.home.arpa},https://${TAILSCALE_HOSTNAME}
+    volumes:
+      - utility-state:/root/.utility
+    networks:
+      - internal
+    restart: unless-stopped
+    # Exactly one instance: job state and the device-auth nonce-replay cache
+    # are held in-memory in this process (no database/Redis), so a second
+    # replica would desync job status and replay protection. Do not scale
+    # this service.
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/utility-web/Dockerfile
+    environment:
+      PORT: 4000
+      # Angular SSR rejects requests with an unrecognized Host header (SSRF
+      # protection) and ignores X-Forwarded-* headers unless explicitly
+      # trusted — both required for it to work behind Caddy on the LAN
+      # hostname. See https://angular.dev/best-practices/security#preventing-server-side-request-forgery-ssrf
+      NG_ALLOWED_HOSTS: ${LAN_HOSTNAME:-utility.home.arpa},${TAILSCALE_HOSTNAME}
+      NG_TRUST_PROXY_HEADERS: x-forwarded-host,x-forwarded-proto,x-forwarded-for
+    networks:
+      - internal
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    depends_on:
+      - api
+      - web
+    environment:
+      LAN_HOSTNAME: ${LAN_HOSTNAME:-utility.home.arpa}
+    ports:
+      # Bound to the LAN IP specifically (from .env, not hardcoded — see
+      # LAN_IP there), not 0.0.0.0: publishing to every interface would also
+      # grab port 443 on the Tailscale interface, which `tailscaled` needs
+      # free for its own Funnel HTTPS listener (see
+      # docs/tailscale-funnel-setup.md). Get a DHCP reservation for this host
+      # to stop LAN_IP from drifting; until then, update it in .env whenever
+      # the address changes.
+      - "${LAN_IP}:80:80"
+      - "${LAN_IP}:443:443"
+      # Loopback-only — reached solely by the host's native `tailscale`
+      # daemon proxying Funnel traffic in (see docs/tailscale-funnel-setup.md).
+      - "127.0.0.1:8443:8443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - internal
+    restart: unless-stopped
+    # caddy_data persists the internal CA root certificate across restarts —
+    # losing it would force re-trusting a new CA on every client device.
+
+networks:
+  internal:
+
+volumes:
+  utility-state:
+  caddy_data:
+  caddy_config:
