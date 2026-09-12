@@ -23,7 +23,7 @@ import { OptionPipe } from '@app/core/pipes/option.pipe';
   ],
   providers: [PdfWorkbenchService],
   templateUrl: './pdf-workbench.component.html',
-  host: { class: 'block min-w-0 w-full' },
+  host: { class: 'flex flex-col gap-6 min-w-0 w-full' },
 })
 export class PdfWorkbenchComponent {
   readonly service = inject(PdfWorkbenchService);

@@ -11,9 +11,20 @@ const TOOL_ROUTES: Record<string, string> = {
   'pdf-merge-split': '/document/merge-split',
 };
 
+/** A saved recipe registers dynamically as `recipe.<id>` and has no entry in `TOOL_ROUTES` — it routes to `/recipes/:id` instead of a hand-built page. */
+const RECIPE_TOOL_ID_PREFIX = 'recipe.';
+
+const recipeIdFromToolId = (toolId: string): string | null =>
+  toolId.startsWith(RECIPE_TOOL_ID_PREFIX) ? toolId.slice(RECIPE_TOOL_ID_PREFIX.length) : null;
+
 const routeToToolId = (url: string): string | null => {
   const match = Object.entries(TOOL_ROUTES).find(([, route]) => url.startsWith(route));
-  return match ? match[0] : null;
+  if (match) {
+    return match[0];
+  }
+
+  const recipeMatch = url.match(/^\/recipes\/([^/?#]+)/);
+  return recipeMatch && recipeMatch[1] !== 'new' ? `${RECIPE_TOOL_ID_PREFIX}${recipeMatch[1]}` : null;
 };
 
 @Component({
@@ -29,6 +40,8 @@ export class App implements OnInit {
 
   readonly activeToolId = signal<string>(routeToToolId(this.router.url) ?? 'image');
   readonly onRecentRoute = signal<boolean>(this.router.url.startsWith('/recent'));
+  /** True only on the Recipes management surfaces (list, builder) — not on `/recipes/:id`, which behaves like an ordinary tool page and highlights that specific sidebar row via `activeToolId` instead. */
+  readonly onRecipesRoute = signal<boolean>(this.router.url === '/recipes' || this.router.url.startsWith('/recipes/new'));
 
   ngOnInit(): void {
     this.runtimeStatus.refreshStatus();
@@ -36,9 +49,11 @@ export class App implements OnInit {
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event) => {
-        this.onRecentRoute.set(event.urlAfterRedirects.startsWith('/recent'));
+        const url = event.urlAfterRedirects;
+        this.onRecentRoute.set(url.startsWith('/recent'));
+        this.onRecipesRoute.set(url === '/recipes' || url.startsWith('/recipes/new'));
 
-        const toolId = routeToToolId(event.urlAfterRedirects);
+        const toolId = routeToToolId(url);
         if (toolId) {
           this.activeToolId.set(toolId);
         }
@@ -48,6 +63,12 @@ export class App implements OnInit {
   selectTool(toolId: string): void {
     this.activeToolId.set(toolId);
 
+    const recipeId = recipeIdFromToolId(toolId);
+    if (recipeId) {
+      this.router.navigate(['/recipes', recipeId]);
+      return;
+    }
+
     const route = TOOL_ROUTES[toolId];
     if (route) {
       this.router.navigate([route]);
@@ -56,5 +77,9 @@ export class App implements OnInit {
 
   selectRecent(): void {
     this.router.navigate(['/recent']);
+  }
+
+  selectRecipes(): void {
+    this.router.navigate(['/recipes']);
   }
 }

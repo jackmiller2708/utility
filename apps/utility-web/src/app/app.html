@@ -3,8 +3,10 @@
   [tools]="runtimeStatus.tools()"
   [activeToolId]="activeToolId()"
   [onRecentRoute]="onRecentRoute()"
+  [onRecipesRoute]="onRecipesRoute()"
   (toolSelected)="selectTool($event)"
   (recentSelected)="selectRecent()"
+  (recipesSelected)="selectRecipes()"
 >
   <router-outlet></router-outlet>
 </app-workbench-layout>

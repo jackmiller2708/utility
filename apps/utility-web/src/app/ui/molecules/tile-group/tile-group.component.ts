@@ -12,6 +12,7 @@ export interface TileItem {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './tile-group.component.html',
+  host: { class: 'block min-w-0' },
 })
 export class TileGroupComponent {
   private readonly motion = inject(MotionService);

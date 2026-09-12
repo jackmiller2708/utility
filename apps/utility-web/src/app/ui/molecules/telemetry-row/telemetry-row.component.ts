@@ -7,6 +7,7 @@ import { MotionService } from '../../../core/index.js';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './telemetry-row.component.html',
+  host: { class: 'flex gap-4 items-center py-3 px-6 border-b border-paper-hairline flex-wrap' },
 })
 export class TelemetryRowComponent {
   private readonly motion = inject(MotionService);

@@ -16,6 +16,7 @@ export interface SortableFileItem {
   standalone: true,
   imports: [CommonModule, IconComponent, ButtonComponent],
   templateUrl: './sortable-file-list.component.html',
+  host: { class: 'flex flex-col gap-2 min-w-0' },
 })
 export class SortableFileListComponent {
   private readonly motion = inject(MotionService);

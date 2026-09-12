@@ -7,6 +7,7 @@ import { IconComponent } from '../../atoms/icon/icon.component.js';
   standalone: true,
   imports: [CommonModule, IconComponent],
   templateUrl: './error-diagnostic.component.html',
+  host: { class: 'flex flex-col gap-2 min-w-0 p-4 bg-riso-red/10 border border-riso-red rounded-sm' },
 })
 export class ErrorDiagnosticComponent {
   title = input.required<string>();

@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './input.component.html',
+  host: { class: 'block relative w-full' },
 })
 export class InputComponent {
   id = input<string>('');

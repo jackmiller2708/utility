@@ -1,21 +1,19 @@
-<div class="relative w-full">
-  <input
-    [id]="id() || null"
-    [attr.aria-label]="ariaLabel() || null"
-    [attr.aria-labelledby]="ariaLabelledby() || null"
-    [type]="type()"
-    [value]="value() ?? ''"
-    [placeholder]="placeholder()"
-    [disabled]="disabled()"
-    (input)="onInput($event)"
-    [class.font-mono]="mono()"
-    [class.pr-8]="unitSuffix() !== ''"
-    class="peer w-full px-3 py-2.5 bg-paper-fresh border border-paper-deckle border-b-2 border-b-ink focus:border-riso-pink rounded-sm text-sm font-bold text-ink placeholder-ink-faint placeholder:font-normal outline-none transition-colors duration-shift ease-run disabled:opacity-50 disabled:cursor-not-allowed"
-  />
-  <span class="reg-cross absolute top-1.5 right-1.5 text-riso-pink opacity-0 peer-focus:opacity-100 transition-opacity duration-shift ease-run pointer-events-none"></span>
-  @if (unitSuffix()) {
-    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[0.6875rem] font-mono font-bold tracking-[0.04em] text-ink-faint pointer-events-none">
-      {{ unitSuffix() }}
-    </span>
-  }
-</div>
+<input
+  [id]="id() || null"
+  [attr.aria-label]="ariaLabel() || null"
+  [attr.aria-labelledby]="ariaLabelledby() || null"
+  [type]="type()"
+  [value]="value() ?? ''"
+  [placeholder]="placeholder()"
+  [disabled]="disabled()"
+  (input)="onInput($event)"
+  [class.font-mono]="mono()"
+  [class.pr-8]="unitSuffix() !== ''"
+  class="peer w-full px-3 py-2.5 bg-paper-fresh border border-paper-deckle border-b-2 border-b-ink focus:border-riso-pink rounded-sm text-sm font-bold text-ink placeholder-ink-faint placeholder:font-normal outline-none transition-colors duration-shift ease-run disabled:opacity-50 disabled:cursor-not-allowed"
+/>
+<span class="reg-cross absolute top-1.5 right-1.5 text-riso-pink opacity-0 peer-focus:opacity-100 transition-opacity duration-shift ease-run pointer-events-none"></span>
+@if (unitSuffix()) {
+  <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[0.6875rem] font-mono font-bold tracking-[0.04em] text-ink-faint pointer-events-none">
+    {{ unitSuffix() }}
+  </span>
+}

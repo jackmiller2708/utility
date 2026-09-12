@@ -16,7 +16,12 @@ import type { JobModel } from '../../../domain/index.js';
   standalone: true,
   imports: [CommonModule, IconComponent],
   templateUrl: './job-ticket.component.html',
-  host: { class: 'block relative' },
+  host: {
+    class: 'flex relative items-start gap-3 border rounded-lg bg-paper-fresh border-paper-deckle overflow-hidden',
+    '[class.p-2]': 'compact()',
+    '[class.p-4]': '!compact()',
+    '[class.struck-plate]': "job().status === 'cancelled'",
+  },
 })
 export class JobTicketComponent {
   private readonly motion = inject(MotionService);

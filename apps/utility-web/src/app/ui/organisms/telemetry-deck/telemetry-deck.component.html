@@ -1,90 +1,88 @@
-<div class="h-full flex flex-col gap-6 min-w-0" aria-live="polite" aria-atomic="true">
 
-  <!-- Original vs. export -->
-  <div class="bg-paper border border-paper-deckle rounded-lg shadow-paper-lift">
-    <div class="px-6 py-5 border-b border-paper-hairline flex items-center gap-3 flex-wrap">
-      <h2 class="flex-1 text-xl font-extrabold text-ink">Original vs. export</h2>
-      @if (loading()) {
-        <app-badge variant="gold">WORKING&hellip;</app-badge>
-      } @else if (artifact()) {
-        <app-badge variant="mint">DONE</app-badge>
-      } @else {
-        <app-badge variant="neutral">{{ source() ? 'READY' : 'NO IMAGE' }}</app-badge>
-      }
-    </div>
-    <div class="p-6 flex gap-5 flex-wrap">
-      <div class="flex-1 min-w-[180px]">
-        <div class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted mb-2">ORIGINAL</div>
-        <div class="border border-paper-deckle bg-[repeating-linear-gradient(45deg,#E7DFC8_0,#E7DFC8_5px,#FCF8ED_5px,#FCF8ED_10px)] aspect-[4/5] max-h-[260px] w-full flex items-center justify-center p-3">
-          @if (source(); as src) {
-            <span class="font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-ink-muted text-center bg-paper-fresh border border-paper-deckle px-2 py-1">{{ src.dimensions }}</span>
-          }
-        </div>
-      </div>
-      <div class="flex-1 min-w-[180px]">
-        <div class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted mb-2">EXPORT</div>
-        <div
-          class="border bg-[repeating-linear-gradient(45deg,#E7DFC8_0,#E7DFC8_5px,#FCF8ED_5px,#FCF8ED_10px)] aspect-[4/5] max-h-[260px] w-full flex items-center justify-center p-3"
-          [class.border-riso-pink]="loading()"
-          [class.border-riso-mint]="!loading() && !!artifact()"
-          [class.border-paper-deckle]="!loading() && !artifact()"
-        >
-          @if (loading()) {
-            <span class="reg-cross reg-cross-spin text-riso-pink"></span>
-          } @else if (artifact(); as art) {
-            <span class="font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-ink text-center bg-paper-fresh border border-paper-deckle px-2 py-1">{{ targetDimensionsLabel() }} {{ outputFormatLabel() }}</span>
-          } @else {
-            <span class="font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-ink-faint">NOT YET</span>
-          }
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- What changes -->
-  <div class="flex-1 flex flex-col bg-paper border border-paper-deckle rounded-lg shadow-paper-lift min-h-[220px]">
-    <div class="px-6 py-5 border-b border-paper-hairline">
-      <h2 class="text-xl font-extrabold text-ink">What changes</h2>
-    </div>
-
+<!-- Original vs. export -->
+<div class="bg-paper border border-paper-deckle rounded-lg shadow-paper-lift">
+  <div class="px-6 py-5 border-b border-paper-hairline flex items-center gap-3 flex-wrap">
+    <h2 class="flex-1 text-xl font-extrabold text-ink">Original vs. export</h2>
     @if (loading()) {
-      <div class="flex-1 flex flex-col justify-center gap-3 px-6 py-6" role="status" aria-label="Image transformation in progress">
-        @for (row of [1,2,3,4]; track row) {
-          <div class="flex justify-between items-center">
-            <span class="h-3 w-24 bg-paper-hairline rounded-sm animate-pulse"></span>
-            <span class="h-3 w-32 bg-paper-hairline rounded-sm animate-pulse"></span>
-          </div>
-        }
-      </div>
+      <app-badge variant="gold">WORKING&hellip;</app-badge>
+    } @else if (artifact()) {
+      <app-badge variant="mint">DONE</app-badge>
     } @else {
-      <div class="flex-1 flex flex-col">
-        @for (row of ledgerRows; track row.key; let i = $index) {
-          <app-telemetry-row
-            [label]="row.key"
-            [srcValue]="row.src"
-            [outValue]="row.out"
-            [filled]="row.filled"
-            [tone]="row.tone"
-            [index]="i"
-          ></app-telemetry-row>
-        }
-      </div>
-
-      <div class="mt-auto px-6 py-4 flex items-center gap-3 flex-wrap">
-        <a
-          [href]="downloadUrl()"
-          [class.pointer-events-none]="!artifact()"
-          [class.opacity-45]="!artifact()"
-          [attr.aria-label]="artifact() ? ('Download ' + artifact()!.name + ', size ' + formatBytes(artifact()!.size)) : null"
-          class="inline-flex items-center gap-2 border-2 border-riso-blue text-riso-blue hover:bg-riso-blue hover:text-paper-fresh rounded-sm px-[18px] py-2.5 text-sm font-bold transition-colors duration-shift ease-run cursor-pointer active:shadow-stamped"
-        >
-          <app-icon name="download" className="w-4 h-4"></app-icon>
-          <span>Export</span>
-        </a>
-        <span class="text-xs font-mono font-bold tracking-[0.04em] text-ink-faint">
-          {{ artifact() ? (outputFormatLabel() + ' · ' + formatBytes(artifact()!.size)) : 'RESIZE IT FIRST' }}
-        </span>
-      </div>
+      <app-badge variant="neutral">{{ source() ? 'READY' : 'NO IMAGE' }}</app-badge>
     }
   </div>
+  <div class="p-6 flex gap-5 flex-wrap">
+    <div class="flex-1 min-w-[180px]">
+      <div class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted mb-2">ORIGINAL</div>
+      <div class="border border-paper-deckle bg-[repeating-linear-gradient(45deg,#E7DFC8_0,#E7DFC8_5px,#FCF8ED_5px,#FCF8ED_10px)] aspect-[4/5] max-h-[260px] w-full flex items-center justify-center p-3">
+        @if (source(); as src) {
+          <span class="font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-ink-muted text-center bg-paper-fresh border border-paper-deckle px-2 py-1">{{ src.dimensions }}</span>
+        }
+      </div>
+    </div>
+    <div class="flex-1 min-w-[180px]">
+      <div class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted mb-2">EXPORT</div>
+      <div
+        class="border bg-[repeating-linear-gradient(45deg,#E7DFC8_0,#E7DFC8_5px,#FCF8ED_5px,#FCF8ED_10px)] aspect-[4/5] max-h-[260px] w-full flex items-center justify-center p-3"
+        [class.border-riso-pink]="loading()"
+        [class.border-riso-mint]="!loading() && !!artifact()"
+        [class.border-paper-deckle]="!loading() && !artifact()"
+      >
+        @if (loading()) {
+          <span class="reg-cross reg-cross-spin text-riso-pink"></span>
+        } @else if (artifact(); as art) {
+          <span class="font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-ink text-center bg-paper-fresh border border-paper-deckle px-2 py-1">{{ targetDimensionsLabel() }} {{ outputFormatLabel() }}</span>
+        } @else {
+          <span class="font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-ink-faint">NOT YET</span>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- What changes -->
+<div class="flex-1 flex flex-col bg-paper border border-paper-deckle rounded-lg shadow-paper-lift min-h-[220px]">
+  <div class="px-6 py-5 border-b border-paper-hairline">
+    <h2 class="text-xl font-extrabold text-ink">What changes</h2>
+  </div>
+
+  @if (loading()) {
+    <div class="flex-1 flex flex-col justify-center gap-3 px-6 py-6" role="status" aria-label="Image transformation in progress">
+      @for (row of [1,2,3,4]; track row) {
+        <div class="flex justify-between items-center">
+          <span class="h-3 w-24 bg-paper-hairline rounded-sm animate-pulse"></span>
+          <span class="h-3 w-32 bg-paper-hairline rounded-sm animate-pulse"></span>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="flex-1 flex flex-col">
+      @for (row of ledgerRows; track row.key; let i = $index) {
+        <app-telemetry-row
+          [label]="row.key"
+          [srcValue]="row.src"
+          [outValue]="row.out"
+          [filled]="row.filled"
+          [tone]="row.tone"
+          [index]="i"
+        ></app-telemetry-row>
+      }
+    </div>
+
+    <div class="mt-auto px-6 py-4 flex items-center gap-3 flex-wrap">
+      <a
+        [href]="downloadUrl()"
+        [class.pointer-events-none]="!artifact()"
+        [class.opacity-45]="!artifact()"
+        [attr.aria-label]="artifact() ? ('Download ' + artifact()!.name + ', size ' + formatBytes(artifact()!.size)) : null"
+        class="inline-flex items-center gap-2 border-2 border-riso-blue text-riso-blue hover:bg-riso-blue hover:text-paper-fresh rounded-sm px-[18px] py-2.5 text-sm font-bold transition-colors duration-shift ease-run cursor-pointer active:shadow-stamped"
+      >
+        <app-icon name="download" className="w-4 h-4"></app-icon>
+        <span>Export</span>
+      </a>
+      <span class="text-xs font-mono font-bold tracking-[0.04em] text-ink-faint">
+        {{ artifact() ? (outputFormatLabel() + ' · ' + formatBytes(artifact()!.size)) : 'RESIZE IT FIRST' }}
+      </span>
+    </div>
+  }
 </div>

@@ -20,6 +20,7 @@ import {
 } from "@utility/protocol";
 import { ArtifactStore } from "@utility/runtime";
 import { createTool, Operation } from "@utility/toolkit";
+import { Artifact } from "@utility/domain";
 import { InvalidMediaError } from "./errors.js";
 import { MediaService } from "./service.js";
 
@@ -118,6 +119,9 @@ export const thumbnailOperation: Operation<
 
       return { artifact };
     }),
+  // `output.artifact` is always the real domain `Artifact` from `ArtifactStore.saveArtifact`
+  // above; the output schema only widens its `id` to `string` for the wire.
+  producesArtifact: (output) => output.artifact as Artifact,
 };
 
 export const extractAudioOperation: Operation<
@@ -182,6 +186,9 @@ export const extractAudioOperation: Operation<
 
       return { artifact };
     }),
+  // `output.artifact` is always the real domain `Artifact` from `ArtifactStore.saveArtifact`
+  // above; the output schema only widens its `id` to `string` for the wire.
+  producesArtifact: (output) => output.artifact as Artifact,
 };
 
 export const transcodeOperation: Operation<
@@ -273,6 +280,9 @@ export const transcodeOperation: Operation<
 
       return { artifact };
     }),
+  // `output.artifact` is always the real domain `Artifact` from `ArtifactStore.saveArtifact`
+  // above; the output schema only widens its `id` to `string` for the wire.
+  producesArtifact: (output) => output.artifact as Artifact,
 };
 
 export const mediaTool = createTool({

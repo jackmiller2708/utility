@@ -5,6 +5,7 @@ import { ToolsListResponse } from "@utility/protocol";
 
 export interface ToolRegistry {
   readonly registerTool: (tool: Tool) => Effect.Effect<void>;
+  readonly removeTool: (id: string) => Effect.Effect<void>;
   readonly getTools: () => Effect.Effect<readonly Tool[]>;
   readonly getTool: (id: string) => Effect.Effect<Tool | undefined>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,6 +36,18 @@ export const makeToolRegistry = (initialTools: readonly Tool[] = []) =>
       registerTool: (tool: Tool) =>
         Effect.sync(() => {
           registerToolSync(tool);
+        }),
+
+      removeTool: (id: string) =>
+        Effect.sync(() => {
+          const tool = toolsMap.get(id);
+          if (!tool) {
+            return;
+          }
+          for (const op of tool.operations) {
+            operationsMap.delete(op.id);
+          }
+          toolsMap.delete(id);
         }),
 
       getTools: () => Effect.sync(() => Array.from(toolsMap.values())),

@@ -11,6 +11,7 @@ import type { AuthStatusModel, ToolModel } from '../../../domain/index.js';
   standalone: true,
   imports: [CommonModule, HeaderComponent, SidebarComponent, JobTrayComponent],
   templateUrl: './workbench-layout.component.html',
+  host: { class: 'min-h-screen bg-press text-press-text flex flex-col font-sans' },
 })
 export class WorkbenchLayoutComponent {
   readonly jobTracker = inject(JobTrackerService);
@@ -19,6 +20,8 @@ export class WorkbenchLayoutComponent {
   tools = input<readonly ToolModel[]>([]);
   activeToolId = input<string>('image');
   onRecentRoute = input<boolean>(false);
+  onRecipesRoute = input<boolean>(false);
   toolSelected = output<string>();
   recentSelected = output<void>();
+  recipesSelected = output<void>();
 }

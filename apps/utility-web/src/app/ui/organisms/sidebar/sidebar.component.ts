@@ -13,14 +13,21 @@ export interface ToolCategoryGroup {
   standalone: true,
   imports: [CommonModule, IconComponent],
   templateUrl: './sidebar.component.html',
+  host: {
+    class: 'block flex-none w-full lg:w-[240px] bg-press border-b lg:border-b-0 lg:border-r border-press-line space-y-6',
+    role: 'navigation',
+  },
 })
 export class SidebarComponent {
   tools = input<readonly ToolModel[]>([]);
   activeToolId = input<string>('image');
   /** True on the /recent route — no tool is the active one there. */
   onRecentRoute = input<boolean>(false);
+  /** True on the Recipes management routes (list, builder) — no tool is the active one there either. */
+  onRecipesRoute = input<boolean>(false);
   selectedToolId = output<string>();
   recentSelected = output<void>();
+  recipesSelected = output<void>();
 
   /** Grouped in first-seen order, matching the order the backend registers tools in — never re-sorted, so a category's position stays stable as tools inside it change. */
   readonly groups = computed<readonly ToolCategoryGroup[]>(() => {

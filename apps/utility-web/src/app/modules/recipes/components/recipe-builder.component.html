@@ -1,0 +1,100 @@
+<div class="flex flex-col gap-2 min-w-0">
+  <h1 class="text-[clamp(1.875rem,3.2vw,2.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-press-text">
+    New recipe
+  </h1>
+  <p class="text-[0.9375rem] leading-relaxed text-press-text-muted max-w-[70ch]">
+    Stamp one step onto the ticket at a time. Once it's saved, running the recipe only ever asks for a file.
+  </p>
+</div>
+
+<div class="relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift p-6 flex flex-col gap-5 min-w-0">
+  <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
+
+  <div>
+    <label for="recipe-name" class="text-sm font-bold text-ink block mb-1.5">Name</label>
+    <app-input
+      id="recipe-name"
+      [mono]="false"
+      placeholder="e.g. Web thumbnail"
+      [value]="name()"
+      (valueChange)="setName($event)"
+    ></app-input>
+  </div>
+
+  <div>
+    <label for="recipe-description" class="text-sm font-bold text-ink block mb-1.5">Description <span class="font-normal text-ink-faint">(optional)</span></label>
+    <app-input
+      id="recipe-description"
+      [mono]="false"
+      placeholder="What this chain is for"
+      [value]="description()"
+      (valueChange)="setDescription($event)"
+    ></app-input>
+  </div>
+</div>
+
+<div class="flex flex-col gap-3 min-w-0">
+  @for (step of steps(); track step.localId; let i = $index) {
+    @if (isExpanded(step)) {
+      <div class="relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift p-6 flex flex-col gap-5 min-w-0">
+        <div class="flex items-center justify-between gap-4">
+          <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5">STEP {{ i + 1 }}</span>
+          @if (steps().length > 1) {
+            <app-button variant="ghost" size="sm" (clicked)="removeStep(step.localId)">Remove</app-button>
+          }
+        </div>
+
+        <app-tile-group
+          heading="OPERATION"
+          [tiles]="operationTiles()"
+          [activeId]="step.operationId"
+          activeInk="pink"
+          (tileSelected)="selectOperation(step.localId, $event)"
+        ></app-tile-group>
+
+        @if (step.operationId) {
+          <app-operation-form
+            [parameters]="parametersFor(step.operationId)"
+            [values]="step.params"
+            (valuesChange)="setStepValues(step.localId, $event)"
+          ></app-operation-form>
+        }
+      </div>
+    } @else {
+      <button
+        type="button"
+        (click)="expand(step.localId)"
+        class="text-left flex items-center gap-4 px-6 py-4 bg-paper border border-paper-deckle rounded-lg shadow-paper-lift cursor-pointer hover:border-riso-pink transition-colors duration-shift ease-run active:shadow-stamped"
+      >
+        <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5 shrink-0">STEP {{ i + 1 }}</span>
+        <span class="flex-1 text-sm font-bold text-ink truncate">{{ operationName(step.operationId) }}</span>
+        <app-icon name="chevron" className="w-4 h-4 -rotate-90 text-ink-faint shrink-0"></app-icon>
+      </button>
+    }
+  }
+
+  @if (canAddStep()) {
+    <app-button variant="secondary" (clicked)="addStep()">
+      <app-icon name="plus" className="w-4 h-4"></app-icon>
+      <span>Add step</span>
+    </app-button>
+  }
+</div>
+
+@if (errorMessage(); as error) {
+  <div class="p-3 rounded-sm border border-riso-red bg-riso-red/10 text-sm font-bold text-ink flex items-start gap-2" role="alert">
+    <span class="flex-1 min-w-0">{{ error }}</span>
+  </div>
+}
+
+<div class="flex justify-end">
+  <app-button
+    variant="primary"
+    size="lg"
+    [disabled]="!canSave()"
+    [loading]="isSaving()"
+    (clicked)="save()"
+  >
+    {{ isSaving() ? 'Saving…' : 'Save recipe' }}
+  </app-button>
+</div>

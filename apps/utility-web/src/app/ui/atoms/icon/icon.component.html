@@ -71,6 +71,19 @@
       <polyline points="6 9 12 15 18 9"/>
     </svg>
   }
+  @case ('stack') {
+    <svg [class]="className()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
+      <path d="m6.08 9.5-3.5 1.6a1 1 0 0 0 0 1.81l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.59"/>
+      <path d="m6.08 14.5-3.5 1.6a1 1 0 0 0 0 1.81l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.59"/>
+    </svg>
+  }
+  @case ('plus') {
+    <svg [class]="className()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  }
   @case ('grip') {
     <svg [class]="className()" viewBox="0 0 24 24" fill="currentColor" stroke="none">
       <circle cx="9" cy="6" r="1.6"/>

@@ -1,4 +1,4 @@
-import { Component, inject, effect, viewChild, ElementRef } from '@angular/core';
+import { Component, inject, effect, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd, NavigationCancel, NavigationError, NavigationSkipped } from '@angular/router';
 import { filter } from 'rxjs';
@@ -20,13 +20,19 @@ import { RouteCurtainService } from '../../../core/index.js';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './route-curtain.component.html',
-  host: { class: 'contents' },
+  host: {
+    class: 'fixed inset-0 z-50 bg-press flex items-center justify-center',
+    style: 'opacity: 1',
+    '[class.pointer-events-none]': '!blocking()',
+    '[attr.aria-hidden]': '!blocking()',
+  },
 })
 export class RouteCurtainComponent {
   private readonly router = inject(Router);
   readonly curtainService = inject(RouteCurtainService);
 
-  private readonly curtain = viewChild.required<ElementRef<HTMLElement>>('curtain');
+  /** The host element itself is the curtain — injecting its own ElementRef is available immediately at construction, even earlier than a view-child query would resolve. */
+  private readonly hostRef = inject(ElementRef<HTMLElement>);
 
   readonly blocking = this.curtainService.blocking;
 
@@ -35,7 +41,7 @@ export class RouteCurtainComponent {
     // is ready before the router's very first navigation (guards included) can run:
     // routing requires <router-outlet> to exist, and that outlet is a sibling of this
     // component under the same root, created in the same initial change-detection pass.
-    effect(() => this.curtainService.registerElement(this.curtain().nativeElement));
+    effect(() => this.curtainService.registerElement(this.hostRef.nativeElement));
 
     this.router.events
       .pipe(filter((event) =>

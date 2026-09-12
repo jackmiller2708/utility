@@ -1,198 +1,195 @@
-<div class="flex flex-col gap-6 min-w-0">
-  <div class="flex flex-col gap-2 min-w-0">
-    <div class="flex items-end gap-4 flex-wrap">
-      <h1 class="text-[clamp(1.875rem,3.2vw,2.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-press-text">
-        Merge &amp; split
-      </h1>
-      <app-badge variant="pink" surface="press">pdf</app-badge>
-    </div>
-    <p class="text-[0.9375rem] leading-relaxed text-press-text-muted max-w-[70ch]">
-      Pull page ranges out of a PDF as their own files, or combine several PDFs into one.
-    </p>
+<div class="flex flex-col gap-2 min-w-0">
+  <div class="flex items-end gap-4 flex-wrap">
+    <h1 class="text-[clamp(1.875rem,3.2vw,2.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-press-text">
+      Merge &amp; split
+    </h1>
+    <app-badge variant="pink" surface="press">pdf</app-badge>
   </div>
+  <p class="text-[0.9375rem] leading-relaxed text-press-text-muted max-w-[70ch]">
+    Pull page ranges out of a PDF as their own files, or combine several PDFs into one.
+  </p>
+</div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 min-w-0">
-    <section class="lg:col-span-5 min-w-0 relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift">
-      <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 min-w-0">
+  <section class="lg:col-span-5 min-w-0 relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift">
+    <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
 
-      <div class="px-6 py-5 border-b border-paper-hairline">
-        <h2 class="text-xl font-extrabold text-ink">Your document{{ service.mode() === 'merge' ? 's' : '' }}</h2>
-      </div>
+    <div class="px-6 py-5 border-b border-paper-hairline">
+      <h2 class="text-xl font-extrabold text-ink">Your document{{ service.mode() === 'merge' ? 's' : '' }}</h2>
+    </div>
 
-      <div class="p-6 flex flex-col gap-6 min-w-0">
-        <app-tile-group
-          [tiles]="modeTiles"
-          [activeId]="service.mode()"
-          activeInk="pink"
-          (tileSelected)="onModeSelected($event)"
-        ></app-tile-group>
+    <div class="p-6 flex flex-col gap-6 min-w-0">
+      <app-tile-group
+        [tiles]="modeTiles"
+        [activeId]="service.mode()"
+        activeInk="pink"
+        (tileSelected)="onModeSelected($event)"
+      ></app-tile-group>
 
-        @if (service.mode() === 'split') {
-          @let selectedPdf = service.selectedPdf();
-          @let inspectResult = service.inspectResult();
+      @if (service.mode() === 'split') {
+        @let selectedPdf = service.selectedPdf();
+        @let inspectResult = service.inspectResult();
 
-          @if (!selectedPdf) {
-            <app-dropzone
-              title="Drop PDF or browse"
-              accept="application/pdf"
-              [supportedFormats]="['PDF']"
-              (fileSelected)="service.setPdf($event)"
-            ></app-dropzone>
-          } @else {
-            <app-file-summary-card
-              [name]="selectedPdf.name"
-              [dimensions]="service.isInspecting() ? 'Reading' : (inspectResult ? inspectResult.pages + ' page' + (inspectResult.pages === 1 ? '' : 's') : '')"
-              [sizeFormatted]="service.formatBytes(selectedPdf.size)"
-              [previewUrl]="null"
-              [loading]="service.isInspecting()"
-              itemLabel="document"
-              (changeFile)="service.resetPdf()"
-            ></app-file-summary-card>
-          }
-
-          @if (inspectResult) {
-            <div class="flex flex-wrap gap-1.5">
-              <app-badge variant="neutral">{{ inspectResult.pages }} PAGES</app-badge>
-              @if (inspectResult.title) {
-                <app-badge variant="neutral">{{ inspectResult.title }}</app-badge>
-              }
-              @if (inspectResult.author) {
-                <app-badge variant="neutral">{{ inspectResult.author }}</app-badge>
-              }
-            </div>
-
-            <div class="flex flex-col gap-3 min-w-0 border-t border-paper-hairline pt-5">
-              <h3 class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">PAGE RANGES</h3>
-
-              <div class="flex flex-col gap-2 min-w-0">
-                @for (range of service.ranges(); track range.id) {
-                  <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2 min-w-0">
-                    <app-input
-                      ariaLabel="First page"
-                      type="number"
-                      placeholder="1"
-                      unitSuffix="FROM"
-                      [value]="range.firstPage"
-                      (valueChange)="service.updateRangeFirst(range.id, $event)"
-                    ></app-input>
-                    <app-input
-                      ariaLabel="Last page"
-                      type="number"
-                      [placeholder]="inspectResult.pages + ''"
-                      unitSuffix="TO"
-                      [value]="range.lastPage"
-                      (valueChange)="service.updateRangeLast(range.id, $event)"
-                    ></app-input>
-                    @if (service.ranges().length > 1) {
-                      <button
-                        type="button"
-                        (click)="service.removeRange(range.id)"
-                        class="h-9 w-9 flex items-center justify-center rounded-sm border border-paper-deckle bg-paper-fresh text-ink-muted hover:text-riso-red transition-colors duration-shift ease-run cursor-pointer shrink-0 active:shadow-stamped"
-                        aria-label="Remove this range"
-                      >
-                        &times;
-                      </button>
-                    }
-                  </div>
-                }
-              </div>
-
-              <button
-                type="button"
-                (click)="service.addRange()"
-                class="self-start text-xs font-mono font-bold tracking-[0.04em] text-riso-blue hover:text-riso-blue-hover active:opacity-60 transition-colors duration-shift ease-run cursor-pointer"
-              >
-                + ADD ANOTHER RANGE
-              </button>
-            </div>
-
-            <app-button
-              variant="primary"
-              size="lg"
-              class="[&>button]:w-full"
-              [disabled]="!service.hasValidRange() || service.isProcessing()"
-              [loading]="service.isProcessing() && service.activeAction() === 'split'"
-              (clicked)="service.executeSplit()"
-            >
-              @if (service.isProcessing() && service.activeAction() === 'split') {
-                <span>Splitting…</span>
-              } @else {
-                <span>Split into files</span>
-              }
-            </app-button>
-          }
+        @if (!selectedPdf) {
+          <app-dropzone
+            title="Drop PDF or browse"
+            accept="application/pdf"
+            [supportedFormats]="['PDF']"
+            (fileSelected)="service.setPdf($event)"
+          ></app-dropzone>
+        } @else {
+          <app-file-summary-card
+            [name]="selectedPdf.name"
+            [dimensions]="service.isInspecting() ? 'Reading' : (inspectResult ? inspectResult.pages + ' page' + (inspectResult.pages === 1 ? '' : 's') : '')"
+            [sizeFormatted]="service.formatBytes(selectedPdf.size)"
+            [previewUrl]="null"
+            [loading]="service.isInspecting()"
+            itemLabel="document"
+            (changeFile)="service.resetPdf()"
+          ></app-file-summary-card>
         }
 
-        @if (service.mode() === 'merge') {
-          @if (service.mergeFiles().length < service.maxMergeFiles) {
-            <app-dropzone
-              [title]="service.mergeFiles().length > 0 ? 'Drop more PDFs or browse' : 'Drop PDFs or browse'"
-              accept="application/pdf"
-              [supportedFormats]="['PDF']"
-              [multiple]="true"
-              [showPasteHint]="false"
-              (filesSelected)="onMergeFilesSelected($event)"
-            ></app-dropzone>
-          }
+        @if (inspectResult) {
+          <div class="flex flex-wrap gap-1.5">
+            <app-badge variant="neutral">{{ inspectResult.pages }} PAGES</app-badge>
+            @if (inspectResult.title) {
+              <app-badge variant="neutral">{{ inspectResult.title }}</app-badge>
+            }
+            @if (inspectResult.author) {
+              <app-badge variant="neutral">{{ inspectResult.author }}</app-badge>
+            }
+          </div>
 
-          @if (service.mergeLimitNotice(); as notice) {
-            <div class="p-3 rounded-sm border border-riso-gold bg-riso-gold/10 text-xs font-mono font-bold text-ink flex items-start gap-2" role="status">
-              <span class="flex-1 min-w-0 break-words">{{ notice }}</span>
+          <div class="flex flex-col gap-3 min-w-0 border-t border-paper-hairline pt-5">
+            <h3 class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">PAGE RANGES</h3>
+
+            <div class="flex flex-col gap-2 min-w-0">
+              @for (range of service.ranges(); track range.id) {
+                <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2 min-w-0">
+                  <app-input
+                    ariaLabel="First page"
+                    type="number"
+                    placeholder="1"
+                    unitSuffix="FROM"
+                    [value]="range.firstPage"
+                    (valueChange)="service.updateRangeFirst(range.id, $event)"
+                  ></app-input>
+                  <app-input
+                    ariaLabel="Last page"
+                    type="number"
+                    [placeholder]="inspectResult.pages + ''"
+                    unitSuffix="TO"
+                    [value]="range.lastPage"
+                    (valueChange)="service.updateRangeLast(range.id, $event)"
+                  ></app-input>
+                  @if (service.ranges().length > 1) {
+                    <button
+                      type="button"
+                      (click)="service.removeRange(range.id)"
+                      class="h-9 w-9 flex items-center justify-center rounded-sm border border-paper-deckle bg-paper-fresh text-ink-muted hover:text-riso-red transition-colors duration-shift ease-run cursor-pointer shrink-0 active:shadow-stamped"
+                      aria-label="Remove this range"
+                    >
+                      &times;
+                    </button>
+                  }
+                </div>
+              }
             </div>
-          }
 
-          @if (mergeFileItems().length > 0) {
-            <app-sortable-file-list
-              [items]="mergeFileItems()"
-              (reorder)="onMergeFileReorder($event)"
-              (remove)="service.removeMergeFile($event)"
-              (clearAll)="service.clearMergeFiles()"
-            ></app-sortable-file-list>
-          }
+            <button
+              type="button"
+              (click)="service.addRange()"
+              class="self-start text-xs font-mono font-bold tracking-[0.04em] text-riso-blue hover:text-riso-blue-hover active:opacity-60 transition-colors duration-shift ease-run cursor-pointer"
+            >
+              + ADD ANOTHER RANGE
+            </button>
+          </div>
 
           <app-button
             variant="primary"
             size="lg"
             class="[&>button]:w-full"
-            [disabled]="!service.canMerge() || service.isProcessing()"
-            [loading]="service.isProcessing() && service.activeAction() === 'merge'"
-            (clicked)="service.executeMerge()"
+            [disabled]="!service.hasValidRange() || service.isProcessing()"
+            [loading]="service.isProcessing() && service.activeAction() === 'split'"
+            (clicked)="service.executeSplit()"
           >
-            @if (service.isProcessing() && service.activeAction() === 'merge') {
-              <span>Merging…</span>
+            @if (service.isProcessing() && service.activeAction() === 'split') {
+              <span>Splitting…</span>
             } @else {
-              <span>Merge {{ service.mergeFiles().length || '' }} files</span>
+              <span>Split into files</span>
             }
           </app-button>
+        }
+      }
 
-          @if (service.mergeFiles().length === 1) {
-            <p class="text-sm text-ink-muted -mt-4">Add at least one more PDF to merge.</p>
+      @if (service.mode() === 'merge') {
+        @if (service.mergeFiles().length < service.maxMergeFiles) {
+          <app-dropzone
+            [title]="service.mergeFiles().length > 0 ? 'Drop more PDFs or browse' : 'Drop PDFs or browse'"
+            accept="application/pdf"
+            [supportedFormats]="['PDF']"
+            [multiple]="true"
+            [showPasteHint]="false"
+            (filesSelected)="onMergeFilesSelected($event)"
+          ></app-dropzone>
+        }
+
+        @if (service.mergeLimitNotice(); as notice) {
+          <div class="p-3 rounded-sm border border-riso-gold bg-riso-gold/10 text-xs font-mono font-bold text-ink flex items-start gap-2" role="status">
+            <span class="flex-1 min-w-0 break-words">{{ notice }}</span>
+          </div>
+        }
+
+        @if (mergeFileItems().length > 0) {
+          <app-sortable-file-list
+            [items]="mergeFileItems()"
+            (reorder)="onMergeFileReorder($event)"
+            (remove)="service.removeMergeFile($event)"
+            (clearAll)="service.clearMergeFiles()"
+          ></app-sortable-file-list>
+        }
+
+        <app-button
+          variant="primary"
+          size="lg"
+          class="[&>button]:w-full"
+          [disabled]="!service.canMerge() || service.isProcessing()"
+          [loading]="service.isProcessing() && service.activeAction() === 'merge'"
+          (clicked)="service.executeMerge()"
+        >
+          @if (service.isProcessing() && service.activeAction() === 'merge') {
+            <span>Merging…</span>
+          } @else {
+            <span>Merge {{ service.mergeFiles().length || '' }} files</span>
           }
-        }
+        </app-button>
 
-        @if (service.errorDiagnostic() | option; as diag) {
-          <app-error-diagnostic
-            [title]="diag.title"
-            [message]="diag.message"
-            [suggestion]="diag.suggestion"
-            retryLabel="Retry"
-            (retryClicked)="service.mode() === 'merge' ? service.executeMerge() : service.executeSplit()"
-          ></app-error-diagnostic>
+        @if (service.mergeFiles().length === 1) {
+          <p class="text-sm text-ink-muted -mt-4">Add at least one more PDF to merge.</p>
         }
-      </div>
-    </section>
+      }
 
-    <section class="lg:col-span-7 min-w-0">
-      <app-gallery-grid
-        [title]="galleryTitle()"
-        [items]="galleryItems()"
-        [loading]="service.isProcessing()"
-        [job]="service.activeJob()"
-        emptyTitle="No output yet"
-        emptyMessage="Split or merge to see results here."
-        (downloadAllClicked)="downloadAll()"
-        (cancelJob)="service.cancelActiveJob()"
-      ></app-gallery-grid>
-    </section>
-  </div>
+      @if (service.errorDiagnostic() | option; as diag) {
+        <app-error-diagnostic
+          [title]="diag.title"
+          [message]="diag.message"
+          [suggestion]="diag.suggestion"
+          retryLabel="Retry"
+          (retryClicked)="service.mode() === 'merge' ? service.executeMerge() : service.executeSplit()"
+        ></app-error-diagnostic>
+      }
+    </div>
+  </section>
+
+  <app-gallery-grid
+    class="lg:col-span-7 min-w-0"
+    [title]="galleryTitle()"
+    [items]="galleryItems()"
+    [loading]="service.isProcessing()"
+    [job]="service.activeJob()"
+    emptyTitle="No output yet"
+    emptyMessage="Split or merge to see results here."
+    (downloadAllClicked)="downloadAll()"
+    (cancelJob)="service.cancelActiveJob()"
+  ></app-gallery-grid>
 </div>

@@ -1,82 +1,75 @@
-<div
-  class="relative flex items-start gap-3 border rounded-lg bg-paper-fresh border-paper-deckle overflow-hidden"
-  [class.p-2]="compact()"
-  [class.p-4]="!compact()"
-  [class.struck-plate]="job().status === 'cancelled'"
->
-  <div class="shrink-0 flex items-center justify-center w-5 h-5 mt-0.5">
-    @switch (job().status) {
-      @case ('pending') {
-        <span class="w-2 h-2 rounded-full bg-riso-gold pulse-slow"></span>
-      }
-      @case ('running') {
-        <span class="reg-cross reg-cross-spin text-riso-pink"></span>
-      }
-      @case ('completed') {
-        <app-icon #statusIcon name="check" className="w-4 h-4 text-riso-mint"></app-icon>
-      }
-      @case ('failed') {
-        <app-icon #statusIcon name="close" className="w-4 h-4 text-riso-red"></app-icon>
-      }
-      @case ('cancelled') {
-        <span class="w-2 h-2 rounded-full bg-ink-faint"></span>
-      }
+<div class="shrink-0 flex items-center justify-center w-5 h-5 mt-0.5">
+  @switch (job().status) {
+    @case ('pending') {
+      <span class="w-2 h-2 rounded-full bg-riso-gold pulse-slow"></span>
+    }
+    @case ('running') {
+      <span class="reg-cross reg-cross-spin text-riso-pink"></span>
+    }
+    @case ('completed') {
+      <app-icon #statusIcon name="check" className="w-4 h-4 text-riso-mint"></app-icon>
+    }
+    @case ('failed') {
+      <app-icon #statusIcon name="close" className="w-4 h-4 text-riso-red"></app-icon>
+    }
+    @case ('cancelled') {
+      <span class="w-2 h-2 rounded-full bg-ink-faint"></span>
+    }
+  }
+</div>
+
+<div class="min-w-0 flex-1 flex flex-col gap-1">
+  <div class="flex items-center justify-between gap-2 min-w-0">
+    <span class="text-sm font-bold text-ink truncate" [class.text-xs]="compact()">{{ job().label ?? job().operationId }}</span>
+
+    @if (job().isActive) {
+      <button
+        type="button"
+        (click)="cancelled.emit(job().id)"
+        class="shrink-0 text-ink-faint hover:text-riso-red transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
+        aria-label="Cancel job"
+        title="Cancel"
+      >
+        <app-icon name="close" className="w-3.5 h-3.5"></app-icon>
+      </button>
+    } @else if (job().isTerminal) {
+      <button
+        type="button"
+        (click)="dismissed.emit(job().id)"
+        class="shrink-0 text-ink-faint hover:text-ink transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
+        aria-label="Dismiss"
+        title="Dismiss"
+      >
+        <app-icon name="close" className="w-3.5 h-3.5"></app-icon>
+      </button>
     }
   </div>
 
-  <div class="min-w-0 flex-1 flex flex-col gap-1">
-    <div class="flex items-center justify-between gap-2 min-w-0">
-      <span class="text-sm font-bold text-ink truncate" [class.text-xs]="compact()">{{ job().label ?? job().operationId }}</span>
-
-      @if (job().isActive) {
-        <button
-          type="button"
-          (click)="cancelled.emit(job().id)"
-          class="shrink-0 text-ink-faint hover:text-riso-red transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
-          aria-label="Cancel job"
-          title="Cancel"
-        >
-          <app-icon name="close" className="w-3.5 h-3.5"></app-icon>
-        </button>
-      } @else if (job().isTerminal) {
-        <button
-          type="button"
-          (click)="dismissed.emit(job().id)"
-          class="shrink-0 text-ink-faint hover:text-ink transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
-          aria-label="Dismiss"
-          title="Dismiss"
-        >
-          <app-icon name="close" className="w-3.5 h-3.5"></app-icon>
-        </button>
+  <div #ledger class="font-mono text-xs font-bold tracking-[0.04em] text-ink-muted" data-ledger>
+    @switch (job().status) {
+      @case ('pending') {
+        <span>QUEUED</span>
       }
-    </div>
-
-    <div #ledger class="font-mono text-xs font-bold tracking-[0.04em] text-ink-muted" data-ledger>
-      @switch (job().status) {
-        @case ('pending') {
-          <span>QUEUED</span>
-        }
-        @case ('running') {
-          @let progress = job().progress;
-          @if (progress && progress.total > 0) {
-            <span>{{ progress.completed }} / {{ progress.total }}</span>
-            @if (progress.message) {
-              <span class="text-ink-faint"> &mdash; {{ progress.message }}</span>
-            }
-          } @else {
-            <span>RUNNING&hellip;</span>
+      @case ('running') {
+        @let progress = job().progress;
+        @if (progress && progress.total > 0) {
+          <span>{{ progress.completed }} / {{ progress.total }}</span>
+          @if (progress.message) {
+            <span class="text-ink-faint"> &mdash; {{ progress.message }}</span>
           }
-        }
-        @case ('completed') {
-          <span class="text-riso-mint">DONE</span>
-        }
-        @case ('failed') {
-          <span class="text-riso-red">{{ job().error ?? 'FAILED' }}</span>
-        }
-        @case ('cancelled') {
-          <span>CANCELLED</span>
+        } @else {
+          <span>RUNNING&hellip;</span>
         }
       }
-    </div>
+      @case ('completed') {
+        <span class="text-riso-mint">DONE</span>
+      }
+      @case ('failed') {
+        <span class="text-riso-red">{{ job().error ?? 'FAILED' }}</span>
+      }
+      @case ('cancelled') {
+        <span>CANCELLED</span>
+      }
+    }
   </div>
 </div>

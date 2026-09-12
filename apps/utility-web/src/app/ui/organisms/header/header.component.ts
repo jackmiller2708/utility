@@ -7,6 +7,10 @@ import type { AuthStatusModel } from '../../../domain/index.js';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './header.component.html',
+  host: {
+    class: 'flex-none bg-press-elevated border-b border-press-line sticky top-0 z-50',
+    role: 'banner',
+  },
 })
 export class HeaderComponent {
   authStatus = input<AuthStatusModel | null>(null);

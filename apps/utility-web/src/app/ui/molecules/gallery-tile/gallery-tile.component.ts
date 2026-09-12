@@ -7,6 +7,7 @@ import { IconComponent } from '../../atoms/icon/icon.component.js';
   standalone: true,
   imports: [CommonModule, IconComponent],
   templateUrl: './gallery-tile.component.html',
+  host: { class: 'block relative bg-paper-fresh border border-paper-deckle rounded-sm overflow-hidden transition duration-shift ease-run hover:border-ink-muted hover:shadow-paper-lift' },
 })
 export class GalleryTileComponent {
   label = input.required<string>();

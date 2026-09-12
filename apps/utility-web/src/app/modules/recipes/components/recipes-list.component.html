@@ -1,0 +1,100 @@
+<div class="flex flex-col gap-4 min-w-0 sm:flex-row sm:items-end sm:justify-between">
+  <div class="flex flex-col gap-2 min-w-0">
+    <div class="flex items-end gap-4 flex-wrap">
+      <h1 class="text-[clamp(1.875rem,3.2vw,2.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-press-text">
+        Recipes
+      </h1>
+      <app-badge variant="pink" surface="press">{{ service.workflows().length }}</app-badge>
+    </div>
+    <p class="text-[0.9375rem] leading-relaxed text-press-text-muted max-w-[70ch]">
+      A saved chain of steps you build once and run again — drop a file in and every stamp in the chain runs in order.
+    </p>
+  </div>
+
+  <app-button variant="primary" size="lg" routerLink="/recipes/new">
+    <app-icon name="plus" className="w-4 h-4"></app-icon>
+    <span>New recipe</span>
+  </app-button>
+</div>
+
+<div class="relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift min-w-0">
+  <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
+
+  @if (service.isLoading() && service.workflows().length === 0) {
+    <div class="p-6 flex flex-col gap-4" role="status" aria-label="Loading recipes">
+      @for (row of [1,2,3]; track row) {
+        <div class="flex items-center gap-4">
+          <span class="h-3 flex-1 max-w-[220px] bg-paper-hairline rounded-sm animate-pulse"></span>
+          <span class="h-3 w-16 bg-paper-hairline rounded-sm animate-pulse"></span>
+        </div>
+      }
+    </div>
+  } @else if (service.workflows().length === 0) {
+    <div class="p-10 flex flex-col items-center text-center gap-3">
+      <app-icon name="stack" className="w-6 h-6 text-ink-faint"></app-icon>
+      <span class="text-sm font-bold text-ink">No recipes yet</span>
+      <span class="text-xs text-ink-muted max-w-[40ch]">Build a chain of two or more steps once — resize then thumbnail, transcode then extract audio — and run it on any file from here on.</span>
+      <app-button variant="primary" routerLink="/recipes/new">
+        <app-icon name="plus" className="w-4 h-4"></app-icon>
+        <span>New recipe</span>
+      </app-button>
+    </div>
+  } @else {
+    @for (workflow of service.workflows(); track workflow.id) {
+      <div class="flex flex-col gap-3 px-6 py-4 border-b border-paper-hairline last:border-b-0">
+        <div class="flex items-center gap-4 flex-wrap">
+          <div class="flex-1 min-w-[160px]">
+            <div class="text-sm font-bold text-ink truncate">{{ workflow.name }}</div>
+            @if (workflow.description) {
+              <div class="text-xs text-ink-muted truncate max-w-[50ch]">{{ workflow.description }}</div>
+            }
+          </div>
+
+          <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5 shrink-0">
+            {{ workflow.stepCount }} STEP{{ workflow.stepCount === 1 ? '' : 'S' }}
+          </span>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <app-button variant="primary" size="sm" [routerLink]="['/recipes', workflow.id]">Run</app-button>
+            <app-button variant="ghost" size="sm" (clicked)="requestDelete(workflow.id)">Delete</app-button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 flex-wrap">
+          @for (step of workflow.steps; track $index) {
+            <app-badge variant="neutral">{{ stepLabel(step.operationId) }}</app-badge>
+            @if (!$last) {
+              <app-icon name="chevron" className="w-3 h-3 -rotate-90 text-ink-faint shrink-0"></app-icon>
+            }
+          }
+        </div>
+
+        @if (deletingId() === workflow.id) {
+          <div class="bg-paper-fresh border border-riso-red rounded-sm p-4" role="alertdialog">
+            <div class="text-sm font-bold text-ink">Delete "{{ workflow.name }}"?</div>
+            <div class="text-sm leading-relaxed text-ink-muted mt-1">
+              This removes the recipe. Files it already produced stay in your artifacts.
+            </div>
+            <div class="flex gap-2 mt-3.5">
+              <button
+                type="button"
+                [disabled]="isDeleting() === workflow.id"
+                (click)="confirmDelete(workflow)"
+                class="bg-riso-red text-paper-fresh rounded-sm px-4 py-2 text-sm font-bold cursor-pointer hover:opacity-90 active:shadow-stamped transition-opacity duration-shift ease-run disabled:opacity-60"
+              >
+                {{ isDeleting() === workflow.id ? 'Deleting…' : 'Delete' }}
+              </button>
+              <button
+                type="button"
+                (click)="cancelDelete()"
+                class="bg-transparent text-ink-muted rounded-sm px-4 py-2 text-sm font-bold cursor-pointer hover:text-ink active:opacity-60 transition-colors duration-shift ease-run"
+              >
+                Keep it
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

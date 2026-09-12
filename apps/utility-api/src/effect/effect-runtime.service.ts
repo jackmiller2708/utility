@@ -19,7 +19,15 @@ import {
   ProcessError,
   ArtifactError,
 } from "@utility/runtime";
-import { ToolRegistry, makeToolRegistry, JobRegistryLive } from "@utility/toolkit";
+import {
+  ToolRegistry,
+  makeToolRegistry,
+  JobRegistryLive,
+  WorkflowRegistryLive,
+  WorkflowValidationError,
+  WorkflowStepError,
+  WorkflowNotFoundError,
+} from "@utility/toolkit";
 import {
   imageTool,
   SharpImageServiceLive,
@@ -42,6 +50,8 @@ import {
 } from "@utility/media";
 import { SecurityError, ValidationError } from "@utility/domain";
 
+const toolRegistryLayer = makeToolRegistry([imageTool, pdfTool, pdfMergeSplitTool, mediaTool]);
+
 // Compose the full Live layer
 export const AppLive = Layer.mergeAll(
   FileSystemLive,
@@ -51,8 +61,11 @@ export const AppLive = Layer.mergeAll(
   SharpImageServiceLive,
   PopplerPdfServiceLive.pipe(Layer.provide(Layer.mergeAll(ProcessLive, FileSystemLive))),
   FfmpegMediaServiceLive.pipe(Layer.provide(ProcessLive)),
-  makeToolRegistry([imageTool, pdfTool, pdfMergeSplitTool, mediaTool]),
-  JobRegistryLive
+  toolRegistryLayer,
+  JobRegistryLive,
+  WorkflowRegistryLive.pipe(
+    Layer.provide(Layer.mergeAll(toolRegistryLayer, FileSystemLive, ArtifactStoreLive.pipe(Layer.provide(FileSystemLive))))
+  )
 ).pipe(Layer.orDie);
 
 export type AppServices = Layer.Layer.Success<typeof AppLive>;
@@ -134,6 +147,20 @@ export class EffectRuntimeService implements OnModuleInit {
 
     if (error instanceof MediaProcessingError) {
       return new BadRequestException(error.message);
+    }
+
+    if (error instanceof WorkflowValidationError) {
+      return new BadRequestException(error.message);
+    }
+
+    if (error instanceof WorkflowStepError) {
+      return new BadRequestException(
+        `${error.message} (step ${error.stepIndex + 1}, operation "${error.operationId}")`
+      );
+    }
+
+    if (error instanceof WorkflowNotFoundError) {
+      return new NotFoundException(`Workflow ${error.workflowId} not found`);
     }
 
     if (error instanceof SecurityError) {

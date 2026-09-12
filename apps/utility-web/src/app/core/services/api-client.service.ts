@@ -1,4 +1,4 @@
-import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, MediaInspectOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse } from '@utility/protocol';
+import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, MediaInspectOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse, WorkflowResponse, WorkflowListResponse } from '@utility/protocol';
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClientService } from './http-client.service.js';
@@ -27,6 +27,17 @@ interface PdfRenderPagesOptions {
   lastPage?: number | null;
 }
 
+export interface CreateWorkflowStepInput {
+  readonly operationId: string;
+  readonly params: Readonly<Record<string, unknown>>;
+}
+
+export interface CreateWorkflowInput {
+  readonly name: string;
+  readonly description?: string;
+  readonly steps: readonly CreateWorkflowStepInput[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class ApiClientService {
   private readonly http = inject(HttpClientService);
@@ -38,6 +49,22 @@ export class ApiClientService {
 
   getTools$() {
     return this.http.get<ToolsListResponse>(`${this.config.baseUrl}/tools`);
+  }
+
+  createWorkflow$(input: CreateWorkflowInput) {
+    return this.http.post<WorkflowResponse>(`${this.config.baseUrl}/workflows`, input);
+  }
+
+  listWorkflows$() {
+    return this.http.get<WorkflowListResponse>(`${this.config.baseUrl}/workflows`);
+  }
+
+  getWorkflow$(id: string) {
+    return this.http.get<WorkflowResponse>(`${this.config.baseUrl}/workflows/${id}`);
+  }
+
+  deleteWorkflow$(id: string) {
+    return this.http.delete<{ deleted: boolean }>(`${this.config.baseUrl}/workflows/${id}`);
   }
 
   executeImageResize$(file: File, options: ImageResizeOptions) {

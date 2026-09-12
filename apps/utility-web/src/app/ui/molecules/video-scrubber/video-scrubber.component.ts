@@ -15,7 +15,7 @@ import { MotionService } from '../../../core/index.js';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './video-scrubber.component.html',
-  host: { class: 'block min-w-0' },
+  host: { class: 'flex flex-col gap-3 min-w-0' },
 })
 export class VideoScrubberComponent {
   private readonly motion = inject(MotionService);

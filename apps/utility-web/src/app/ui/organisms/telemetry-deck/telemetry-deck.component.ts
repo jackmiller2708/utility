@@ -20,7 +20,7 @@ interface LedgerRow {
   standalone: true,
   imports: [CommonModule, BadgeComponent, IconComponent, TelemetryRowComponent],
   templateUrl: './telemetry-deck.component.html',
-  host: { class: 'block h-full min-w-0' },
+  host: { class: 'flex flex-col gap-6 h-full min-w-0', 'aria-live': 'polite', 'aria-atomic': 'true' },
 })
 export class TelemetryDeckComponent {
   readonly artifact = input<ArtifactModel | null>(null);

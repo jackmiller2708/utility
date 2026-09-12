@@ -1,38 +1,36 @@
-<header class="flex-none bg-press-elevated border-b border-press-line sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[60px] flex items-center gap-5 flex-wrap">
-    <!-- Masthead -->
-    <div class="flex items-baseline gap-2.5">
-      <span class="text-[1.375rem] font-black tracking-[-0.01em] leading-none text-press-text">UTILITY</span>
-      <span class="font-mono text-xs font-bold tracking-[0.04em] text-press-text-muted">IMAGES</span>
-    </div>
-
-    <div class="flex-1"></div>
-
-    <!-- Status -->
-    <div class="flex items-center gap-3">
-      @if (activeJobCount() > 0) {
-        <button
-          type="button"
-          (click)="jobTrayToggled.emit()"
-          class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono rounded-sm hover:bg-press active:bg-press-line cursor-pointer transition-colors duration-shift ease-run"
-          aria-label="Show running jobs"
-        >
-          <span class="w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-slow"></span>
-          <span class="font-bold leading-none tracking-[0.04em] text-press-text">{{ activeJobCount() }} RUNNING</span>
-        </button>
-      }
-
-      @if (authStatus()) {
-        <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono">
-          <span class="w-2 h-2 rounded-full bg-riso-mint shrink-0 pulse-slow"></span>
-          <span class="font-bold leading-none tracking-[0.04em] text-press-text">READY</span>
-        </div>
-      } @else {
-        <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono">
-          <span class="w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-fast"></span>
-          <span class="font-bold leading-none tracking-[0.04em] text-press-text-muted">STARTING&hellip;</span>
-        </div>
-      }
-    </div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[60px] flex items-center gap-5 flex-wrap">
+  <!-- Masthead -->
+  <div class="flex items-baseline gap-2.5">
+    <span class="text-[1.375rem] font-black tracking-[-0.01em] leading-none text-press-text">UTILITY</span>
+    <span class="font-mono text-xs font-bold tracking-[0.04em] text-press-text-muted">IMAGES</span>
   </div>
-</header>
+
+  <div class="flex-1"></div>
+
+  <!-- Status -->
+  <div class="flex items-center gap-3">
+    @if (activeJobCount() > 0) {
+      <button
+        type="button"
+        (click)="jobTrayToggled.emit()"
+        class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono rounded-sm hover:bg-press active:bg-press-line cursor-pointer transition-colors duration-shift ease-run"
+        aria-label="Show running jobs"
+      >
+        <span class="w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-slow"></span>
+        <span class="font-bold leading-none tracking-[0.04em] text-press-text">{{ activeJobCount() }} RUNNING</span>
+      </button>
+    }
+
+    @if (authStatus()) {
+      <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono">
+        <span class="w-2 h-2 rounded-full bg-riso-mint shrink-0 pulse-slow"></span>
+        <span class="font-bold leading-none tracking-[0.04em] text-press-text">READY</span>
+      </div>
+    } @else {
+      <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono">
+        <span class="w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-fast"></span>
+        <span class="font-bold leading-none tracking-[0.04em] text-press-text-muted">STARTING&hellip;</span>
+      </div>
+    }
+  </div>
+</div>

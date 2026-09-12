@@ -27,7 +27,7 @@ import { OptionPipe } from '@app/core/pipes/option.pipe';
   providers: [ImageResizeService],
   templateUrl: './image-resize.component.html',
   host: {
-    class: 'block min-w-0 w-full',
+    class: 'flex flex-col gap-6 min-w-0 w-full',
     '(window:keydown)': 'onKeyDown($event)',
     '(window:paste)': 'onPaste($event)'
   }

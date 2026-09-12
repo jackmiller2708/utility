@@ -1,59 +1,73 @@
-<nav class="space-y-6">
-  <div class="px-5 pt-6">
-    <h3 class="text-xs font-mono font-bold tracking-[0.04em] text-press-text-muted">TOOLS</h3>
-  </div>
+<div class="px-5 pt-6">
+  <h3 class="text-xs font-mono font-bold tracking-[0.04em] text-press-text-muted">TOOLS</h3>
+</div>
 
-  <div class="space-y-5">
-    @for (group of groups(); track group.category) {
-      <div>
-        <h4 class="px-5 pb-1.5 text-[0.6875rem] font-mono font-bold tracking-[0.04em] text-press-text-muted">{{ group.category }}</h4>
+<div class="space-y-5">
+  @for (group of groups(); track group.category) {
+    <div>
+      <h4 class="px-5 pb-1.5 text-[0.6875rem] font-mono font-bold tracking-[0.04em] text-press-text-muted">{{ group.category }}</h4>
 
-        @for (tool of group.tools; track tool.id) {
-          <button
-            type="button"
-            (click)="selectedToolId.emit(tool.id)"
-            [class.bg-riso-pink-pooled]="!onRecentRoute() && activeToolId() === tool.id"
-            [class.border-l-riso-pink]="!onRecentRoute() && activeToolId() === tool.id"
-            [class.text-press-text]="!onRecentRoute() && activeToolId() === tool.id"
-            [class.font-bold]="!onRecentRoute() && activeToolId() === tool.id"
-            [class.border-l-transparent]="onRecentRoute() || activeToolId() !== tool.id"
-            [class.text-press-text-muted]="onRecentRoute() || activeToolId() !== tool.id"
-            [class.hover:text-press-text]="onRecentRoute() || activeToolId() !== tool.id"
-            class="group w-full text-left pl-[17px] pr-5 py-2.5 text-sm border-l-[3px] active:bg-press-line transition-colors duration-shift ease-run cursor-pointer"
-          >
-            <span class="truncate block">{{ tool.name }}</span>
+      @for (tool of group.tools; track tool.id) {
+        <button
+          type="button"
+          (click)="selectedToolId.emit(tool.id)"
+          [class.bg-riso-pink-pooled]="!onRecentRoute() && !onRecipesRoute() && activeToolId() === tool.id"
+          [class.border-l-riso-pink]="!onRecentRoute() && !onRecipesRoute() && activeToolId() === tool.id"
+          [class.text-press-text]="!onRecentRoute() && !onRecipesRoute() && activeToolId() === tool.id"
+          [class.font-bold]="!onRecentRoute() && !onRecipesRoute() && activeToolId() === tool.id"
+          [class.border-l-transparent]="onRecentRoute() || onRecipesRoute() || activeToolId() !== tool.id"
+          [class.text-press-text-muted]="onRecentRoute() || onRecipesRoute() || activeToolId() !== tool.id"
+          [class.hover:text-press-text]="onRecentRoute() || onRecipesRoute() || activeToolId() !== tool.id"
+          class="group w-full text-left pl-[17px] pr-5 py-2.5 text-sm border-l-[3px] active:bg-press-line transition-colors duration-shift ease-run cursor-pointer"
+        >
+          <span class="truncate block">{{ tool.name }}</span>
 
-            @if (tool.operations.length > 1) {
-              <span
-                class="block max-h-0 group-hover:max-h-5 overflow-hidden text-[0.6875rem] font-mono text-press-text-muted transition-[max-height] duration-shift ease-run"
-              >{{ operationsLabel(tool) }}</span>
-            }
-          </button>
-        }
-      </div>
-    }
-  </div>
+          @if (tool.operations.length > 1) {
+            <span class="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-shift ease-run">
+              <span class="overflow-hidden text-[0.6875rem] font-mono text-press-text-muted">{{ operationsLabel(tool) }}</span>
+            </span>
+          }
+        </button>
+      }
+    </div>
+  }
+</div>
 
-  <div class="border-t border-press-line pt-4">
-    <button
-      type="button"
-      (click)="recentSelected.emit()"
-      [class.bg-riso-pink-pooled]="onRecentRoute()"
-      [class.border-l-riso-pink]="onRecentRoute()"
-      [class.text-press-text]="onRecentRoute()"
-      [class.font-bold]="onRecentRoute()"
-      [class.border-l-transparent]="!onRecentRoute()"
-      [class.text-press-text-muted]="!onRecentRoute()"
-      [class.hover:text-press-text]="!onRecentRoute()"
-      class="w-full text-left pl-[17px] pr-5 py-2.5 text-sm border-l-[3px] active:bg-press-line transition-colors duration-shift ease-run flex items-center gap-2 cursor-pointer"
-    >
-      <app-icon name="clock" className="w-3.5 h-3.5 shrink-0"></app-icon>
-      <span class="truncate">Recent</span>
-    </button>
-  </div>
+<div class="border-t border-press-line pt-4">
+  <button
+    type="button"
+    (click)="recipesSelected.emit()"
+    [class.bg-riso-pink-pooled]="onRecipesRoute()"
+    [class.border-l-riso-pink]="onRecipesRoute()"
+    [class.text-press-text]="onRecipesRoute()"
+    [class.font-bold]="onRecipesRoute()"
+    [class.border-l-transparent]="!onRecipesRoute()"
+    [class.text-press-text-muted]="!onRecipesRoute()"
+    [class.hover:text-press-text]="!onRecipesRoute()"
+    class="w-full text-left pl-[17px] pr-5 py-2.5 text-sm border-l-[3px] active:bg-press-line transition-colors duration-shift ease-run flex items-center gap-2 cursor-pointer"
+  >
+    <app-icon name="stack" className="w-3.5 h-3.5 shrink-0"></app-icon>
+    <span class="truncate">Recipes</span>
+  </button>
 
-  <!-- Sandbox note -->
-  <div class="mx-5 border-t border-press-line pt-4 font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-press-text-muted leading-relaxed">
-    FILES CLEAR WHEN<br>YOU CLOSE THIS TAB
-  </div>
-</nav>
+  <button
+    type="button"
+    (click)="recentSelected.emit()"
+    [class.bg-riso-pink-pooled]="onRecentRoute()"
+    [class.border-l-riso-pink]="onRecentRoute()"
+    [class.text-press-text]="onRecentRoute()"
+    [class.font-bold]="onRecentRoute()"
+    [class.border-l-transparent]="!onRecentRoute()"
+    [class.text-press-text-muted]="!onRecentRoute()"
+    [class.hover:text-press-text]="!onRecentRoute()"
+    class="w-full text-left pl-[17px] pr-5 py-2.5 text-sm border-l-[3px] active:bg-press-line transition-colors duration-shift ease-run flex items-center gap-2 cursor-pointer"
+  >
+    <app-icon name="clock" className="w-3.5 h-3.5 shrink-0"></app-icon>
+    <span class="truncate">Recent</span>
+  </button>
+</div>
+
+<!-- Sandbox note -->
+<div class="mx-5 border-t border-press-line pt-4 font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-press-text-muted leading-relaxed">
+  FILES CLEAR WHEN<br>YOU CLOSE THIS TAB
+</div>

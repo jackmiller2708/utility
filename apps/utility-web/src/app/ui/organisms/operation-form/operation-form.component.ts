@@ -28,6 +28,7 @@ const MAX_TILE_OPTIONS = 6;
   standalone: true,
   imports: [CommonModule, InputComponent, ToggleComponent, SelectComponent, TileGroupComponent],
   templateUrl: './operation-form.component.html',
+  host: { class: 'flex flex-col gap-5 min-w-0' },
 })
 export class OperationFormComponent {
   parameters = input<readonly ToolParameterModel[]>([]);

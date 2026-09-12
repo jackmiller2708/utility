@@ -1,21 +1,19 @@
-<div class="flex gap-4 items-center py-3 px-6 border-b border-paper-hairline flex-wrap">
-  <div class="flex-none w-[140px] text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">{{ label() }}</div>
-  <div class="flex-1 min-w-[90px] text-[0.8125rem] font-mono font-bold text-ink truncate">{{ srcValue() }}</div>
-  <div class="flex-none text-ink-faint font-mono text-xs">&rarr;</div>
-  <div class="flex-1 min-w-[90px]">
-    <span
-      #badge
-      [class.bg-paper-fresh]="filled() && tone() === 'neutral'"
-      [class.border-paper-deckle]="filled() && tone() === 'neutral'"
-      [class.text-ink]="filled()"
-      [class.bg-riso-mint]="filled() && tone() === 'mint'"
-      [class.border-riso-mint]="filled() && tone() === 'mint'"
-      [class.bg-riso-gold]="filled() && tone() === 'gold'"
-      [class.border-riso-gold]="filled() && tone() === 'gold'"
-      [class.bg-transparent]="!filled()"
-      [class.border-paper-hairline]="!filled()"
-      [class.text-ink-faint]="!filled()"
-      class="inline-block rounded-sm border px-2 py-0.5 text-[0.8125rem] font-mono font-bold truncate max-w-full transition-colors duration-shift ease-run"
-    >{{ outValue() }}</span>
-  </div>
+<div class="flex-none w-[140px] text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">{{ label() }}</div>
+<div class="flex-1 min-w-[90px] text-[0.8125rem] font-mono font-bold text-ink truncate">{{ srcValue() }}</div>
+<div class="flex-none text-ink-faint font-mono text-xs">&rarr;</div>
+<div class="flex-1 min-w-[90px]">
+  <span
+    #badge
+    [class.bg-paper-fresh]="filled() && tone() === 'neutral'"
+    [class.border-paper-deckle]="filled() && tone() === 'neutral'"
+    [class.text-ink]="filled()"
+    [class.bg-riso-mint]="filled() && tone() === 'mint'"
+    [class.border-riso-mint]="filled() && tone() === 'mint'"
+    [class.bg-riso-gold]="filled() && tone() === 'gold'"
+    [class.border-riso-gold]="filled() && tone() === 'gold'"
+    [class.bg-transparent]="!filled()"
+    [class.border-paper-hairline]="!filled()"
+    [class.text-ink-faint]="!filled()"
+    class="inline-block rounded-sm border px-2 py-0.5 text-[0.8125rem] font-mono font-bold truncate max-w-full transition-colors duration-shift ease-run"
+  >{{ outValue() }}</span>
 </div>

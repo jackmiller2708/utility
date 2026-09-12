@@ -14,6 +14,10 @@ export const routes: Routes = [
     loadChildren: () => import('./modules/recent/recent.routes').then((m) => m.RECENT_ROUTES),
   },
   {
+    path: 'recipes',
+    loadChildren: () => import('./modules/recipes/recipes.routes').then((m) => m.RECIPES_ROUTES),
+  },
+  {
     path: '',
     redirectTo: 'media/image-resize',
     pathMatch: 'full',

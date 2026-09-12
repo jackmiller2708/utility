@@ -1,0 +1,164 @@
+@if (notFound()) {
+  <div class="flex flex-col items-center text-center gap-3 py-16">
+    <app-icon name="stack" className="w-6 h-6 text-ink-faint"></app-icon>
+    <span class="text-sm font-bold text-press-text">This recipe doesn't exist anymore</span>
+    <a routerLink="/recipes" class="text-sm font-bold text-riso-blue hover:text-riso-blue-hover transition-colors duration-shift ease-run">Back to recipes</a>
+  </div>
+} @else if (!recipe()) {
+  <div class="flex flex-col items-center text-center gap-3 py-16">
+    <span class="reg-cross reg-cross-spin text-riso-pink" style="width:18px;height:18px"></span>
+  </div>
+} @else {
+  @let recipeValue = recipe()!;
+
+  <div class="flex flex-col gap-6 min-w-0">
+    <div class="flex flex-col gap-2 min-w-0">
+      <div class="flex items-end gap-4 flex-wrap">
+        <h1 class="text-[clamp(1.875rem,3.2vw,2.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-press-text">
+          {{ recipeValue.name }}
+        </h1>
+        <app-badge variant="pink" surface="press">recipe</app-badge>
+      </div>
+      @if (recipeValue.description) {
+        <p class="text-[0.9375rem] leading-relaxed text-press-text-muted max-w-[70ch]">{{ recipeValue.description }}</p>
+      }
+      <div class="flex items-center gap-1.5 flex-wrap mt-1">
+        @for (step of recipeValue.steps; track $index) {
+          <app-badge variant="neutral" surface="press">{{ stepLabel(step.operationId) }}</app-badge>
+          @if (!$last) {
+            <app-icon name="chevron" className="w-3 h-3 -rotate-90 text-press-text-muted shrink-0"></app-icon>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 min-w-0">
+      <section class="lg:col-span-5 min-w-0 relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift">
+        <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
+
+        <div class="px-6 py-5 border-b border-paper-hairline">
+          <h2 class="text-xl font-extrabold text-ink">{{ mode() === 'batch' ? 'Your files' : 'Your file' }}</h2>
+        </div>
+
+        <div class="p-6 flex flex-col gap-6 min-w-0">
+          <app-tile-group
+            [tiles]="modeTiles"
+            [activeId]="mode()"
+            activeInk="pink"
+            (tileSelected)="setMode($event)"
+          ></app-tile-group>
+
+          @if (mode() === 'single') {
+            @if (!selectedFile()) {
+              <app-dropzone
+                title="Drop a file, or browse"
+                [accept]="dropzoneConfig().accept"
+                [supportedFormats]="dropzoneConfig().formats"
+                (fileSelected)="setFile($event)"
+              ></app-dropzone>
+            } @else {
+              <app-file-summary-card
+                [name]="selectedFile()!.name"
+                [sizeFormatted]="formatBytes(selectedFile()!.size)"
+                [previewUrl]="null"
+                itemLabel="file"
+                (changeFile)="resetFile()"
+              ></app-file-summary-card>
+            }
+
+            @if (errorMessage(); as error) {
+              <div class="p-3 rounded-sm border border-riso-red bg-riso-red/10 text-xs font-mono font-bold text-ink flex items-start gap-2" role="alert">
+                <span class="flex-1 min-w-0 break-words">{{ error }}</span>
+              </div>
+            }
+
+            <app-button
+              variant="primary"
+              size="lg"
+              class="border-t border-paper-hairline pt-5 [&>button]:w-full"
+              [disabled]="!canSubmit()"
+              [loading]="isProcessing()"
+              (clicked)="run()"
+            >
+              {{ isProcessing() ? 'Running…' : 'Run recipe' }}
+            </app-button>
+          } @else {
+            @if (batchFiles().length === 0) {
+              <app-dropzone
+                title="Drop files, or browse"
+                [accept]="dropzoneConfig().accept"
+                [supportedFormats]="dropzoneConfig().formats"
+                [multiple]="true"
+                (filesSelected)="addBatchFiles($event)"
+              ></app-dropzone>
+            } @else {
+              <div class="flex flex-col gap-2">
+                @for (file of batchFiles(); track file) {
+                  <div class="flex items-center gap-3 px-3 py-2 bg-paper-fresh border border-paper-deckle rounded-sm">
+                    <span class="flex-1 min-w-0 text-sm font-bold text-ink truncate">{{ file.name }}</span>
+                    <span class="font-mono text-xs text-ink-faint shrink-0">{{ formatBytes(file.size) }}</span>
+                    <button type="button" (click)="removeBatchFile(file)" class="text-ink-faint hover:text-riso-red transition-colors duration-shift ease-run cursor-pointer active:opacity-60 shrink-0">
+                      <app-icon name="close" className="w-3.5 h-3.5"></app-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <app-dropzone
+                title="Drop more files, or browse"
+                [accept]="dropzoneConfig().accept"
+                [supportedFormats]="dropzoneConfig().formats"
+                [multiple]="true"
+                [showPasteHint]="false"
+                (filesSelected)="addBatchFiles($event)"
+              ></app-dropzone>
+            }
+
+            <div class="border-t border-paper-hairline pt-5 flex flex-col gap-3">
+              <app-button
+                variant="primary"
+                size="lg"
+                class="[&>button]:w-full"
+                [disabled]="!canSubmitBatch()"
+                [loading]="isBatchActive()"
+                (clicked)="runBatch()"
+              >
+                @if (isBatchActive()) {
+                  <span>Working&hellip;</span>
+                } @else {
+                  <span>Run {{ batchFiles().length || '' }} file{{ batchFiles().length === 1 ? '' : 's' }}</span>
+                }
+              </app-button>
+
+              @if (batchFiles().length > 0 && !isBatchActive()) {
+                <app-button variant="ghost" size="sm" (clicked)="clearBatchFiles()">Clear all</app-button>
+              }
+            </div>
+          }
+        </div>
+      </section>
+
+      @if (mode() === 'single') {
+        <app-gallery-grid
+          class="lg:col-span-7 min-w-0"
+          title="Results"
+          [items]="galleryItems()"
+          [loading]="isProcessing()"
+          [job]="activeJob()"
+          emptyTitle="No output yet"
+          emptyMessage="Drop a file on the left and run the recipe to see the finished artifact here."
+          (cancelJob)="cancelActiveJob()"
+        ></app-gallery-grid>
+      } @else {
+        <app-gallery-grid
+          class="lg:col-span-7 min-w-0"
+          title="Results"
+          [items]="batchGalleryItems()"
+          [loading]="isBatchActive()"
+          emptyTitle="No output yet"
+          emptyMessage="Run a batch to see every finished artifact here."
+        ></app-gallery-grid>
+      }
+    </div>
+  </div>
+}

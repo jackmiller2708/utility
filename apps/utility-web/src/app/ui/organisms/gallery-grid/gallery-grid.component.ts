@@ -21,7 +21,7 @@ export interface GalleryItem {
   standalone: true,
   imports: [CommonModule, BadgeComponent, IconComponent, GalleryTileComponent],
   templateUrl: './gallery-grid.component.html',
-  host: { class: 'block h-full min-w-0' },
+  host: { class: 'flex flex-col h-full min-w-0 bg-paper border border-paper-deckle rounded-lg shadow-paper-lift min-h-[420px]' },
 })
 export class GalleryGridComponent {
   readonly title = input<string>('Results');

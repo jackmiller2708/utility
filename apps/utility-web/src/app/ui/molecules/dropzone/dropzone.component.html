@@ -1,34 +1,22 @@
-<div
-  (dragover)="onDragOver($event)"
-  (dragleave)="onDragLeave($event)"
-  (drop)="onDrop($event)"
-  (click)="fileInput.click()"
-  [class.border-riso-pink]="isDragging()"
-  [class.dropzone-inviting]="isFileOverDocument() && !isDragging()"
-  [style.background]="isDragging() ? 'radial-gradient(120% 90% at 50% 50%, #FCF8ED 55%, rgba(255,62,165,0.35) 100%)' : null"
-  [class.bg-paper-fresh]="!isDragging()"
-  class="border-2 border-dashed border-ink-faint rounded-lg px-6 py-10 text-center cursor-pointer transition-[background,border-color] duration-shift ease-run min-w-0 hover:border-ink-muted active:shadow-stamped"
->
-  <input
-    #fileInput
-    type="file"
-    [accept]="accept()"
-    [multiple]="multiple()"
-    class="hidden"
-    (change)="onFileInputChange($event)"
-  />
-  <p class="text-2xl font-black tracking-tight text-ink">
-    {{ title() }}
-  </p>
-  <div class="flex items-center justify-center gap-1.5 mt-3 flex-wrap">
-    @for (fmt of supportedFormats(); track fmt) {
-      <app-badge variant="neutral">{{ fmt }}</app-badge>
-    }
-  </div>
-  @if (showPasteHint()) {
-    <div class="mt-3 flex items-center justify-center gap-1.5 text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">
-      <span>or paste</span>
-      <kbd class="px-1.5 py-0.5 rounded-sm bg-paper border border-paper-deckle text-ink whitespace-nowrap">Ctrl+V</kbd>
-    </div>
+<input
+  #fileInput
+  type="file"
+  [accept]="accept()"
+  [multiple]="multiple()"
+  class="hidden"
+  (change)="onFileInputChange($event)"
+/>
+<p class="text-2xl font-black tracking-tight text-ink">
+  {{ title() }}
+</p>
+<div class="flex items-center justify-center gap-1.5 mt-3 flex-wrap">
+  @for (fmt of supportedFormats(); track fmt) {
+    <app-badge variant="neutral">{{ fmt }}</app-badge>
   }
 </div>
+@if (showPasteHint()) {
+  <div class="mt-3 flex items-center justify-center gap-1.5 text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">
+    <span>or paste</span>
+    <kbd class="px-1.5 py-0.5 rounded-sm bg-paper border border-paper-deckle text-ink whitespace-nowrap">Ctrl+V</kbd>
+  </div>
+}

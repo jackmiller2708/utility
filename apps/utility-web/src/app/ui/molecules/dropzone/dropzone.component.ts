@@ -1,4 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, input, output, signal, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BadgeComponent } from '../../atoms/badge/badge.component.js';
 
@@ -10,12 +10,23 @@ const isFileDrag = (event: DragEvent): boolean => !!event.dataTransfer?.types.in
   imports: [CommonModule, BadgeComponent],
   templateUrl: './dropzone.component.html',
   host: {
+    class: 'border-2 border-dashed border-ink-faint rounded-lg px-6 py-10 text-center cursor-pointer transition-[background,border-color] duration-shift ease-run min-w-0 hover:border-ink-muted active:shadow-stamped',
     '(window:dragenter)': 'onWindowDragEnter($event)',
     '(window:dragleave)': 'onWindowDragLeave($event)',
     '(window:drop)': 'onWindowDrop($event)',
+    '(dragover)': 'onDragOver($event)',
+    '(dragleave)': 'onDragLeave($event)',
+    '(drop)': 'onDrop($event)',
+    '(click)': 'openFilePicker()',
+    '[class.border-riso-pink]': 'isDragging()',
+    '[class.dropzone-inviting]': 'isFileOverDocument() && !isDragging()',
+    '[class.bg-paper-fresh]': '!isDragging()',
+    '[style.background]': "isDragging() ? 'radial-gradient(120% 90% at 50% 50%, #FCF8ED 55%, rgba(255,62,165,0.35) 100%)' : null",
   },
 })
 export class DropzoneComponent {
+  private readonly fileInputRef = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
+
   accept = input<string>('image/png,image/jpeg,image/webp,image/avif,image/gif');
   supportedFormats = input<readonly string[]>(['PNG', 'JPEG', 'WebP', 'AVIF']);
   title = input<string>('Drop input file here, or browse');
@@ -88,6 +99,10 @@ export class DropzoneComponent {
   onFileInputChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.emitFiles(input.files);
+  }
+
+  openFilePicker(): void {
+    this.fileInputRef().nativeElement.click();
   }
 
   private emitFiles(files: FileList | null): void {

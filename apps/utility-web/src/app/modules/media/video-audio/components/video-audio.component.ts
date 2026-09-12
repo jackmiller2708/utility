@@ -46,7 +46,7 @@ const kindForMimeType = (mimeType: string): 'image' | 'video' | 'audio' => {
   ],
   providers: [VideoAudioService],
   templateUrl: './video-audio.component.html',
-  host: { class: 'block min-w-0 w-full' },
+  host: { class: 'flex flex-col gap-6 min-w-0 w-full' },
 })
 export class VideoAudioComponent {
   readonly service = inject(VideoAudioService);

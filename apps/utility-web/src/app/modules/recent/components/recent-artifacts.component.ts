@@ -12,7 +12,7 @@ const ALL_OPERATIONS_TILE_ID = 'all';
   imports: [CommonModule, IconComponent, BadgeComponent, InputComponent, ButtonComponent, TileGroupComponent],
   providers: [RecentArtifactsService],
   templateUrl: './recent-artifacts.component.html',
-  host: { class: 'block min-w-0 w-full' },
+  host: { class: 'flex flex-col gap-6 min-w-0 w-full' },
 })
 export class RecentArtifactsComponent implements OnInit {
   readonly service = inject(RecentArtifactsService);

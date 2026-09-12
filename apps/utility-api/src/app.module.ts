@@ -4,8 +4,9 @@ import { AuthModule } from "./auth/auth.module.js";
 import { ToolsModule } from "./tools/tools.module.js";
 import { ArtifactsModule } from "./artifacts/artifacts.module.js";
 import { JobsModule } from "./jobs/jobs.module.js";
+import { WorkflowsModule } from "./workflows/workflows.module.js";
 
 @Module({
-  imports: [EffectModule, AuthModule, ToolsModule, ArtifactsModule, JobsModule],
+  imports: [EffectModule, AuthModule, ToolsModule, ArtifactsModule, JobsModule, WorkflowsModule],
 })
 export class AppModule {}
