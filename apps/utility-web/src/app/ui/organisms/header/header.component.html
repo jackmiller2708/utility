@@ -16,20 +16,20 @@
         class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono rounded-sm hover:bg-press active:bg-press-line cursor-pointer transition-colors duration-shift ease-run"
         aria-label="Show running jobs"
       >
-        <span class="w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-slow"></span>
-        <span class="font-bold leading-none tracking-[0.04em] text-press-text">{{ activeJobCount() }} RUNNING</span>
+        <span class="relative w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-slow"></span>
+        <span class="font-bold pt-[4.5px] leading-none tracking-[0.04em] text-press-text">{{ activeJobCount() }} RUNNING</span>
       </button>
     }
 
     @if (authStatus()) {
       <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono">
-        <span class="w-2 h-2 rounded-full bg-riso-mint shrink-0 pulse-slow"></span>
-        <span class="font-bold leading-none tracking-[0.04em] text-press-text">READY</span>
+        <span class="relative w-2 h-2 rounded-full bg-riso-mint shrink-0 pulse-slow"></span>
+        <span class="font-bold pt-[4.5px] leading-none tracking-[0.04em] text-press-text">READY</span>
       </div>
     } @else {
       <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-mono">
-        <span class="w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-fast"></span>
-        <span class="font-bold leading-none tracking-[0.04em] text-press-text-muted">STARTING&hellip;</span>
+        <span class="relative w-2 h-2 rounded-full bg-riso-gold shrink-0 pulse-fast"></span>
+        <span class="font-bold pt-[4.5px] leading-none tracking-[0.04em] text-press-text-muted">STARTING&hellip;</span>
       </div>
     }
   </div>

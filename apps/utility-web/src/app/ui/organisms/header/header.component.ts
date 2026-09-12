@@ -1,6 +1,7 @@
+import type { AuthStatusModel } from '../../../domain/index.js';
+
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { AuthStatusModel } from '../../../domain/index.js';
 
 @Component({
   selector: 'app-header',
@@ -13,7 +14,7 @@ import type { AuthStatusModel } from '../../../domain/index.js';
   },
 })
 export class HeaderComponent {
-  authStatus = input<AuthStatusModel | null>(null);
-  activeJobCount = input<number>(0);
-  jobTrayToggled = output<void>();
+  readonly authStatus = input<AuthStatusModel | null>(null);
+  readonly activeJobCount = input<number>(0);
+  readonly jobTrayToggled = output<void>();
 }

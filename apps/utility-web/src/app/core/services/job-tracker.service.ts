@@ -7,6 +7,7 @@ import { ApiClientService } from './api-client.service.js';
 import { JobModel, JobModelsFromJobListResponse } from '../../domain/index.js';
 import { Either } from 'effect';
 import { tap, forkJoin, map } from 'rxjs';
+import { Map as ImmutableMap, Set as ImmutableSet } from 'immutable';
 
 const POLL_INTERVAL_MS = 900;
 
@@ -26,10 +27,10 @@ export class JobTrackerService {
   private readonly apiClient = inject(ApiClientService);
 
   private readonly _jobs = signal<readonly JobModel[]>([]);
-  private readonly _labels = new Map<string, string>();
+  private _labels = ImmutableMap<string, string>();
   /** Client-side batch grouping — the backend has no batch concept, every job it tracks is independent. */
-  private readonly _batchIds = new Map<string, string>();
-  private readonly _dismissedIds = new Set<string>();
+  private _batchIds = ImmutableMap<string, string>();
+  private _dismissedIds = ImmutableSet<string>();
   private pollHandle: ReturnType<typeof setInterval> | undefined;
 
   readonly jobs = this._jobs.asReadonly();
@@ -91,9 +92,9 @@ export class JobTrackerService {
   }
 
   dismiss(id: string): void {
-    this._dismissedIds.add(id);
-    this._labels.delete(id);
-    this._batchIds.delete(id);
+    this._dismissedIds = this._dismissedIds.add(id);
+    this._labels = this._labels.delete(id);
+    this._batchIds = this._batchIds.delete(id);
     this._jobs.update((list) => list.filter((job) => job.id !== id));
   }
 
@@ -107,9 +108,9 @@ export class JobTrackerService {
   }
 
   private _registerJob(jobId: string, operationId: string, label: string, batchId?: string): void {
-    this._labels.set(jobId, label);
+    this._labels = this._labels.set(jobId, label);
     if (batchId) {
-      this._batchIds.set(jobId, batchId);
+      this._batchIds = this._batchIds.set(jobId, batchId);
     }
 
     this._jobs.update((list) => [

@@ -1,10 +1,11 @@
+import type { JobModel } from '../../../domain/index.js';
+
 import { Component, input, output, effect, inject, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { GalleryTileComponent } from '../../molecules/gallery-tile/gallery-tile.component.js';
 import { BadgeComponent } from '../../atoms/badge/badge.component.js';
 import { IconComponent } from '../../atoms/icon/icon.component.js';
-import { GalleryTileComponent } from '../../molecules/gallery-tile/gallery-tile.component.js';
 import { MotionService } from '../../../core/index.js';
-import type { JobModel } from '../../../domain/index.js';
+import { CommonModule } from '@angular/common';
 
 export interface GalleryItem {
   readonly id: string;

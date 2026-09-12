@@ -1,8 +1,8 @@
-import { Component, inject, effect, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd, NavigationCancel, NavigationError, NavigationSkipped } from '@angular/router';
-import { filter } from 'rxjs';
+import { Component, inject, effect, ElementRef } from '@angular/core';
 import { RouteCurtainService } from '../../../core/index.js';
+import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs';
 
 /**
  * The press room's own light going down between plates. Covers the whole

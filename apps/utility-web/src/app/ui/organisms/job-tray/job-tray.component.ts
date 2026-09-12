@@ -1,9 +1,11 @@
-import { Component, input, output, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { JobTicketComponent } from '../../molecules/job-ticket/job-ticket.component.js';
-import { BatchTicketComponent } from '../../molecules/batch-ticket/batch-ticket.component.js';
-import { IconComponent } from '../../atoms/icon/icon.component.js';
 import type { JobModel } from '../../../domain/index.js';
+
+import { Component, input, output, signal, computed } from '@angular/core';
+import { BatchTicketComponent } from '../../molecules/batch-ticket/batch-ticket.component.js';
+import { JobTicketComponent } from '../../molecules/job-ticket/job-ticket.component.js';
+import { CommonModule } from '@angular/common';
+import { IconComponent } from '../../atoms/icon/icon.component.js';
+import { Set as ImmutableSet } from 'immutable';
 
 export type TrayEntry =
   | { readonly kind: 'job'; readonly job: JobModel }
@@ -26,12 +28,13 @@ export type TrayEntry =
   templateUrl: './job-tray.component.html',
 })
 export class JobTrayComponent {
-  jobs = input<readonly JobModel[]>([]);
+  private readonly _leavingIds = signal(ImmutableSet<string>());
 
-  cancelJob = output<string>();
-  dismissJob = output<string>();
-  cancelBatch = output<string>();
-  dismissBatch = output<string>();
+  readonly jobs = input<readonly JobModel[]>([]);
+  readonly cancelJob = output<string>();
+  readonly dismissJob = output<string>();
+  readonly cancelBatch = output<string>();
+  readonly dismissBatch = output<string>();
 
   readonly expanded = signal(true);
   readonly activeCount = computed(() => this.jobs().filter((job) => job.isActive).length);
@@ -44,8 +47,10 @@ export class JobTrayComponent {
     for (const job of this.jobs()) {
       if (job.batchId) {
         const idx = batchIndex.get(job.batchId);
+
         if (idx !== undefined) {
           const entry = result[idx];
+
           if (entry.kind === 'batch') {
             result[idx] = { ...entry, jobs: [...entry.jobs, job] };
           }
@@ -61,7 +66,6 @@ export class JobTrayComponent {
     return result;
   });
 
-  private readonly _leavingIds = signal<ReadonlySet<string>>(new Set());
 
   toggle(): void {
     this.expanded.update((value) => !value);
@@ -72,15 +76,11 @@ export class JobTrayComponent {
   }
 
   requestDismiss(id: string): void {
-    this._leavingIds.update((set) => new Set(set).add(id));
+    this._leavingIds.update((set) => set.add(id));
   }
 
   onLeftView(id: string): void {
     this.dismissJob.emit(id);
-    this._leavingIds.update((set) => {
-      const next = new Set(set);
-      next.delete(id);
-      return next;
-    });
+    this._leavingIds.update((set) => set.delete(id));
   }
 }

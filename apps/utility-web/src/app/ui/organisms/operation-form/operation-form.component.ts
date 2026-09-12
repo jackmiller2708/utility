@@ -1,10 +1,11 @@
+import type { ToolParameterModel } from '../../../domain/index.js';
+
 import { Component, input, model, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { InputComponent } from '../../atoms/input/input.component.js';
-import { ToggleComponent } from '../../atoms/toggle/toggle.component.js';
 import { SelectComponent, SelectOption } from '../../atoms/select/select.component.js';
 import { TileGroupComponent, TileItem } from '../../molecules/tile-group/tile-group.component.js';
-import type { ToolParameterModel } from '../../../domain/index.js';
+import { ToggleComponent } from '../../atoms/toggle/toggle.component.js';
+import { InputComponent } from '../../atoms/input/input.component.js';
+import { CommonModule } from '@angular/common';
 
 /** Above this many options, a tile row would wrap awkwardly — fall back to a native select. */
 const MAX_TILE_OPTIONS = 6;
