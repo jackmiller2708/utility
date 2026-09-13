@@ -1,6 +1,14 @@
 {$LAN_HOSTNAME:utility.home.arpa} {
 	tls internal
 
+	# Fast, on-the-fly compression for generated responses (SSR HTML, API
+	# JSON) -- unlike the static bundle, these can't be precompressed at
+	# build time. Caddy skips this for anything upstream already marked
+	# Content-Encoding, so it won't touch the web app's precompressed
+	# (Brotli) static assets. No brotli here: the stock caddy:2 image only
+	# ships gzip/zstd encoders (see `caddy list-modules`).
+	encode zstd gzip
+
 	handle /api/* {
 		reverse_proxy api:3000
 	}
@@ -17,6 +25,8 @@
 # loopback, so it stays plain HTTP with no hostname/TLS of its own; nothing
 # else can reach it since docker-compose.yml only publishes it on 127.0.0.1.
 :8443 {
+	encode zstd gzip
+
 	handle /api/* {
 		reverse_proxy api:3000
 	}
