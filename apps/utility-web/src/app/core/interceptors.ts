@@ -1,14 +1,19 @@
 import { HttpInterceptorFn, HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { catchError, from, map, of, switchMap } from 'rxjs';
+import { DeviceIdentityService, HeadersFromSignedRequest } from './services/device-identity.service.js';
+import { isObject, hasProperty, isString, isNotUndefined } from 'effect/Predicate';
+import { catchError, from, map, of, switchMap, tap } from 'rxjs';
+import { Either, identity, Match, Option } from 'effect';
+import { DeviceTrustService } from './services/device-trust.service.js';
 import { SafeRefinement } from 'effect/Match';
 import { ResponseError } from './errors';
-import { Either, Match } from 'effect';
 import { inject } from '@angular/core';
-import { DeviceIdentityService } from './services/device-identity.service.js';
-import { DeviceTrustService } from './services/device-trust.service.js';
 
-const isErrorEvent = (): SafeRefinement<InstanceType<typeof ErrorEvent>, never> => (
-	(error: unknown) => typeof globalThis.ErrorEvent !== 'undefined' && error instanceof globalThis.ErrorEvent
+/**
+ * Since `ErrorEvent` is a browser-level network error, it doesn't not exist on the server, so we can't use `instanceof` directly.
+ * This refinement checks for its existence first, then narrows the type if it does exist.
+ */
+const isErrorEvent: SafeRefinement<InstanceType<typeof ErrorEvent>, never> = (
+	identity((error: unknown) => isNotUndefined(globalThis.ErrorEvent) && error instanceof globalThis.ErrorEvent)
 ) as any;
 
 /**
@@ -16,23 +21,15 @@ const isErrorEvent = (): SafeRefinement<InstanceType<typeof ErrorEvent>, never> 
  * `message` is a plain string for most exceptions, or an array of strings for
  * validation-pipe failures. Angular has already JSON-parsed this into `error.error`.
  */
-const extractBackendMessage = (body: unknown): string | undefined => {
-	if (!body || typeof body !== 'object' || !('message' in body)) {
-		return undefined;
-	}
-
-	const message = (body as { message: unknown }).message;
-
-	if (typeof message === 'string' && message.length > 0) {
-		return message;
-	}
-
-	if (Array.isArray(message) && message.every((m) => typeof m === 'string')) {
-		return message.join(', ');
-	}
-
-	return undefined;
-};
+const extractBackendMessage = (body: unknown) => Option.Do.pipe(
+	Option.filterMap(() => isObject(body) && hasProperty(body, 'message') ? Option.some(body.message) : Option.none()),
+	Option.filterMap((message) => isString(message) && message.length > 0 
+		? Option.some(message) 
+		: Array.isArray(message) && message.every(isString)
+			? Option.some(message.join(', '))
+			: Option.none()
+	),
+);
 
 const matchStatusMessage = Match.type<HttpErrorResponse>().pipe(
 	Match.when({ status: 401 }, () => 'Unauthorized! Please log in again.'),
@@ -43,8 +40,8 @@ const matchStatusMessage = Match.type<HttpErrorResponse>().pipe(
 );
 
 const matchErrorMessage = Match.type<HttpErrorResponse>().pipe(
-	Match.when({ error: isErrorEvent() }, ({ error }) => `Client Error: ${error.message}`),
-	Match.orElse((error) => extractBackendMessage(error.error) ?? matchStatusMessage(error))
+	Match.when({ error: isErrorEvent }, ({ error }) => `Client Error: ${error.message}`),
+	Match.orElse((error) => extractBackendMessage(error.error).pipe(Option.getOrElse(() => matchStatusMessage(error))))
 );
 
 /**
@@ -60,17 +57,10 @@ const matchErrorMessage = Match.type<HttpErrorResponse>().pipe(
 export const deviceSigningInterceptor: HttpInterceptorFn = (req, next) => {
 	const identity = inject(DeviceIdentityService);
 
-	return from(identity.sign(req.method, req.url)).pipe(
-		switchMap((signed) => next(signed
-			? req.clone({ setHeaders: {
-				'x-device-id': signed.deviceId,
-				'x-timestamp': signed.timestamp,
-				'x-nonce': signed.nonce,
-				'x-signature': signed.signature,
-			} })
-			: req
-		)),
-	);
+	return from(identity.sign(req.method, req.url)).pipe(switchMap((signed) => next(signed
+		? req.clone({ setHeaders: HeadersFromSignedRequest.from(signed) })
+		: req
+	)));
 };
 
 /**
@@ -90,15 +80,14 @@ export const responseInterceptor: HttpInterceptorFn = (req, next) => {
 			? event.clone({ body: Either.right(event.body) })
 			: event
 		),
-		catchError((error: HttpErrorResponse) => {
-			if (error.status === 401) {
+		catchError((error: HttpErrorResponse) => of(new HttpResponse({
+			body: Either.left(new ResponseError({ code: error.status, message: matchErrorMessage(error) })),
+			status: 200
+		}))),
+		tap((event) => {
+			if (event instanceof HttpResponse && Either.isEither(event.body) && Either.isLeft(event.body) && event.body.left.code === 401) {
 				deviceTrust.invalidateTrust('This device is no longer trusted. Ask to be trusted again to continue.');
 			}
-
-			return of(new HttpResponse({
-				body: Either.left(new ResponseError({ code: error.status, message: matchErrorMessage(error) })),
-				status: 200
-			}));
-		})
+		}),
 	);
 };

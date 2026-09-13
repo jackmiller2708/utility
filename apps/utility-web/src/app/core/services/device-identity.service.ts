@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { From } from '@utility/adapter';
 
 const DB_NAME = 'utility-device-identity';
 const STORE_NAME = 'identity';
@@ -20,6 +21,15 @@ export interface SignedRequest {
   readonly nonce: string;
   readonly signature: string;
 }
+
+export const HeadersFromSignedRequest: From<SignedRequest, { [header: string]: string }> = {
+  from: (signed) => ({
+    'x-device-id': signed.deviceId,
+    'x-timestamp': signed.timestamp,
+    'x-nonce': signed.nonce,
+    'x-signature': signed.signature,
+  })
+} 
 
 const bufferToHex = (buffer: ArrayBuffer): string =>
   Array.from(new Uint8Array(buffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
