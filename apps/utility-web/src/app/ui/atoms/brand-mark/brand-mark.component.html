@@ -1,0 +1,19 @@
+<svg viewBox="0 0 32 32" [attr.width]="size()" [attr.height]="size()" fill="none" aria-hidden="true">
+  <rect
+    [attr.x]="outerInset"
+    [attr.y]="outerInset"
+    [attr.width]="outerSpan"
+    [attr.height]="outerSpan"
+    [attr.stroke-width]="strokeWeight"
+    fill="none"
+    [class.stroke-ink]="variant() === 'default'"
+    [class.stroke-press-text]="variant() === 'reversed'"
+  />
+  <rect
+    [attr.x]="innerXY"
+    [attr.y]="innerXY"
+    [attr.width]="innerSpan"
+    [attr.height]="innerSpan"
+    class="fill-riso-pink"
+  />
+</svg>

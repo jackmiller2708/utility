@@ -1,6 +1,7 @@
 // Atoms
 export * from './atoms/button/button.component';
 export * from './atoms/badge/badge.component';
+export * from './atoms/brand-mark/brand-mark.component';
 export * from './atoms/input/input.component';
 export * from './atoms/select/select.component';
 export * from './atoms/toggle/toggle.component';

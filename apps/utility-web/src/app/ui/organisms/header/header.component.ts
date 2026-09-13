@@ -1,11 +1,12 @@
 import { Component, input, output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DeviceTrustService } from '@app/core';
+import { BrandMarkComponent } from '@app/ui/atoms/brand-mark/brand-mark.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BrandMarkComponent],
   templateUrl: './header.component.html',
   host: {
     class: 'flex-none bg-press-elevated border-b border-press-line sticky top-0 z-50',
