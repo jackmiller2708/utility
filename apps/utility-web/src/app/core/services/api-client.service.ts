@@ -304,4 +304,9 @@ export class ApiClientService {
   getArtifactDownloadBlob$(id: string) {
     return this.http.getBlob(`${this.config.baseUrl}/artifacts/${id}/download`);
   }
+
+  /** A compressed WebP re-encode of the artifact, for on-screen inspection — independent of whatever format the artifact itself was actually saved in. */
+  getArtifactPreviewBlob$(id: string) {
+    return this.http.getBlob(`${this.config.baseUrl}/artifacts/${id}/preview`);
+  }
 }

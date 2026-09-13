@@ -57,8 +57,8 @@ Responsibilities:
 ### Native/tool adapters
 
 - Sharp
-- Poppler utilities
-- FFmpeg later
+- Poppler utilities / Ghostscript
+- FFmpeg
 
 ## Package boundaries
 
@@ -69,7 +69,7 @@ Responsibilities:
 - toolkit: tool definitions and registry
 - image: image operations and Sharp adapter
 - pdf: PDF operations and Poppler adapter
-- media: future FFmpeg adapter
+- media: FFmpeg adapter
 
 ## Rules
 

@@ -116,8 +116,8 @@ before anything else loads.
 
 ## 7. Trusting a device
 
-The frontend now has a real enrollment flow (it didn't when this doc was
-first written) — no more hand-signing requests just to get past the gate:
+The frontend has a real enrollment flow — no hand-signing requests needed
+just to get past the gate:
 
 1. **Name it and submit.** The browser generates a keypair itself (stays in
    IndexedDB, never leaves the browser) and asks the server to trust it.

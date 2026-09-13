@@ -28,12 +28,15 @@ A fast, secure, local-first media transformation workstation for designers and c
 
 - **Current Capabilities**:
   - Image manipulation (`image.resize`): Width/height adjustments, aspect ratio preserving fit modes (`inside`, `cover`, `contain`, `fill`, `outside`), format conversion (`webp`, `jpeg`, `png`, `avif`), upscale controls, and preset shortcuts (50%, 25%, 1080p, square).
+  - PDF: render pages, extract embedded images, inspect metadata, merge, and split (a dedicated Merge & Split workbench).
+  - Video/audio: inspect, thumbnail capture, audio extraction, and transcoding, with a scrubbable video preview.
+  - Recipes: composed multi-step operations chaining one tool's output into the next's input, saved and re-runnable.
+  - Async jobs: any operation can run as a background job with real progress and cancellation in a persistent footer tray; batch mode submits many files as independent jobs under one ticket.
   - File inspection: Live previews, dimension tracking, raw size vs. output size comparison, and SHA-256 fingerprint display.
   - Tool discovery: Sidebar navigation of registered system tools and categories.
-  - Secure artifact retrieval: One-click downloads from the managed ArtifactStore.
-- **Upcoming Capabilities**:
-  - PDF operations (`pdf.render-pages`, `pdf.extract-images`, `pdf.inspect`).
-  - Asynchronous batch job queuing and progress tracking.
+  - Recent Artifacts: a searchable, paginated, filterable archive of every artifact produced.
+  - Device management: a Devices page to name, approve, rename, and revoke enrolled devices.
+  - Secure artifact retrieval: One-click downloads and inline previews from the managed ArtifactStore, authenticated even off localhost.
 - **Constraints**:
   - Frontend contains zero OS-specific paths or logic; all execution occurs in server-side sandboxed workspaces.
   - Device authentication required for non-local requests.
@@ -45,8 +48,8 @@ A fast, secure, local-first media transformation workstation for designers and c
 
 ## Evidence on Hand
 
-- Fully functional Angular 22 frontend in `apps/utility-web` with Tailwind CSS.
-- Working image processing vertical slice tested end-to-end with the backend Sharp adapter (`apps/utility-api`).
+- Fully functional Angular 22 frontend in `apps/utility-web` with Tailwind CSS, covering every capability above.
+- Backend adapters for Sharp (image), Poppler/Ghostscript (PDF), and FFmpeg (media) in `apps/utility-api`, all running through the same generic Tool/Operation/Job routes.
 - Core contracts defined in `@utility/protocol` and domain models in `@utility/domain`.
 
 ## Product & Frontend Architecture Principles

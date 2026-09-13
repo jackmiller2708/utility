@@ -27,11 +27,12 @@ Stack specifics that shape this checklist:
 - Angular is built with SSR enabled (`outputMode: "server"`, `apps/utility-web/src/server.ts`),
   so the frontend ships as a Node process (`server.mjs`), not a static asset
   bundle. Caddy reverse-proxies to it the same way it proxies to the API.
-- File processing today covers Sharp (image) and Poppler (PDF); FFmpeg (media)
-  is planned but not yet wired in.
-- No Docker Compose file or Caddyfile exists in the repo yet — the items below
-  are the build-out checklist for creating them, not a description of
-  something already running.
+- File processing covers Sharp (image), Poppler/Ghostscript (PDF), and FFmpeg
+  (media).
+- `docker-compose.yml` and `Caddyfile` exist in the repo and are the live
+  deployed configuration — the items below are a checklist to verify against
+  that configuration, not a build-out plan for something that doesn't exist
+  yet.
 
 ## 1. Network
 
@@ -169,7 +170,7 @@ on the host (or in a mounted volume in Docker).
 
 ## 12. File Processing / Workers
 
-For Sharp (image) and Poppler (PDF) today; FFmpeg (media) once implemented:
+For Sharp (image), Poppler/Ghostscript (PDF), and FFmpeg (media):
 
 - [ ] Processing isolated from the main API where practical
 - [ ] File type validation
@@ -350,7 +351,7 @@ Caddy
               |
               +---- Effect application layer
               |
-              +---- Sharp / Poppler adapters (FFmpeg planned)
+              +---- Sharp / Poppler / Ghostscript / FFmpeg adapters
               |
               +---- ~/.utility (devices.json, workspaces/, artifacts/)
 

@@ -22,6 +22,7 @@ Tool services:
 ```text
 ImageService
 PdfService
+MediaService
 ```
 
 ## Layer composition

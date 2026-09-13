@@ -52,12 +52,13 @@ The server validates that the artifact belongs to an accessible workspace/sessio
 
 ## Jobs
 
-Future asynchronous endpoint:
+Asynchronous execution for any registered operation:
 
 ```text
-POST /api/v1/jobs
-GET  /api/v1/jobs/:id
-POST /api/v1/jobs/:id/cancel
+POST   /api/v1/jobs/:operationId
+GET    /api/v1/jobs
+GET    /api/v1/jobs/:id
+DELETE /api/v1/jobs/:id   # cancels a running job
 ```
 
 ## NestJS

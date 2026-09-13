@@ -38,11 +38,10 @@ There is device identity because network reachability does not imply trust.
 
 ### Media
 
-Future:
+- inspect metadata
 - transcode
-- extract frames
+- thumbnail
 - extract audio
-- thumbnails
 
 ## UX principle
 

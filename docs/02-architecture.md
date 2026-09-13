@@ -135,8 +135,8 @@ Callers decode the DTO (Effect Schema), then adapt before running any domain log
 ```text
 utility-platform/
 ├── apps/
-│   ├── api/
-│   └── web/
+│   ├── utility-api/
+│   └── utility-web/
 │
 ├── packages/
 │   ├── domain/
@@ -145,7 +145,8 @@ utility-platform/
 │   ├── protocol/
 │   ├── toolkit/
 │   ├── image/
-│   └── pdf/
+│   ├── pdf/
+│   └── media/
 │
 └── package.json
 ```

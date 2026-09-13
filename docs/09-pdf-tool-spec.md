@@ -2,41 +2,41 @@
 
 ## Adapter
 
-Poppler-utils.
+Poppler-utils for inspect/render/extract/merge; Ghostscript (`gs`) for split.
 
-The PDF package owns the mapping between intent and Poppler executables.
+The PDF package owns the mapping between intent and these executables.
 
-## Initial operations
+## Operations
 
 ### pdf.render-pages
 
 ```ts
 {
   input: FileId
-  format: "png" | "jpeg"
   dpi?: number
-  pageRange?: {
-    from?: number
-    to?: number
-  }
+  firstPage?: number
+  lastPage?: number
 }
 ```
 
+Renders each page (or the given range) to PNG — one `Artifact` per page.
+
 ### pdf.extract-images
 
-Extract embedded images.
+Extract every embedded raster image to PNG — one `Artifact` per image.
 
 ### pdf.inspect
 
-Return PDF metadata.
+Return page count and title/author when present.
 
 ### pdf.merge
 
-Merge PDFs.
+Merge multiple PDFs, in the given order, into one.
 
 ### pdf.split
 
-Split into PDF artifacts.
+Extract one or more page ranges into separate PDF artifacts (via Ghostscript,
+one invocation per range).
 
 ## Adapter responsibilities
 

@@ -13,7 +13,7 @@ Examples:
 
 ```ts
 type JobStatus =
-  | "queued"
+  | "pending"
   | "running"
   | "completed"
   | "failed"

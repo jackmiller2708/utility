@@ -67,15 +67,19 @@ Stable operation IDs:
 
 ```text
 image.resize
-image.convert
-image.compress
-image.metadata
 
 pdf.render-pages
 pdf.extract-images
 pdf.inspect
 pdf.merge
 pdf.split
+
+media.inspect
+media.thumbnail
+media.extract-audio
+media.transcode
+
+recipe.<workflowId>   # one per saved recipe, registered dynamically
 ```
 
 Implementation changes must not require API changes unless behavior changes.

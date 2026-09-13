@@ -54,6 +54,7 @@ export interface ComparisonSource {
   readonly dimensions: string;
   readonly sizeFormatted: string;
   readonly formatLabel: string;
+  readonly previewUrl: string;
 }
 
 export interface SizeDelta {
@@ -376,6 +377,7 @@ export class ImageResizeService {
       dimensions: `${img.width}×${img.height}`,
       sizeFormatted: this.formatBytes(img.size),
       formatLabel: this.sourceFormatLabel(),
+      previewUrl: img.previewUrl,
     };
   });
 
@@ -408,8 +410,9 @@ export class ImageResizeService {
     Option.fromNullable(this._artifactObjectUrl.getDownloadUrl(id))
   )));
 
+  /** WebP preview for the single-file result panel specifically — not the raw artifact bytes (see `getArtifactFileUrl`, used by batch results, which stays on the real file). */
   readonly artifactFileUrl = computed(() => this._resultArtifact().pipe(Option.flatMap(({ id }) =>
-    Option.fromNullable(this._artifactObjectUrl.getFileUrl(id))
+    Option.fromNullable(this._artifactObjectUrl.getPreviewUrl(id))
 )));
 
   setImage(file: File): void {
@@ -429,6 +432,25 @@ export class ImageResizeService {
         width: img.naturalWidth,
         height: img.naturalHeight,
       }));
+
+      // The on-screen preview is always WebP, independent of the source format — swapped in
+      // once re-encoding finishes; the raw blob (already in place above) covers the gap so
+      // there's no flash of nothing. Falls back silently (keeps the raw blob) if this browser
+      // can't produce a WebP canvas blob.
+      this.reencodePreviewAsWebP(img).then((webpUrl) => {
+        if (!webpUrl) {
+          return;
+        }
+
+        const currentSelection = this._selectedImage();
+
+        if (Option.isSome(currentSelection) && currentSelection.value.file === file) {
+          URL.revokeObjectURL(previewUrl);
+          this._selectedImage.update((opt) => Option.map(opt, (details) => ({ ...details, previewUrl: webpUrl })));
+        } else {
+          URL.revokeObjectURL(webpUrl);
+        }
+      });
 
       const current = this._formState();
       const targetWidth = current.targetWidth;
@@ -454,6 +476,24 @@ export class ImageResizeService {
     };
 
     img.src = previewUrl;
+  }
+
+  /** Draws an already-decoded image to an offscreen canvas and re-encodes it as WebP. Resolves `null` (never rejects) on any failure — an unsupported canvas 2D context, or a browser whose `toBlob` can't produce `image/webp` — so the caller can fall back to the source it already has. */
+  private reencodePreviewAsWebP(source: CanvasImageSource & { naturalWidth: number; naturalHeight: number }, quality = 0.85): Promise<string | null> {
+    const canvas = document.createElement('canvas');
+    canvas.width = source.naturalWidth;
+    canvas.height = source.naturalHeight;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      return Promise.resolve(null);
+    }
+
+    ctx.drawImage(source, 0, 0);
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob ? URL.createObjectURL(blob) : null), 'image/webp', quality);
+    });
   }
 
   resetImage(): void {

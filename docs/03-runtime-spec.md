@@ -1,24 +1,14 @@
 # Runtime Specification
 
-## FileSystem
+## FileSystem & Path
 
-Effect service providing:
-
-- read
-- write
-- copy
-- move
-- remove
-- exists
-- stat
-- createDirectory
-- listDirectory
+`@effect/platform`'s `FileSystem` and `Path` services (Node-backed via `@effect/platform-node`'s `NodeFileSystem`/`NodePath` layers at the composition root) — not a hand-rolled wrapper. Provides `readFile`/`readFileString`, `writeFile`/`writeFileString`, `copyFile`, `rename`, `remove`, `exists`, `stat`, `makeDirectory`, `readDirectory`, and `Path`'s `join`/`resolve`/`parse`/`extname`/`basename`, among others.
 
 Client-provided paths must never directly reach this service.
 
 ## Process
 
-Internal-only capability.
+Internal-only capability. Built on `@effect/platform`'s `Command`/`CommandExecutor` (Node-backed via `NodeCommandExecutor`), not a raw `node:child_process` wrapper.
 
 Conceptual input:
 
@@ -28,6 +18,9 @@ type Command = {
   args: readonly string[]
   cwd?: Path
   env?: Readonly<Record<string, string>>
+  timeoutMs?: number
+  onStdout?: (chunk: string) => void
+  onStderr?: (chunk: string) => void
 }
 ```
 

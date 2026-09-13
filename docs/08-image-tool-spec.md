@@ -8,6 +8,10 @@ The public Image API must not expose Sharp-specific concepts unless they are int
 
 ## image.resize
 
+Resize, format conversion, and quality are one operation, not three — there is
+no separate convert/compress/metadata operation for images (contrast with PDF
+and media, which do have a standalone `inspect`).
+
 Input:
 
 ```ts
@@ -18,6 +22,8 @@ Input:
   fit?: "cover" | "contain" | "fill" | "inside" | "outside"
   position?: string
   withoutEnlargement?: boolean
+  format?: "jpeg" | "png" | "webp" | "avif"   // omit to keep the source format
+  quality?: number                             // 1-100, lossy formats only
 }
 ```
 
@@ -27,24 +33,8 @@ Output:
 Artifact
 ```
 
-## image.convert
-
-Initial formats:
-
-- JPEG
-- PNG
-- WebP
-- AVIF when supported by the installed Sharp/libvips build
-
-## image.compress
-
-Application-level compression controls.
-
-Avoid exposing the complete Sharp option surface.
-
-## image.metadata
-
-Returns structured metadata without generating an output file.
+Supported output formats: JPEG, PNG, WebP, and AVIF when supported by the
+installed Sharp/libvips build.
 
 ## Rules
 
