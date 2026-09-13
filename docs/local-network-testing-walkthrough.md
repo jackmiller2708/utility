@@ -1,21 +1,22 @@
 # Testing the LAN Deployment
 
 Walkthrough for starting the Dockerized stack (Angular SSR + NestJS API + Caddy)
-and testing it from this machine and from another device on your LAN.
+and testing it from the host and from another device on your LAN.
 
-## 0. One-time host setup (already done on this machine)
+## 0. One-time host setup
 
-These were already applied while setting this up and shouldn't need repeating:
+Apply these once per host; they don't need repeating after that:
 
-- `jackmiller` added to the `docker` group (`sudo usermod -aG docker $USER`) —
+- Add the deploying user to the `docker` group (`sudo usermod -aG docker $USER`) —
   open a **new terminal** (or log out/in) so `docker`/`docker compose` work
   without `sudo`. If a command below says "permission denied" on the docker
   socket, your current shell predates the group change; open a fresh one.
-- `/etc/docker/daemon.json` set to `{"dns": ["1.1.1.1", "8.8.8.8"]}` and the
-  Docker daemon restarted — needed on this machine because Cloudflare WARP
-  makes the host's default resolver unreachable from inside containers.
-- The native `caddy` systemd service disabled (`sudo systemctl disable --now caddy`)
-  so the Dockerized Caddy can bind ports 80/443.
+- If containers can't resolve DNS (see
+  [troubleshooting.md](./troubleshooting.md#docker-containers-fail-dns-lookups--builds-hang-on-network-calls)),
+  set `/etc/docker/daemon.json` to `{"dns": ["1.1.1.1", "8.8.8.8"]}` and
+  restart the Docker daemon.
+- Disable any native Caddy install (`sudo systemctl disable --now caddy`) so
+  the Dockerized Caddy can bind ports 80/443.
 
 ## 1. Start the stack
 
@@ -32,7 +33,7 @@ All three services (`api`, `web`, `caddy`) should show `Up`, with `api` and
 
 To watch logs while testing: `docker compose logs -f` (or `-f api` / `-f web` / `-f caddy`).
 
-## 2. Verify from this machine
+## 2. Verify from the host
 
 No DNS setup needed yet — use curl's `--resolve` to point the LAN hostname at
 `127.0.0.1` for a local check (`-k` accepts Caddy's local CA cert without
@@ -46,20 +47,20 @@ curl -kL --resolve utility.home.arpa:443:127.0.0.1 https://utility.home.arpa/ | 
 # -> should show rendered HTML with a <title>, not an empty <app-root></app-root>
 ```
 
-Or just open `https://utility.home.arpa/` in a browser **on this machine**
+Or just open `https://utility.home.arpa/` in a browser **on the host**
 after adding a hosts-file entry (see step 4) — same trust-CA caveat applies
-locally too, since Caddy fronts everything now (there is no more "just open
+locally too, since Caddy fronts everything (there is no "just open
 localhost:4200" path once the stack is Dockerized).
 
-## 3. Find this machine's LAN IP
+## 3. Find the host's LAN IP
 
 ```
 hostname -I | awk '{print $1}'
 ```
 
-On this machine that's currently `192.168.1.29` — yours may differ, and can
-change if using DHCP without a reservation (see checklist item "Stable LAN IP
-configured").
+The examples below use `<server-lan-ip>` as a placeholder for whatever this
+prints — substitute the actual value. It can change if the host uses DHCP
+without a reservation (see the checklist item "Stable LAN IP configured").
 
 ## 4. Make the hostname resolve from another LAN device
 
@@ -67,7 +68,7 @@ Pick one:
 
 - **Quick/per-device**: on the other device, add a hosts-file entry mapping
   the server's LAN IP to `utility.home.arpa`:
-  - Linux/macOS: add `192.168.1.29  utility.home.arpa` to `/etc/hosts` (sudo required)
+  - Linux/macOS: add `<server-lan-ip>  utility.home.arpa` to `/etc/hosts` (sudo required)
   - Windows: same line in `C:\Windows\System32\drivers\etc\hosts` (as Administrator)
   - iOS/Android: no native hosts-file editing without extra apps — use the
     router option below, or browse by IP and accept the cert-name mismatch
@@ -75,6 +76,10 @@ Pick one:
 - **Whole-LAN**: add a local DNS entry on your router (or a Pi-hole/dnsmasq
   instance if you run one) mapping `utility.home.arpa` to the server's LAN IP,
   so every device resolves it without per-device edits.
+
+A stale hosts-file entry (server's LAN IP changed since the entry was added)
+produces `ERR_ADDRESS_UNREACHABLE` or similar — see
+[troubleshooting.md](./troubleshooting.md#browser-shows-err_address_unreachable-or-the-site-isnt-working-even-though-the-server-is-healthy).
 
 ## 5. Trust Caddy's local CA on the other device
 
@@ -109,8 +114,8 @@ showing the certificate error until you fully quit and reopen the browser
 
 ## 6. Open it from the other device
 
-`https://utility.home.arpa/` should now load the Angular app with a valid
-(or click-through) HTTPS connection — and, the first time this particular
+`https://utility.home.arpa/` should load the Angular app with a valid
+(or click-through) HTTPS connection — and, the first time a given
 browser visits, a **"Trust this device"** card covering the whole screen
 before anything else loads.
 
@@ -125,7 +130,7 @@ just to get past the gate:
    enrollment that reaches the API directly on its own loopback (`isLocal` —
    see below) is trusted immediately. Every other enrollment — which, once
    Caddy is in front of everything, is *all* of them, even a browser open on
-   the server's own machine — lands **pending**: the card switches to
+   the server's own host — lands **pending**: the card switches to
    "Waiting for approval" and polls on its own every few seconds. Nothing
    this device does will succeed against the API until an operator approves
    it.
@@ -134,10 +139,10 @@ just to get past the gate:
    — the same bar as managing any device that isn't your own. The Devices
    page (`/devices`) has an **Approve** button for exactly this, but it only
    *works* from a session the API itself sees as local — and in this
-   Docker/Caddy topology, **no browser session ever is**: every request,
+   Docker/Caddy topology, no browser session ever is: every request,
    even one physically at the server, is proxied through Caddy first and
    arrives at the `api` container from Caddy's own container address, never
-   from `127.0.0.1`. So today, approving a device means reaching the API
+   from `127.0.0.1`. So approving a device means reaching the API
    directly, bypassing Caddy — from a shell on the host:
 
    ```

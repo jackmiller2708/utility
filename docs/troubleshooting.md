@@ -194,12 +194,18 @@ to extract and install it. Two things people forget:
 
 ## Docker containers fail DNS lookups / builds hang on network calls
 
-Seen on this machine because Cloudflare WARP makes the host's default
-resolver unreachable from inside containers. Fixed once, at the host level,
-by setting `/etc/docker/daemon.json` to `{"dns": ["1.1.1.1", "8.8.8.8"]}`
-and restarting the Docker daemon
-(`sudo systemctl restart docker`) — not a per-container or per-compose-file
-setting. If this resurfaces (e.g. after a Docker reinstall), that's the fix.
+**Symptom:** `docker compose build`/`up` hangs or fails on any step that
+needs network access (package installs, base image pulls), even though the
+host itself has working internet access.
+
+**Likely cause:** a VPN client running on the host (Cloudflare WARP is a
+common one) makes the host's default DNS resolver unreachable from inside
+containers, which use a different network namespace.
+
+**Fix:** at the host level (not per-container or per-compose-file), set
+`/etc/docker/daemon.json` to `{"dns": ["1.1.1.1", "8.8.8.8"]}` and restart
+the Docker daemon (`sudo systemctl restart docker`). Re-apply this after a
+Docker reinstall if the symptom resurfaces.
 
 ## A device is stuck on "Waiting for approval" forever
 

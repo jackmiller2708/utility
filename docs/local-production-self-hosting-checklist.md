@@ -107,7 +107,7 @@ Stack specifics that shape this checklist:
 - [ ] Server binds to `127.0.0.1` (or an internal Docker network) and only Caddy is reachable from the LAN
 - [ ] `PORT`/`HOST` environment variables reviewed for the target environment
 - [ ] No debug/development mode
-- [ ] `enableCors` origin allowlist updated for the LAN hostname (default source currently hardcodes `localhost:4200`/`127.0.0.1:4200`/`localhost:3000` for dev)
+- [ ] `enableCors` origin allowlist updated for the LAN hostname (defaults to `localhost:4200`/`127.0.0.1:4200`/`localhost:3000` for dev)
 - [ ] Global request validation enabled
 - [ ] Helmet/security headers configured
 - [ ] Rate limiting configured
@@ -166,7 +166,8 @@ on the host (or in a mounted volume in Docker).
 - [ ] Only a single API process/instance runs against a given `~/.utility` tree
 - [ ] Known limitation documented: job state is in-memory only and is lost on API restart
 - [ ] Known limitation documented: the nonce-replay cache resets on API restart (acceptable given the timestamp window, but worth knowing)
-- [ ] Artifact/workspace retention policy decided (nothing currently prunes old workspaces/artifacts automatically)
+- [ ] Artifact retention reviewed — bounded by an automatic sweep (7-day age limit, hourly, `EffectRuntimeService`); adjust the retention window if the default doesn't fit
+- [ ] Workspace retention reviewed — each job's workspace is deleted automatically on completion (`WorkspaceManager`), except when a failed job's `retainOnError` option keeps it for debugging; decide a policy for pruning those retained failure workspaces
 
 ## 12. File Processing / Workers
 
