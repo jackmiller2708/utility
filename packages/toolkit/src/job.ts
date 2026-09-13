@@ -28,6 +28,11 @@ interface JobRecord {
   fiber: Fiber.RuntimeFiber<unknown, unknown> | null;
 }
 
+export interface JobRegistryStats {
+  readonly total: number;
+  readonly byStatus: Readonly<Record<JobStatus, number>>;
+}
+
 export interface JobRegistry {
   readonly createJob: (operationId: string) => Effect.Effect<Job>;
   readonly attachFiber: (id: string, fiber: Fiber.RuntimeFiber<unknown, unknown>) => Effect.Effect<void>;
@@ -40,6 +45,14 @@ export interface JobRegistry {
   readonly listJobs: () => Effect.Effect<readonly Job[]>;
   /** Requests interruption of the job's running fiber. Returns false when the job isn't running (already finished, or unknown id). */
   readonly cancelJob: (id: string) => Effect.Effect<boolean>;
+  /**
+   * Evicts finished jobs (completed/failed/cancelled) — never pending/running ones. First drops
+   * anything older than `maxAgeMs` past completion, then trims the oldest survivors down to
+   * `maxCount` as a backstop against a burst of short-lived jobs outrunning the age sweep.
+   * Returns the number removed.
+   */
+  readonly purgeOldJobs: (maxAgeMs: number, maxCount: number) => Effect.Effect<number>;
+  readonly getStats: () => Effect.Effect<JobRegistryStats>;
 }
 
 export const JobRegistry = Context.GenericTag<JobRegistry>("@utility/toolkit/JobRegistry");
@@ -109,6 +122,51 @@ export const makeJobRegistry = () =>
         yield* Fiber.interrupt(record.fiber);
 
         return true;
+      }),
+
+      purgeOldJobs: (maxAgeMs: number, maxCount: number) => Effect.sync(() => {
+        const isTerminal = (status: JobStatus): boolean =>
+          status === "completed" || status === "failed" || status === "cancelled";
+
+        const now = Date.now();
+        let purged = 0;
+
+        for (const [id, record] of jobs) {
+          if (isTerminal(record.job.status) && record.job.completedAt && now - Date.parse(record.job.completedAt) > maxAgeMs) {
+            jobs.delete(id);
+            purged++;
+          }
+        }
+
+        const terminalByAge = Array.from(jobs.values())
+          .filter((record) => isTerminal(record.job.status))
+          .sort((a, b) => Date.parse(a.job.completedAt ?? a.job.createdAt) - Date.parse(b.job.completedAt ?? b.job.createdAt));
+
+        const excess = terminalByAge.length - maxCount;
+        if (excess > 0) {
+          for (const record of terminalByAge.slice(0, excess)) {
+            jobs.delete(record.job.id);
+            purged++;
+          }
+        }
+
+        return purged;
+      }),
+
+      getStats: () => Effect.sync(() => {
+        const byStatus: Record<JobStatus, number> = {
+          pending: 0,
+          running: 0,
+          completed: 0,
+          failed: 0,
+          cancelled: 0,
+        };
+
+        for (const record of jobs.values()) {
+          byStatus[record.job.status]++;
+        }
+
+        return { total: jobs.size, byStatus };
       }),
     });
   });

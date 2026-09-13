@@ -1,6 +1,7 @@
 import {
   Injectable,
   OnModuleInit,
+  OnModuleDestroy,
   HttpException,
   NotFoundException,
   BadRequestException,
@@ -13,6 +14,7 @@ import { isPlatformError } from "@effect/platform/Error";
 import {
   ProcessLive,
   WorkspaceManagerLive,
+  ArtifactStore,
   ArtifactStoreLive,
   ArtifactNotFoundError,
   WorkspaceError,
@@ -22,6 +24,7 @@ import {
 import {
   ToolRegistry,
   makeToolRegistry,
+  JobRegistry,
   JobRegistryLive,
   WorkflowRegistryLive,
   WorkflowValidationError,
@@ -84,12 +87,52 @@ export const AppLive = Layer.mergeAll(
 
 export type AppServices = Layer.Layer.Success<typeof AppLive>;
 
+// Artifacts are derived output (image/PDF/media results the user already downloaded or can
+// re-generate), so a week-long window trades a little "oops I needed that" risk for keeping
+// disk usage bounded on a host with no database to page through instead.
+const ARTIFACT_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+// Finished jobs are just status/progress bookkeeping for the UI — an hour past completion is
+// far longer than anyone leaves a result tab open to poll it.
+const JOB_RETENTION_MS = 60 * 60 * 1000;
+// Backstop against a burst of short-lived jobs outrunning the hourly sweep.
+const JOB_MAX_COUNT = 1000;
+// Hourly matches the device-auth purge sweep — frequent enough for day/week-scale windows
+// without pulling in a real scheduler dependency for a single-instance app.
+const SWEEP_INTERVAL_MS = 60 * 60 * 1000;
+
 @Injectable()
-export class EffectRuntimeService implements OnModuleInit {
+export class EffectRuntimeService implements OnModuleInit, OnModuleDestroy {
   private runtime!: ManagedRuntime.ManagedRuntime<AppServices, never>;
+  private sweepTimer: ReturnType<typeof setInterval> | null = null;
 
   async onModuleInit() {
     this.runtime = ManagedRuntime.make(AppLive);
+
+    // Run once at startup (a long-idle deployment shouldn't wait a full sweep interval to
+    // catch up), then keep sweeping periodically for as long as the process runs.
+    this.sweepExpiredData().catch(() => {});
+    this.sweepTimer = setInterval(() => {
+      this.sweepExpiredData().catch(() => {});
+    }, SWEEP_INTERVAL_MS);
+  }
+
+  onModuleDestroy() {
+    if (this.sweepTimer) {
+      clearInterval(this.sweepTimer);
+      this.sweepTimer = null;
+    }
+  }
+
+  private async sweepExpiredData() {
+    await this.runPromise(
+      Effect.gen(function* () {
+        const artifactStore = yield* ArtifactStore;
+        const jobRegistry = yield* JobRegistry;
+
+        yield* artifactStore.purgeExpiredArtifacts(ARTIFACT_RETENTION_MS);
+        yield* jobRegistry.purgeOldJobs(JOB_RETENTION_MS, JOB_MAX_COUNT);
+      })
+    );
   }
 
   /** Starts an effect in the background and returns its fiber immediately, without waiting for completion. */

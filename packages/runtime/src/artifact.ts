@@ -37,12 +37,20 @@ export interface ArtifactSaveOptions {
   readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
+export interface ArtifactStorageStats {
+  readonly count: number;
+  readonly totalSizeBytes: number;
+}
+
 export interface ArtifactStore {
   readonly saveArtifact: (options: ArtifactSaveOptions) => Effect.Effect<Artifact, ArtifactError>;
   readonly getArtifact: (id: ArtifactId) => Effect.Effect<Artifact, ArtifactNotFoundError>;
   readonly getArtifactPath: (id: ArtifactId) => Effect.Effect<string, ArtifactNotFoundError>;
   readonly listArtifacts: (query?: ArtifactListQuery) => Effect.Effect<ArtifactListResult>;
   readonly deleteArtifact: (id: ArtifactId) => Effect.Effect<void, ArtifactNotFoundError | ArtifactError>;
+  /** Deletes artifacts older than `maxAgeMs` (by `createdAt`). Returns the number removed. */
+  readonly purgeExpiredArtifacts: (maxAgeMs: number) => Effect.Effect<number>;
+  readonly getStorageStats: () => Effect.Effect<ArtifactStorageStats>;
 }
 
 export const ArtifactStore = Context.GenericTag<ArtifactStore>("@utility/runtime/ArtifactStore");
@@ -243,12 +251,36 @@ export const makeArtifactStore = (config: ArtifactStoreConfig = {}) => Layer.eff
       artifactsMap = artifactsMap.delete(id);
     });
 
+    /** Sweeps artifacts past `maxAgeMs`; called on a timer, not per-request, so failures on one file don't block the rest. */
+    const purgeExpiredArtifacts = (maxAgeMs: number): Effect.Effect<number> => Effect.gen(function* () {
+      const now = Date.now();
+      const expired = artifactsMap.valueSeq().filter((art) => now - Date.parse(art.createdAt) > maxAgeMs).toArray();
+
+      let purged = 0;
+      for (const art of expired) {
+        const removed = yield* deleteArtifact(art.id).pipe(
+          Effect.as(true),
+          Effect.catchAll(() => Effect.succeed(false))
+        );
+        if (removed) purged++;
+      }
+
+      return purged;
+    });
+
+    const getStorageStats = (): Effect.Effect<ArtifactStorageStats> => Effect.sync(() => ({
+      count: artifactsMap.size,
+      totalSizeBytes: artifactsMap.valueSeq().reduce((sum, art) => sum + art.size, 0),
+    }));
+
     return {
       saveArtifact,
       getArtifact,
       getArtifactPath,
       listArtifacts,
       deleteArtifact,
+      purgeExpiredArtifacts,
+      getStorageStats,
     };
   })
 );

@@ -213,15 +213,22 @@ and what to plan for as auth/secrets evolve.
 
 ## 15. Monitoring
 
-- [ ] CPU monitored
-- [ ] RAM monitored
-- [ ] Disk usage monitored (`~/.utility/artifacts` and `workspaces/` can grow unbounded)
+Prometheus + Grafana are wired up (`docker-compose.yml`, `monitoring/`) — Grafana at
+`https://<LAN_HOSTNAME>/grafana/`, LAN-only by design (absent from the Tailscale Funnel Caddy
+block; see [troubleshooting.md](./troubleshooting.md#browser-shows-err_address_unreachable-or-the-site-isnt-working-even-though-the-server-is-healthy)
+if it won't load). The "Utility Overview" dashboard covers process memory/CPU/event-loop lag
+plus artifact/job/device counts, scraped from the API's internal-only `:9464` metrics port.
+
+- [x] API process memory/CPU monitored (Grafana "Utility Overview" dashboard)
+- [ ] Host-level CPU/RAM monitored (Grafana only sees the `api` process today, not the host or the other containers — add a host/cAdvisor exporter if you want that)
+- [x] Artifact storage monitored (`utility_artifacts_count`/`utility_artifacts_total_bytes`) — also now bounded by a 7-day retention sweep (`EffectRuntimeService`), not unbounded growth
+- [ ] Disk usage monitored (host disk itself, and `~/.utility/workspaces/` — not yet covered by the Grafana dashboard)
 - [ ] Disk health monitored
 - [ ] Network monitored
-- [ ] Container health monitored
+- [x] Container health monitored (Docker `HEALTHCHECK` on `api`/`web`; `docker compose ps`)
 - [ ] Frontend (SSR) health checked
-- [ ] API health checked
-- [ ] Uptime monitoring configured
+- [x] API health checked (`GET /health`, `GET /health/status`)
+- [ ] Uptime monitoring configured (Grafana visualizes current state; no alerting/paging configured)
 - [ ] Alerts tested
 
 ## 16. Backups

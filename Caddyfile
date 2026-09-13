@@ -13,6 +13,12 @@
 		reverse_proxy api:3000
 	}
 
+	# LAN-only: deliberately absent from the :8443 Funnel block below, so Grafana
+	# (no strong default auth) is never reachable from the public internet.
+	handle /grafana/* {
+		reverse_proxy grafana:3000
+	}
+
 	handle {
 		reverse_proxy web:4000
 	}

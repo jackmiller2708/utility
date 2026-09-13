@@ -18,6 +18,15 @@ services:
     cap_drop:
       - ALL
     read_only: true
+    logging:
+      # Docker's default json-file driver has no size cap out of the box --
+      # without this, stdout logs (Nest's request/error logging) would grow
+      # unbounded on disk for as long as the container runs. `docker compose
+      # logs -f api` still tails the rotated files transparently.
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     deploy:
       resources:
         limits:
@@ -50,6 +59,11 @@ services:
     cap_drop:
       - ALL
     read_only: true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     deploy:
       resources:
         limits:
@@ -59,11 +73,87 @@ services:
       - internal
     restart: unless-stopped
 
+  prometheus:
+    image: prom/prometheus:v3.13.3
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      # Bounds Prometheus's own on-disk TSDB the same way artifacts/jobs are bounded
+      # elsewhere -- otherwise it's a third unbounded-growth store on this host.
+      - "--storage.tsdb.retention.time=15d"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    networks:
+      - internal
+    restart: unless-stopped
+    # No `ports:` and no Caddy route -- reachable only from other containers on the
+    # `internal` network (Grafana). It has no auth of its own, so it never gets a
+    # route on either Caddy listener (LAN or the public Tailscale Funnel).
+
+  grafana:
+    image: grafana/grafana:13.0.2
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      # Set GRAFANA_ADMIN_PASSWORD in .env before first boot -- this only supplies the
+      # bootstrap default and Grafana won't re-apply it once the admin account exists.
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_SERVER_ROOT_URL: https://${LAN_HOSTNAME:-utility.home.arpa}/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    networks:
+      - internal
+    restart: unless-stopped
+    # Routed by Caddy's LAN block only (see Caddyfile) -- not the :8443 Tailscale
+    # Funnel block -- so it's reachable from the home network but not the public
+    # internet. Revisit GF_SECURITY_ADMIN_PASSWORD if that ever changes.
+
   caddy:
     image: caddy:2
     depends_on:
       - api
       - web
+      - grafana
     environment:
       LAN_HOSTNAME: ${LAN_HOSTNAME:-utility.home.arpa}
     ports:
@@ -92,6 +182,11 @@ services:
       # :443 inside the container -- with all other caps dropped, it needs
       # this one back to bind those privileged ports.
       - NET_BIND_SERVICE
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     deploy:
       resources:
         limits:
@@ -110,3 +205,5 @@ volumes:
   utility-state:
   caddy_data:
   caddy_config:
+  prometheus_data:
+  grafana_data:

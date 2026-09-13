@@ -74,6 +74,47 @@ needs re-running if Funnel itself was reset
 router so `LAN_IP` stops drifting. Until then, this is a "re-run the fix
 above" situation whenever the address changes.
 
+## Browser shows `ERR_ADDRESS_UNREACHABLE` (or the site "isn't working") even though the server is healthy
+
+**Symptom:** `docker compose ps` shows everything `Up (healthy)`, `curl --resolve` from a shell
+on the server itself reaches `https://utility.home.arpa/` fine, `LAN_IP` in `.env` matches
+`hostname -I`, and Caddy's ports are published correctly per the diagnostics above — but a
+specific browser/device still can't load the site, typically with Chrome's
+`ERR_ADDRESS_UNREACHABLE`.
+
+**Likely cause: a stale per-device `/etc/hosts` entry.** This is the client-side counterpart
+to [LAN IP drift](#server-unreachable-from-lan-or-the-public-funnel-url-or-both) above: if you
+followed [local-network-testing-walkthrough.md, step 4](./local-network-testing-walkthrough.md#4-make-the-hostname-resolve-from-another-lan-device)
+and added a hosts-file entry on a device, that entry is a static, one-time snapshot of the
+server's LAN IP — it does **not** update itself when `LAN_IP` changes in `.env`. The server can
+be perfectly healthy at its new address while a browser keeps resolving `utility.home.arpa` to
+the dead old one, which nothing answers on the current network — hence "address unreachable"
+rather than a DNS failure (the name *did* resolve, just to the wrong, no-longer-assigned IP).
+
+**Diagnose** (on the affected device):
+
+```
+getent hosts utility.home.arpa   # Linux/macOS — what this device actually resolves to
+grep utility.home.arpa /etc/hosts
+```
+
+Compare against the server's real address (`hostname -I` on the server, or `grep LAN_IP .env`).
+A mismatch confirms this.
+
+**Fix:**
+
+```
+sudo sed -i 's/^<old-ip>\s\+utility\.home\.arpa/<current-ip> utility.home.arpa/' /etc/hosts
+```
+
+or edit the line by hand. No container restart needed — this is purely client-side. Reload the
+page afterward.
+
+**Permanent fix:** same as LAN IP drift above — get this host a DHCP reservation so `LAN_IP`
+(and everyone's hosts-file entries pointing at it) stop going stale. If several devices resolve
+the hostname this way, consider the walkthrough's router-level local DNS option instead, so
+only one place ever needs updating.
+
 ## `docker compose ps` shows everything `Up` but nothing responds
 
 Docker requires every port in a container's `ports:` list to bind

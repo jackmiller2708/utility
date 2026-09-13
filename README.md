@@ -37,35 +37,40 @@ The frontend is a full risograph-print-studio design system — *The Print Run*:
 
 ## Architecture
 
-```text
-Angular (SSR)                 tool discovery, upload, job progress, artifact download
-     |  HTTP, device-signed requests
-     v
-NestJS                        transport, device auth, validation — thin, no business logic
-     |
-     v
-Effect application layer      Tool Registry, services/layers, domain errors, orchestration
-     |
-     +-- FileSystem / Path (@effect/platform)
-     +-- Process / Command (@effect/platform)
-     +-- Workspace          per-operation sandbox, path-traversal guarded
-     +-- ArtifactStore      SHA-256, metadata, secure lookup
-     |
-     v
-Native adapters                Sharp · Poppler · Ghostscript · FFmpeg
+```mermaid
+flowchart TD
+    Angular["Angular (SSR)<br/>tool discovery, upload, job progress, artifact download"]
+    Nest["NestJS<br/>transport, device auth, validation — thin, no business logic"]
+    Effect["Effect application layer<br/>Tool Registry, services/layers, domain errors, orchestration"]
+    Native["Native adapters<br/>Sharp · Poppler · Ghostscript · FFmpeg"]
+
+    FS["FileSystem / Path<br/>(@effect/platform)"]
+    Proc["Process / Command<br/>(@effect/platform)"]
+    Workspace["Workspace<br/>per-operation sandbox, path-traversal guarded"]
+    ArtifactStore["ArtifactStore<br/>SHA-256, metadata, secure lookup"]
+
+    Angular -->|HTTP, device-signed requests| Nest
+    Nest --> Effect
+    Effect --> Native
+
+    Effect --- FS
+    Effect --- Proc
+    Effect --- Workspace
+    Effect --- ArtifactStore
 ```
 
 ## Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Angular 22 (SSR), Tailwind CSS |
-| Backend | NestJS 12 |
-| Application layer | Effect 3 + Effect Schema |
-| Runtime capabilities | `@effect/platform` (FileSystem, Path, Command) |
-| Native adapters | Sharp · Poppler-utils · Ghostscript · FFmpeg |
-| Deployment | Docker Compose, Caddy (reverse proxy + local/public TLS) |
-| Language | TypeScript, end to end |
+| Layer                | Technology                                                         |
+| -------------------- | ------------------------------------------------------------------ |
+| Frontend             | Angular 22 (SSR), Tailwind CSS                                     |
+| Backend              | NestJS 12                                                          |
+| Application layer    | Effect 3 + Effect Schema                                           |
+| Runtime capabilities | `@effect/platform` (FileSystem, Path, Command)                     |
+| Native adapters      | Sharp · Poppler-utils · Ghostscript · FFmpeg                       |
+| Deployment           | Docker Compose, Caddy (reverse proxy + local/public TLS)           |
+| Monitoring           | Prometheus + Grafana, LAN-only (`https://<LAN_HOSTNAME>/grafana/`) |
+| Language             | TypeScript, end to end                                             |
 
 ## Getting started
 
