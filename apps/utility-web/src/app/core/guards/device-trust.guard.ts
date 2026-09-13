@@ -1,6 +1,6 @@
 import type { CanActivateChildFn } from '@angular/router';
 import { inject } from '@angular/core';
-import { DeviceTrustService } from '../services/device-trust.service.js';
+import { DeviceTrustService } from '../services/device-trust.service';
 
 /**
  * Holds every navigation open until this browser is confirmed trusted (or,

@@ -1,10 +1,10 @@
 import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, DeviceResponse, DeviceListResponse, RevokeDeviceResponse, ApproveDeviceResponse, DeleteDeviceResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, MediaInspectOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse, WorkflowResponse, WorkflowListResponse } from '@utility/protocol';
-import type { HttpResponse } from '../interfaces.js';
+import type { HttpResponse } from '../interfaces';
 
 import { Injectable, inject } from '@angular/core';
-import { HttpClientService } from './http-client.service.js';
-import { LruRequestCache } from './lru-request-cache.js';
-import { API_CONFIG } from '../tokens/api-config.token.js';
+import { HttpClientService } from './http-client.service';
+import { LruRequestCache } from './lru-request-cache';
+import { API_CONFIG } from '../tokens/api-config.token';
 import { Either } from 'effect';
 import { tap } from 'rxjs';
 
@@ -291,11 +291,17 @@ export class ApiClientService {
     return this.http.post<JobSubmittedResponse>(`${this.config.baseUrl}/jobs/${operationId}`, formData);
   }
 
-  getArtifactFileUrl(id: string): string {
-    return `${this.config.baseUrl}/artifacts/${id}/file`;
+  /**
+   * `<img src>`/`<a href>` can't carry the device-auth signature headers `DeviceAuthGuard`
+   * requires for non-local requests, so artifact bytes go through the signed `HttpClient`
+   * as a blob instead — see `ArtifactObjectUrlService`, which turns these into object URLs
+   * a template can bind directly.
+   */
+  getArtifactFileBlob$(id: string) {
+    return this.http.getBlob(`${this.config.baseUrl}/artifacts/${id}/file`);
   }
 
-  getArtifactDownloadUrl(id: string): string {
-    return `${this.config.baseUrl}/artifacts/${id}/download`;
+  getArtifactDownloadBlob$(id: string) {
+    return this.http.getBlob(`${this.config.baseUrl}/artifacts/${id}/download`);
   }
 }

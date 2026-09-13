@@ -1,10 +1,10 @@
-import type { ToolParameterModel } from '../../../domain/index.js';
+import type { ToolParameterModel } from '@app/domain';
 
 import { Component, input, model, computed } from '@angular/core';
-import { SelectComponent, SelectOption } from '../../atoms/select/select.component.js';
-import { TileGroupComponent, TileItem } from '../../molecules/tile-group/tile-group.component.js';
-import { ToggleComponent } from '../../atoms/toggle/toggle.component.js';
-import { InputComponent } from '../../atoms/input/input.component.js';
+import { SelectComponent, SelectOption } from '@app/ui/atoms/select/select.component';
+import { TileGroupComponent, TileItem } from '@app/ui/molecules/tile-group/tile-group.component';
+import { ToggleComponent } from '@app/ui/atoms/toggle/toggle.component';
+import { InputComponent } from '@app/ui/atoms/input/input.component';
 import { CommonModule } from '@angular/common';
 
 /** Above this many options, a tile row would wrap awkwardly — fall back to a native select. */

@@ -1,6 +1,6 @@
 import type { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
-import { RouteCurtainService } from '../services/route-curtain.service.js';
+import { RouteCurtainService } from '../services/route-curtain.service';
 
 /**
  * Holds a navigation open until the route-transition curtain has fully

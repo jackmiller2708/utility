@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { PdfWorkbenchComponent } from './components/pdf-workbench.component.js';
-import { curtainReadyGuard } from '../../../core/index.js';
+import { PdfWorkbenchComponent } from './components/pdf-workbench.component';
+import { curtainReadyGuard } from '@app/core';
 
 export const PDF_WORKBENCH_ROUTES: Routes = [
   {

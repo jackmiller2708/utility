@@ -1,8 +1,7 @@
-import { Context, Effect, Layer } from "effect";
-import * as path from "node:path";
 import { Process, ProcessError, WorkspaceInstance } from "@utility/runtime";
-import { ProgressReporter } from "@utility/toolkit";
 import { InvalidMediaError, MediaProcessingError } from "./errors.js";
+import { Context, Effect, Layer } from "effect";
+import { ProgressReporter } from "@utility/toolkit";
 
 export interface MediaVideoStream {
   readonly codec: string;
@@ -142,10 +141,13 @@ const formatClockTime = (totalSeconds: number): string => {
 /** Finds the last `time=HH:MM:SS.ms` FFmpeg prints to stderr as it encodes — the standard, flag-free way to read live progress, since FFmpeg emits one of these lines every ~0.5s by default while a transcode runs. */
 const parseLastFfmpegTime = (text: string): number | null => {
   const matches = [...text.matchAll(/time=(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)/g)];
+
   if (matches.length === 0) {
     return null;
   }
+  
   const last = matches[matches.length - 1];
+  
   return Number(last[1]) * 3600 + Number(last[2]) * 60 + Number(last[3]);
 };
 
@@ -161,70 +163,62 @@ export const FfmpegMediaServiceLive = Layer.effect(
           args: ["-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", inputPath],
         })
         .pipe(
-          Effect.flatMap((res) =>
-            Effect.try({
-              try: (): MediaMetadata => {
-                const parsed = JSON.parse(res.stdout) as {
-                  format?: { duration?: string; format_name?: string };
-                  streams?: Array<{
-                    codec_type?: string;
-                    codec_name?: string;
-                    width?: number;
-                    height?: number;
-                    r_frame_rate?: string;
-                    sample_rate?: string;
-                    channels?: number;
-                  }>;
-                };
+          Effect.flatMap((res) => Effect.try({
+            try: (): MediaMetadata => {
+              const parsed = JSON.parse(res.stdout) as {
+                format?: { duration?: string; format_name?: string };
+                streams?: Array<{
+                  codec_type?: string;
+                  codec_name?: string;
+                  width?: number;
+                  height?: number;
+                  r_frame_rate?: string;
+                  sample_rate?: string;
+                  channels?: number;
+                }>;
+              };
 
-                const durationSeconds = parsed.format?.duration ? parseFloat(parsed.format.duration) : NaN;
-                if (!Number.isFinite(durationSeconds)) {
-                  throw new Error("ffprobe reported no readable duration");
-                }
+              const durationSeconds = parsed.format?.duration ? parseFloat(parsed.format.duration) : NaN;
 
-                const videoStream = parsed.streams?.find((s) => s.codec_type === "video");
-                const audioStream = parsed.streams?.find((s) => s.codec_type === "audio");
+              if (!Number.isFinite(durationSeconds)) {
+                throw new Error("ffprobe reported no readable duration");
+              }
 
-                const video: MediaVideoStream | null = videoStream
-                  ? {
-                      codec: videoStream.codec_name ?? "unknown",
-                      width: videoStream.width ?? 0,
-                      height: videoStream.height ?? 0,
-                      fps: videoStream.r_frame_rate ? evalFrameRate(videoStream.r_frame_rate) : 0,
-                    }
-                  : null;
+              const videoStream = parsed.streams?.find((s) => s.codec_type === "video");
+              const audioStream = parsed.streams?.find((s) => s.codec_type === "audio");
 
-                const audio: MediaAudioStream | null = audioStream
-                  ? {
-                      codec: audioStream.codec_name ?? "unknown",
-                      sampleRate: audioStream.sample_rate ? parseInt(audioStream.sample_rate, 10) : 0,
-                      channels: audioStream.channels ?? 0,
-                    }
-                  : null;
+              const video: MediaVideoStream | null = videoStream
+                ? {
+                    codec: videoStream.codec_name ?? "unknown",
+                    width: videoStream.width ?? 0,
+                    height: videoStream.height ?? 0,
+                    fps: videoStream.r_frame_rate ? evalFrameRate(videoStream.r_frame_rate) : 0,
+                  }
+                : null;
 
-                return {
-                  durationSeconds,
-                  format: parsed.format?.format_name ?? "unknown",
-                  video,
-                  audio,
-                };
-              },
-              catch: (cause) =>
-                new InvalidMediaError({
-                  path: inputPath,
-                  message: `Failed to read media info: ${cause instanceof Error ? cause.message : String(cause)}`,
-                  cause,
-                }),
-            })
-          ),
-          Effect.mapError((err) =>
-            err instanceof InvalidMediaError
-              ? err
-              : new InvalidMediaError({
-                  path: inputPath,
-                  message: `Failed to read media info: ${isMalformedMediaStderr((err as ProcessError).stderr ?? "") ? "the input does not look like a valid media file" : (err as ProcessError).message}`,
-                  cause: err,
-                })
+              const audio: MediaAudioStream | null = audioStream
+                ? {
+                    codec: audioStream.codec_name ?? "unknown",
+                    sampleRate: audioStream.sample_rate ? parseInt(audioStream.sample_rate, 10) : 0,
+                    channels: audioStream.channels ?? 0,
+                  }
+                : null;
+
+              return { durationSeconds, format: parsed.format?.format_name ?? "unknown", video, audio };
+            },
+            catch: (cause) => new InvalidMediaError({
+              path: inputPath,
+              message: `Failed to read media info: ${cause instanceof Error ? cause.message : String(cause)}`,
+              cause,
+            }),
+          })),
+          Effect.mapError((err) => err instanceof InvalidMediaError
+            ? err
+            : new InvalidMediaError({
+                path: inputPath,
+                message: `Failed to read media info: ${isMalformedMediaStderr((err as ProcessError).stderr ?? "") ? "the input does not look like a valid media file" : (err as ProcessError).message}`,
+                cause: err,
+              })
           )
         );
 
@@ -295,6 +289,7 @@ export const FfmpegMediaServiceLive = Layer.effect(
           args.push(outputPath);
 
           let stderrBuffer = "";
+
           const onStderr = onProgress
             ? (chunk: string) => {
                 stderrBuffer += chunk;
@@ -327,8 +322,10 @@ export const FfmpegMediaServiceLive = Layer.effect(
 /** FFmpeg/ffprobe report frame rate as a fraction string like "30000/1001" or "25/1". */
 function evalFrameRate(fraction: string): number {
   const [num, den] = fraction.split("/").map(Number);
+
   if (!den) {
     return num || 0;
   }
+
   return Math.round((num / den) * 100) / 100;
 }

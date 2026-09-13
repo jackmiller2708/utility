@@ -1,7 +1,7 @@
 import { Component, inject, signal, effect } from '@angular/core';
-import { DeviceTrustService } from '../../../core/index.js';
-import { InputComponent } from '../../atoms/input/input.component.js';
-import { IconComponent } from '../../atoms/icon/icon.component.js';
+import { DeviceTrustService } from '@app/core';
+import { InputComponent } from '@app/ui/atoms/input/input.component';
+import { IconComponent } from '@app/ui/atoms/icon/icon.component';
 import { CommonModule } from '@angular/common';
 
 /**

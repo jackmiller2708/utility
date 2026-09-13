@@ -1,10 +1,10 @@
-import type { ToolOperationModel } from '../../../domain/index.js';
-import type { CreateWorkflowInput } from '../../../core/services/api-client.service.js';
+import type { ToolOperationModel } from '@app/domain';
+import type { CreateWorkflowInput } from '@app/core/services/api-client.service';
 
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { ApiClientService } from '../../../core/services/api-client.service.js';
-import { RuntimeStatusService } from '../../../core/index.js';
-import { WorkflowModel, WorkflowModelFromWorkflowResponse, WorkflowModelsFromWorkflowListResponse } from '../../../domain/index.js';
+import { ApiClientService } from '@app/core/services/api-client.service';
+import { RuntimeStatusService } from '@app/core';
+import { WorkflowModel, WorkflowModelFromWorkflowResponse, WorkflowModelsFromWorkflowListResponse } from '@app/domain';
 import { Either } from 'effect';
 
 /**

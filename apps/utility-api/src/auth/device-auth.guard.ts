@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from "@nestjs/common";
 import { Request } from "express";
 import { DeviceAuthService } from "./device-auth.service.js";
 import { isLocalRequest } from "./request-locality.js";

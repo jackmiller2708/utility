@@ -1,6 +1,6 @@
 import type { WorkflowResponse, WorkflowListResponse, WorkflowRunOutput } from '@utility/protocol';
 import type { From } from '@utility/adapter';
-import { ArtifactModel } from './artifact.model.js';
+import { ArtifactModel } from './artifact.model';
 
 export interface WorkflowStepModel {
   readonly operationId: string;

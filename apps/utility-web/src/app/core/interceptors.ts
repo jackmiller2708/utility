@@ -1,9 +1,9 @@
 import { HttpInterceptorFn, HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { DeviceIdentityService, HeadersFromSignedRequest } from './services/device-identity.service.js';
+import { DeviceIdentityService, HeadersFromSignedRequest } from './services/device-identity.service';
 import { isObject, hasProperty, isString, isNotUndefined } from 'effect/Predicate';
-import { catchError, from, map, of, switchMap, tap } from 'rxjs';
-import { Either, identity, Match, Option } from 'effect';
-import { DeviceTrustService } from './services/device-trust.service.js';
+import { catchError, from, map, of, switchMap, tap, throwError } from 'rxjs';
+import { Either, Match, Option } from 'effect';
+import { DeviceTrustService } from './services/device-trust.service';
 import { SafeRefinement } from 'effect/Match';
 import { ResponseError } from './errors';
 import { inject } from '@angular/core';
@@ -13,7 +13,7 @@ import { inject } from '@angular/core';
  * This refinement checks for its existence first, then narrows the type if it does exist.
  */
 const isErrorEvent: SafeRefinement<InstanceType<typeof ErrorEvent>, never> = (
-	identity((error: unknown) => isNotUndefined(globalThis.ErrorEvent) && error instanceof globalThis.ErrorEvent)
+	(error: unknown) => isNotUndefined(globalThis.ErrorEvent) && error instanceof globalThis.ErrorEvent
 ) as any;
 
 /**
@@ -39,7 +39,7 @@ const matchStatusMessage = Match.type<HttpErrorResponse>().pipe(
 	Match.orElse((error) => `Error Code ${error.status}: ${error.message}`)
 );
 
-const matchErrorMessage = Match.type<HttpErrorResponse>().pipe(
+export const matchErrorMessage = Match.type<HttpErrorResponse>().pipe(
 	Match.when({ error: isErrorEvent }, ({ error }) => `Client Error: ${error.message}`),
 	Match.orElse((error) => extractBackendMessage(error.error).pipe(Option.getOrElse(() => matchStatusMessage(error))))
 );
@@ -71,21 +71,37 @@ export const deviceSigningInterceptor: HttpInterceptorFn = (req, next) => {
  * every 401 through `DeviceTrustService.invalidateTrust` re-opens the gate
  * the moment that happens, rather than leaving a revoked session free to
  * keep navigating a UI whose every protected call now silently fails.
+ *
+ * Only applies the "errors are values" `Either` wrapping for `json`-typed
+ * requests (the default, and everything but artifact blob fetches). Angular
+ * enforces the response body's actual runtime type against a non-`json`
+ * `responseType` (`Blob` for `'blob'`, `ArrayBuffer` for `'arraybuffer'`, …)
+ * *after* interceptors run — wrapping the body in `Either` there would make
+ * it fail that check (`NG02807` etc.) on every request. Those requests keep
+ * ordinary thrown `HttpErrorResponse`s instead; `HttpClientService.getBlob`
+ * does its own `Either` wrapping downstream, once Angular's own check has
+ * already passed.
  */
 export const responseInterceptor: HttpInterceptorFn = (req, next) => {
 	const deviceTrust = inject(DeviceTrustService);
+	const isJsonRequest = req.responseType === 'json';
 
 	return next(req).pipe(
-		map((event) => event instanceof HttpResponse
+		map((event) => event instanceof HttpResponse && isJsonRequest
 			? event.clone({ body: Either.right(event.body) })
 			: event
 		),
-		catchError((error: HttpErrorResponse) => of(new HttpResponse({
-			body: Either.left(new ResponseError({ code: error.status, message: matchErrorMessage(error) })),
-			status: 200
-		}))),
+		catchError((error: HttpErrorResponse) => {
+			if (!isJsonRequest) {
+				return throwError(() => error);
+			}
+			return of(new HttpResponse({
+				body: Either.left(new ResponseError({ code: error.status, message: matchErrorMessage(error) })),
+				status: 200
+			}));
+		}),
 		tap((event) => {
-			if (event instanceof HttpResponse && Either.isEither(event.body) && Either.isLeft(event.body) && event.body.left.code === 401) {
+			if (event instanceof HttpResponse && Either.isEither(event.body) && Either.isLeft(event.body) && (event.body.left as ResponseError).code === 401) {
 				deviceTrust.invalidateTrust('This device is no longer trusted. Ask to be trusted again to continue.');
 			}
 		}),

@@ -15,7 +15,9 @@ import { Effect } from "effect";
 import { DeviceAuthGuard } from "../auth/device-auth.guard.js";
 import { EffectRuntimeService } from "../effect/effect-runtime.service.js";
 import { ToolRegistry, JobRegistry, JobProgress, trackJob, Operation } from "@utility/toolkit";
-import { FileSystem, WorkspaceManager, WorkspaceInstance, FileSystemError } from "@utility/runtime";
+import { WorkspaceManager, WorkspaceInstance } from "@utility/runtime";
+import { FileSystem } from "@effect/platform";
+import type { PlatformError } from "@effect/platform/Error";
 
 interface MulterUploadedFile {
   fieldname: string;
@@ -56,13 +58,13 @@ function coerceParamValue(type: string, raw: string): unknown {
  * registered operation without per-operation controller code.
  */
 function prepareJobInput(
-  fs: FileSystem,
+  fs: FileSystem.FileSystem,
   ws: WorkspaceInstance,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   op: Operation<any, any, any, any>,
   files: readonly MulterUploadedFile[],
   body: Record<string, string>
-): Effect.Effect<Record<string, unknown>, FileSystemError | Error> {
+): Effect.Effect<Record<string, unknown>, PlatformError | Error> {
   return Effect.gen(function* () {
     const input: Record<string, unknown> = {};
     const fileParam = op.parameters.find((p) => p.type === "file");
@@ -87,7 +89,7 @@ function prepareJobInput(
 
       for (let i = 0; i < files.length; i++) {
         const filename = files.length > 1 ? `${i}_${files[i].originalname || "input"}` : files[i].originalname || "input";
-        yield* fs.write(ws.resolveInputPath(filename), files[i].buffer);
+        yield* fs.writeFile(ws.resolveInputPath(filename), files[i].buffer);
         filenames.push(filename);
       }
 
@@ -139,7 +141,7 @@ export class JobsController {
       const registry = yield* ToolRegistry;
       const jobRegistry = yield* JobRegistry;
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       const op = yield* registry.getOperation(operationId);
       if (!op) {

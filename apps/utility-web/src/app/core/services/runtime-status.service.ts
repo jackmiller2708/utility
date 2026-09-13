@@ -1,9 +1,9 @@
 import type { AuthStatusResponse } from '@utility/protocol';
-import type { ToolModel } from '../../domain/index.js';
+import type { ToolModel } from '../../domain';
 
 import { Injectable, inject, signal } from '@angular/core';
-import { ApiClientService } from './api-client.service.js';
-import { ToolModelsFromToolsListResponse } from '../../domain/index.js';
+import { ApiClientService } from './api-client.service';
+import { ToolModelsFromToolsListResponse } from '../../domain';
 import { Either } from 'effect';
 
 @Injectable({

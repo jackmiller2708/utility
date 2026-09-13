@@ -1,33 +1,33 @@
 // Atoms
-export * from './atoms/button/button.component.js';
-export * from './atoms/badge/badge.component.js';
-export * from './atoms/input/input.component.js';
-export * from './atoms/select/select.component.js';
-export * from './atoms/toggle/toggle.component.js';
-export * from './atoms/icon/icon.component.js';
+export * from './atoms/button/button.component';
+export * from './atoms/badge/badge.component';
+export * from './atoms/input/input.component';
+export * from './atoms/select/select.component';
+export * from './atoms/toggle/toggle.component';
+export * from './atoms/icon/icon.component';
 
 // Molecules
-export * from './molecules/dropzone/dropzone.component.js';
-export * from './molecules/file-summary-card/file-summary-card.component.js';
-export * from './molecules/telemetry-row/telemetry-row.component.js';
-export * from './molecules/tile-group/tile-group.component.js';
-export * from './molecules/error-diagnostic/error-diagnostic.component.js';
-export * from './molecules/gallery-tile/gallery-tile.component.js';
-export * from './molecules/job-ticket/job-ticket.component.js';
-export * from './molecules/batch-ticket/batch-ticket.component.js';
-export * from './molecules/video-scrubber/video-scrubber.component.js';
-export * from './molecules/device-ticket/device-ticket.component.js';
+export * from './molecules/dropzone/dropzone.component';
+export * from './molecules/file-summary-card/file-summary-card.component';
+export * from './molecules/telemetry-row/telemetry-row.component';
+export * from './molecules/tile-group/tile-group.component';
+export * from './molecules/error-diagnostic/error-diagnostic.component';
+export * from './molecules/gallery-tile/gallery-tile.component';
+export * from './molecules/job-ticket/job-ticket.component';
+export * from './molecules/batch-ticket/batch-ticket.component';
+export * from './molecules/video-scrubber/video-scrubber.component';
+export * from './molecules/device-ticket/device-ticket.component';
 
 // Organisms
-export * from './organisms/header/header.component.js';
-export * from './organisms/sidebar/sidebar.component.js';
-export * from './organisms/telemetry-deck/telemetry-deck.component.js';
-export * from './organisms/gallery-grid/gallery-grid.component.js';
-export * from './organisms/sortable-file-list/sortable-file-list.component.js';
-export * from './organisms/job-tray/job-tray.component.js';
-export * from './organisms/route-curtain/route-curtain.component.js';
-export * from './organisms/enrollment-gate/enrollment-gate.component.js';
-export * from './organisms/operation-form/operation-form.component.js';
+export * from './organisms/header/header.component';
+export * from './organisms/sidebar/sidebar.component';
+export * from './organisms/telemetry-deck/telemetry-deck.component';
+export * from './organisms/gallery-grid/gallery-grid.component';
+export * from './organisms/sortable-file-list/sortable-file-list.component';
+export * from './organisms/job-tray/job-tray.component';
+export * from './organisms/route-curtain/route-curtain.component';
+export * from './organisms/enrollment-gate/enrollment-gate.component';
+export * from './organisms/operation-form/operation-form.component';
 
 // Templates
-export * from './templates/workbench-layout/workbench-layout.component.js';
+export * from './templates/workbench-layout/workbench-layout.component';

@@ -1,10 +1,11 @@
-import type { ArtifactModel, JobModel } from '../../../../domain/index.js';
+import type { ArtifactModel, JobModel } from '@app/domain';
 import type { PdfSplitOutput, PdfMergeOutput } from '@utility/protocol';
 
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
-import { ApiClientService } from '../../../../core/services/api-client.service.js';
-import { JobTrackerService } from '../../../../core/index.js';
-import { ArtifactModelsFromPdfSplitOutput, ArtifactModelFromPdfMergeOutput } from '../../../../domain/index.js';
+import { ApiClientService } from '@app/core/services/api-client.service';
+import { ArtifactObjectUrlService } from '@app/core/services/artifact-object-url.service';
+import { JobTrackerService } from '@app/core';
+import { ArtifactModelsFromPdfSplitOutput, ArtifactModelFromPdfMergeOutput } from '@app/domain';
 import { Either, Option } from 'effect';
 import { finalize } from 'rxjs';
 
@@ -51,6 +52,7 @@ const nextRowId = () => `row_${++rowIdCounter}`;
 @Injectable()
 export class MergeSplitService {
   private readonly _apiClient = inject(ApiClientService);
+  private readonly _artifactObjectUrl = inject(ArtifactObjectUrlService);
   private readonly _jobTracker = inject(JobTrackerService);
 
   private readonly _mode = signal<MergeSplitMode>('split');
@@ -323,11 +325,11 @@ export class MergeSplitService {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  getArtifactFileUrl(id: string): string {
-    return this._apiClient.getArtifactFileUrl(id);
+  getArtifactFileUrl(id: string): string | null {
+    return this._artifactObjectUrl.getFileUrl(id);
   }
 
-  getArtifactDownloadUrl(id: string): string {
-    return this._apiClient.getArtifactDownloadUrl(id);
+  getArtifactDownloadUrl(id: string): string | null {
+    return this._artifactObjectUrl.getDownloadUrl(id);
   }
 }

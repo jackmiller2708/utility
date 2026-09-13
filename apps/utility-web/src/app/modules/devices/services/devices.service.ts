@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { ApiClientService } from '../../../core/services/api-client.service.js';
-import { DeviceModel, DeviceModelsFromDeviceListResponse } from '../../../domain/index.js';
+import { ApiClientService } from '@app/core/services/api-client.service';
+import { DeviceModel, DeviceModelsFromDeviceListResponse } from '@app/domain';
 import { Either } from 'effect';
 
 /**

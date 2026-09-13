@@ -20,6 +20,7 @@
   @if (downloadUrl()) {
     <a
       [href]="downloadUrl()!"
+      [attr.download]="label()"
       class="text-ink-faint hover:text-riso-blue active:opacity-60 transition-colors duration-shift ease-run shrink-0"
       [attr.aria-label]="'Download ' + label() + (sizeFormatted() ? ', ' + sizeFormatted() : '')"
     >

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { MergeSplitComponent } from './components/merge-split.component.js';
-import { curtainReadyGuard } from '../../../core/index.js';
+import { MergeSplitComponent } from './components/merge-split.component';
+import { curtainReadyGuard } from '@app/core';
 
 export const MERGE_SPLIT_ROUTES: Routes = [
   {

@@ -1,23 +1,29 @@
 import { describe, it, expect } from "vitest";
 import { Effect, Layer, Fiber } from "effect";
+import { FileSystem } from "@effect/platform";
+import { NodeFileSystem, NodeCommandExecutor, NodePath } from "@effect/platform-node";
 import {
-  FileSystemLive,
   ProcessLive,
   WorkspaceManagerLive,
   ArtifactStoreLive,
-  FileSystem,
   WorkspaceManager,
 } from "@utility/runtime";
 import { makeToolRegistry, ToolRegistry, JobRegistry, JobRegistryLive, JobProgress, trackJob } from "@utility/toolkit";
 import { pdfTool, renderPagesOperation, extractImagesOperation, PopplerPdfServiceLive } from "@utility/pdf";
 import { buildTestPdf } from "./support/pdf-fixtures.js";
 
+const ProcessServiceLive = ProcessLive.pipe(
+  Layer.provide(NodeCommandExecutor.layer),
+  Layer.provide(NodeFileSystem.layer)
+);
+
 const TestEnv = Layer.mergeAll(
-  FileSystemLive,
-  ProcessLive,
-  WorkspaceManagerLive.pipe(Layer.provide(FileSystemLive)),
-  ArtifactStoreLive.pipe(Layer.provide(FileSystemLive)),
-  PopplerPdfServiceLive.pipe(Layer.provide(Layer.mergeAll(ProcessLive, FileSystemLive))),
+  NodeFileSystem.layer,
+  NodePath.layer,
+  ProcessServiceLive,
+  WorkspaceManagerLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer))),
+  ArtifactStoreLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer))),
+  PopplerPdfServiceLive.pipe(Layer.provide(Layer.mergeAll(ProcessServiceLive, NodeFileSystem.layer, NodePath.layer))),
   makeToolRegistry([pdfTool]),
   JobRegistryLive
 );
@@ -120,7 +126,7 @@ describe("Progress reporting (real PdfService chunking, not mocked)", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
       const registry = yield* ToolRegistry;
 
       const op = yield* registry.getOperation("pdf.render-pages");
@@ -129,7 +135,7 @@ describe("Progress reporting (real PdfService chunking, not mocked)", () => {
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.pdf";
-          yield* fs.write(ws.resolveInputPath(filename), pdfBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), pdfBuffer);
 
           return yield* op.execute(
             { file: filename, dpi: 72, firstPage: 1, lastPage: 25 },
@@ -156,7 +162,7 @@ describe("Progress reporting (real PdfService chunking, not mocked)", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
       const registry = yield* ToolRegistry;
 
       const op = yield* registry.getOperation("pdf.extract-images");
@@ -165,7 +171,7 @@ describe("Progress reporting (real PdfService chunking, not mocked)", () => {
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.pdf";
-          yield* fs.write(ws.resolveInputPath(filename), pdfBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), pdfBuffer);
 
           return yield* op.execute(
             { file: filename },
@@ -193,14 +199,14 @@ describe("Progress reporting (real PdfService chunking, not mocked)", () => {
     const runOnce = (withProgress: boolean) =>
       Effect.gen(function* () {
         const wsManager = yield* WorkspaceManager;
-        const fs = yield* FileSystem;
+        const fs = yield* FileSystem.FileSystem;
         const registry = yield* ToolRegistry;
         const op = yield* registry.getOperation("pdf.render-pages");
         if (!op) throw new Error("missing op");
 
         return yield* wsManager.withWorkspace((ws) =>
           Effect.gen(function* () {
-            yield* fs.write(ws.resolveInputPath("input.pdf"), pdfBuffer);
+            yield* fs.writeFile(ws.resolveInputPath("input.pdf"), pdfBuffer);
             return yield* op.execute(
               { file: "input.pdf", dpi: 72 },
               withProgress ? { workspace: ws, reportProgress: () => {} } : { workspace: ws }

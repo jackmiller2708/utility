@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { Effect, Layer } from "effect";
+import { FileSystem } from "@effect/platform";
+import { NodeFileSystem, NodeCommandExecutor, NodePath } from "@effect/platform-node";
 import {
-  FileSystemLive,
   ProcessLive,
   WorkspaceManagerLive,
   ArtifactStoreLive,
-  FileSystem,
   WorkspaceManager,
 } from "@utility/runtime";
 import { makeToolRegistry, ToolRegistry } from "@utility/toolkit";
@@ -22,12 +22,18 @@ import {
 import { buildTestPdf } from "./support/pdf-fixtures.js";
 
 describe("PDF tools", () => {
+  const ProcessServiceLive = ProcessLive.pipe(
+    Layer.provide(NodeCommandExecutor.layer),
+    Layer.provide(NodeFileSystem.layer)
+  );
+
   const TestEnv = Layer.mergeAll(
-    FileSystemLive,
-    ProcessLive,
-    WorkspaceManagerLive.pipe(Layer.provide(FileSystemLive)),
-    ArtifactStoreLive.pipe(Layer.provide(FileSystemLive)),
-    PopplerPdfServiceLive.pipe(Layer.provide(Layer.mergeAll(ProcessLive, FileSystemLive))),
+    NodeFileSystem.layer,
+    NodePath.layer,
+    ProcessServiceLive,
+    WorkspaceManagerLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer))),
+    ArtifactStoreLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer))),
+    PopplerPdfServiceLive.pipe(Layer.provide(Layer.mergeAll(ProcessServiceLive, NodeFileSystem.layer, NodePath.layer))),
     makeToolRegistry([pdfTool, pdfMergeSplitTool])
   );
 
@@ -52,12 +58,12 @@ describe("PDF tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.pdf";
-          yield* fs.write(ws.resolveInputPath(filename), pdfBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), pdfBuffer);
 
           return yield* inspectOperation.execute({ file: filename }, { workspace: ws });
         })
@@ -71,12 +77,12 @@ describe("PDF tools", () => {
   it("rejects a non-PDF file with a descriptive error", async () => {
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "not-a-pdf.pdf";
-          yield* fs.write(ws.resolveInputPath(filename), Buffer.from("this is not a pdf"));
+          yield* fs.writeFile(ws.resolveInputPath(filename), Buffer.from("this is not a pdf"));
 
           return yield* inspectOperation.execute({ file: filename }, { workspace: ws });
         })
@@ -91,12 +97,12 @@ describe("PDF tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.pdf";
-          yield* fs.write(ws.resolveInputPath(filename), pdfBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), pdfBuffer);
 
           return yield* renderPagesOperation.execute(
             { file: filename, dpi: 72 },
@@ -119,12 +125,12 @@ describe("PDF tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.pdf";
-          yield* fs.write(ws.resolveInputPath(filename), pdfBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), pdfBuffer);
 
           return yield* renderPagesOperation.execute(
             { file: filename, dpi: 72, firstPage: 2, lastPage: 3 },
@@ -143,12 +149,12 @@ describe("PDF tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.pdf";
-          yield* fs.write(ws.resolveInputPath(filename), pdfBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), pdfBuffer);
 
           return yield* extractImagesOperation.execute({ file: filename }, { workspace: ws });
         })
@@ -165,12 +171,12 @@ describe("PDF tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.pdf";
-          yield* fs.write(ws.resolveInputPath(filename), pdfBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), pdfBuffer);
 
           return yield* extractImagesOperation.execute({ file: filename }, { workspace: ws });
         })
@@ -198,12 +204,12 @@ describe("PDF tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.pdf";
-          yield* fs.write(ws.resolveInputPath(filename), pdfBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), pdfBuffer);
 
           return yield* splitOperation.execute(
             { file: filename, ranges: [{ firstPage: 2, lastPage: 3 }] },
@@ -225,12 +231,12 @@ describe("PDF tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.pdf";
-          yield* fs.write(ws.resolveInputPath(filename), pdfBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), pdfBuffer);
 
           return yield* splitOperation.execute(
             {
@@ -258,12 +264,12 @@ describe("PDF tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
-          yield* fs.write(ws.resolveInputPath("first.pdf"), first);
-          yield* fs.write(ws.resolveInputPath("second.pdf"), second);
+          yield* fs.writeFile(ws.resolveInputPath("first.pdf"), first);
+          yield* fs.writeFile(ws.resolveInputPath("second.pdf"), second);
 
           return yield* mergeOperation.execute(
             { files: ["first.pdf", "second.pdf"] },
@@ -281,12 +287,12 @@ describe("PDF tools", () => {
   it("rejects an invalid PDF passed to split", async () => {
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "not-a-pdf.pdf";
-          yield* fs.write(ws.resolveInputPath(filename), Buffer.from("this is not a pdf"));
+          yield* fs.writeFile(ws.resolveInputPath(filename), Buffer.from("this is not a pdf"));
 
           return yield* splitOperation.execute(
             { file: filename, ranges: [{ firstPage: 1, lastPage: 1 }] },

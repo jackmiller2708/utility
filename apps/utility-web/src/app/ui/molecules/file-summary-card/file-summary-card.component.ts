@@ -1,7 +1,7 @@
 import { Component, input, output, signal, effect, inject, ElementRef, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ButtonComponent } from '../../atoms/button/button.component.js';
-import { MotionService } from '../../../core/index.js';
+import { ButtonComponent } from '@app/ui/atoms/button/button.component';
+import { MotionService } from '@app/core';
 
 @Component({
   selector: 'app-file-summary-card',

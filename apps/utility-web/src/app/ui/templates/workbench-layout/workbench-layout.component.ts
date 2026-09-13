@@ -1,10 +1,10 @@
-import type { AuthStatusModel, ToolModel } from '../../../domain/index.js';
+import type { AuthStatusModel, ToolModel } from '@app/domain';
 
 import { Component, input, output, inject } from '@angular/core';
-import { JobTrackerService } from '../../../core/index.js';
-import { JobTrayComponent } from '../../organisms/job-tray/job-tray.component.js';
-import { SidebarComponent } from '../../organisms/sidebar/sidebar.component.js';
-import { HeaderComponent } from '../../organisms/header/header.component.js';
+import { JobTrackerService } from '@app/core';
+import { JobTrayComponent } from '@app/ui/organisms/job-tray/job-tray.component';
+import { SidebarComponent } from '@app/ui/organisms/sidebar/sidebar.component';
+import { HeaderComponent } from '@app/ui/organisms/header/header.component';
 import { CommonModule } from '@angular/common';
 
 @Component({

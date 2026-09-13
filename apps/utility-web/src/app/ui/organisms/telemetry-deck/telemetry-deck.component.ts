@@ -1,11 +1,11 @@
 import type { ArtifactModel } from '@app/domain';
-import type { ComparisonSource, SizeDelta } from '../../../modules/media/image-resize/services/image-resize.service.js';
+import type { ComparisonSource, SizeDelta } from '../../../modules/media/image-resize/services/image-resize.service';
 
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BadgeComponent } from '../../atoms/badge/badge.component.js';
-import { IconComponent } from '../../atoms/icon/icon.component.js';
-import { TelemetryRowComponent } from '../../molecules/telemetry-row/telemetry-row.component.js';
+import { BadgeComponent } from '@app/ui/atoms/badge/badge.component';
+import { IconComponent } from '@app/ui/atoms/icon/icon.component';
+import { TelemetryRowComponent } from '@app/ui/molecules/telemetry-row/telemetry-row.component';
 
 interface LedgerRow {
   key: string;

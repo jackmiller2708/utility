@@ -1,6 +1,6 @@
 import { Component, input, output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DeviceTrustService } from '../../../core/index.js';
+import { DeviceTrustService } from '@app/core';
 
 @Component({
   selector: 'app-header',

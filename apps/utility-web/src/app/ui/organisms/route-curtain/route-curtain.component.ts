@@ -1,6 +1,6 @@
 import { Router, NavigationEnd, NavigationCancel, NavigationError, NavigationSkipped } from '@angular/router';
 import { Component, inject, effect, ElementRef } from '@angular/core';
-import { RouteCurtainService } from '../../../core/index.js';
+import { RouteCurtainService } from '@app/core';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs';
 

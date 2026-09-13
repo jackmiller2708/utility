@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { RecentArtifactsComponent } from './components/recent-artifacts.component.js';
-import { curtainReadyGuard } from '../../core/index.js';
+import { RecentArtifactsComponent } from './components/recent-artifacts.component';
+import { curtainReadyGuard } from '../../core';
 
 export const RECENT_ROUTES: Routes = [
   {

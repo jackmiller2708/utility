@@ -1,5 +1,5 @@
 import { of, Subject } from 'rxjs';
-import { LruRequestCache } from './lru-request-cache.js';
+import { LruRequestCache } from './lru-request-cache';
 
 describe('LruRequestCache', () => {
   it('coalesces concurrent calls into a single loader invocation', () => {

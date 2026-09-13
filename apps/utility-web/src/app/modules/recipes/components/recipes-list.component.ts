@@ -2,9 +2,9 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ButtonComponent, BadgeComponent, IconComponent } from '@app/ui';
-import { RecipesService } from '../services/recipes.service.js';
-import { RuntimeStatusService } from '../../../core/index.js';
-import type { WorkflowModel } from '../../../domain/index.js';
+import { RecipesService } from '../services/recipes.service';
+import { RuntimeStatusService } from '@app/core';
+import type { WorkflowModel } from '@app/domain';
 import { Either } from 'effect';
 
 @Component({

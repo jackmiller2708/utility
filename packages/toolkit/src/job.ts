@@ -1,4 +1,4 @@
-import { Context, Effect, Layer, Fiber, Cause } from "effect";
+import { Context, Effect, Layer, Fiber, Cause, Exit } from "effect";
 
 export type JobStatus = "pending" | "running" | "completed" | "failed" | "cancelled";
 
@@ -53,66 +53,63 @@ export const makeJobRegistry = () =>
 
     const update = (id: string, patch: Partial<Job>): void => {
       const record = jobs.get(id);
+
       if (record) {
         record.job = { ...record.job, ...patch };
       }
     };
 
     return JobRegistry.of({
-      createJob: (operationId: string) =>
-        Effect.sync(() => {
-          const job: Job = {
-            id: nextJobId(),
-            operationId,
-            status: "pending",
-            progress: null,
-            result: null,
-            error: null,
-            createdAt: new Date().toISOString(),
-            startedAt: null,
-            completedAt: null,
-          };
-          jobs.set(job.id, { job, fiber: null });
-          return job;
-        }),
+      createJob: (operationId: string) => Effect.sync(() => {
+        const job: Job = {
+          id: nextJobId(),
+          operationId,
+          status: "pending",
+          progress: null,
+          result: null,
+          error: null,
+          createdAt: new Date().toISOString(),
+          startedAt: null,
+          completedAt: null,
+        };
+        jobs.set(job.id, { job, fiber: null });
 
-      attachFiber: (id: string, fiber: Fiber.RuntimeFiber<unknown, unknown>) =>
-        Effect.sync(() => {
-          const record = jobs.get(id);
-          if (record) {
-            record.fiber = fiber;
-          }
-        }),
+        return job;
+      }),
 
-      markRunning: (id: string) =>
-        Effect.sync(() => update(id, { status: "running", startedAt: new Date().toISOString() })),
+      attachFiber: (id: string, fiber: Fiber.RuntimeFiber<unknown, unknown>) => Effect.sync(() => {
+        const record = jobs.get(id);
 
-      updateProgress: (id: string, progress: JobProgress) =>
-        Effect.sync(() => update(id, { progress })),
+        if (record) {
+          record.fiber = fiber;
+        }
+      }),
 
-      markCompleted: (id: string, result: unknown) =>
-        Effect.sync(() => update(id, { status: "completed", result, completedAt: new Date().toISOString() })),
+      markRunning: (id: string) => Effect.sync(() => update(id, { status: "running", startedAt: new Date().toISOString() })),
 
-      markFailed: (id: string, error: string) =>
-        Effect.sync(() => update(id, { status: "failed", error, completedAt: new Date().toISOString() })),
+      updateProgress: (id: string, progress: JobProgress) => Effect.sync(() => update(id, { progress })),
 
-      markCancelled: (id: string) =>
-        Effect.sync(() => update(id, { status: "cancelled", completedAt: new Date().toISOString() })),
+      markCompleted: (id: string, result: unknown) => Effect.sync(() => update(id, { status: "completed", result, completedAt: new Date().toISOString() })),
+
+      markFailed: (id: string, error: string) => Effect.sync(() => update(id, { status: "failed", error, completedAt: new Date().toISOString() })),
+
+      markCancelled: (id: string) => Effect.sync(() => update(id, { status: "cancelled", completedAt: new Date().toISOString() })),
 
       getJob: (id: string) => Effect.sync(() => jobs.get(id)?.job),
 
-      listJobs: () =>
-        Effect.sync(() => Array.from(jobs.values()).map((r) => r.job).sort((a, b) => b.createdAt.localeCompare(a.createdAt))),
+      listJobs: () => Effect.sync(() => Array.from(jobs.values()).map((r) => r.job).sort((a, b) => b.createdAt.localeCompare(a.createdAt))),
 
-      cancelJob: (id: string) =>
-        Effect.gen(function* () {
-          const record = jobs.get(id);
-          if (!record || !record.fiber || record.job.status !== "running" && record.job.status !== "pending") {
-            return false;
-          }
-          yield* Fiber.interrupt(record.fiber);
-          return true;
-        }),
+      cancelJob: (id: string) => Effect.gen(function* () {
+        const record = jobs.get(id);
+
+        if (!record || !record.fiber || record.job.status !== "running" && record.job.status !== "pending") {
+          return false;
+        }
+
+        yield* Fiber.interrupt(record.fiber);
+
+        return true;
+      }),
     });
   });
 
@@ -126,29 +123,24 @@ export const JobRegistryLive = makeJobRegistry();
  * be interrupted before they run. `onExit`'s finalizer is guaranteed to run, and to
  * run uninterruptibly, so the job's final status is never lost to that race.
  */
-export const trackJob = <A, E, R>(
-  registry: JobRegistry,
-  jobId: string,
-  effect: Effect.Effect<A, E, R>
-): Effect.Effect<A, E, R> =>
+export const trackJob = <A, E, R>(registry: JobRegistry, jobId: string, effect: Effect.Effect<A, E, R>): Effect.Effect<A, E, R> =>
   Effect.gen(function* () {
     yield* registry.markRunning(jobId);
     return yield* effect;
-  }).pipe(
-    Effect.onExit((exit) => {
-      if (exit._tag === "Success") {
-        return registry.markCompleted(jobId, exit.value);
-      }
+  }).pipe(Effect.onExit((exit) => {
+    if (Exit.isSuccess(exit)) {
+      return registry.markCompleted(jobId, exit.value);
+    }
 
-      if (Cause.isInterruptedOnly(exit.cause)) {
-        return registry.markCancelled(jobId);
-      }
+    if (Cause.isInterruptedOnly(exit.cause)) {
+      return registry.markCancelled(jobId);
+    }
 
-      const failure = Cause.failureOption(exit.cause);
-      const message = failure._tag === "Some"
-        ? (failure.value instanceof Error ? failure.value.message : String(failure.value))
-        : Cause.pretty(exit.cause);
+    const failure = Cause.failureOption(exit.cause);
+    const message = failure._tag === "Some"
+      ? (failure.value instanceof Error ? failure.value.message : String(failure.value))
+      : Cause.pretty(exit.cause);
 
-      return registry.markFailed(jobId, message);
-    })
-  );
+    return registry.markFailed(jobId, message);
+  })
+);

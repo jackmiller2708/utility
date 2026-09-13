@@ -11,10 +11,11 @@ import {
   TileGroupComponent,
   IconComponent,
 } from '@app/ui';
-import { RecipesService } from '../services/recipes.service.js';
-import { ApiClientService } from '../../../core/services/api-client.service.js';
-import { JobTrackerService, RuntimeStatusService } from '../../../core/index.js';
-import { ArtifactModel, ArtifactModelFromWorkflowRunOutput, WorkflowModel, WorkflowModelFromWorkflowResponse } from '../../../domain/index.js';
+import { RecipesService } from '../services/recipes.service';
+import { ApiClientService } from '@app/core/services/api-client.service';
+import { ArtifactObjectUrlService } from '@app/core/services/artifact-object-url.service';
+import { JobTrackerService, RuntimeStatusService } from '@app/core';
+import { ArtifactModel, ArtifactModelFromWorkflowRunOutput, WorkflowModel, WorkflowModelFromWorkflowResponse } from '@app/domain';
 import type { WorkflowRunOutput } from '@utility/protocol';
 import { Either, Option } from 'effect';
 import { finalize } from 'rxjs';
@@ -56,6 +57,7 @@ export class RecipeRunComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly recipes = inject(RecipesService);
   private readonly apiClient = inject(ApiClientService);
+  private readonly artifactObjectUrl = inject(ArtifactObjectUrlService);
   private readonly jobTracker = inject(JobTrackerService);
   private readonly runtimeStatus = inject(RuntimeStatusService);
 
@@ -97,8 +99,8 @@ export class RecipeRunComponent implements OnInit {
       id: artifact.id,
       label: artifact.name,
       sizeFormatted: this.formatBytes(artifact.size),
-      previewUrl: this.apiClient.getArtifactFileUrl(artifact.id),
-      downloadUrl: this.apiClient.getArtifactDownloadUrl(artifact.id),
+      previewUrl: this.artifactObjectUrl.getFileUrl(artifact.id),
+      downloadUrl: this.artifactObjectUrl.getDownloadUrl(artifact.id),
       kind: kindForMimeType(artifact.mimeType),
     }];
   });
@@ -124,8 +126,8 @@ export class RecipeRunComponent implements OnInit {
       id: artifact.id,
       label: artifact.name,
       sizeFormatted: this.formatBytes(artifact.size),
-      previewUrl: this.apiClient.getArtifactFileUrl(artifact.id),
-      downloadUrl: this.apiClient.getArtifactDownloadUrl(artifact.id),
+      previewUrl: this.artifactObjectUrl.getFileUrl(artifact.id),
+      downloadUrl: this.artifactObjectUrl.getDownloadUrl(artifact.id),
       kind: kindForMimeType(artifact.mimeType),
     }))
   );

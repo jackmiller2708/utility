@@ -1,10 +1,10 @@
 import type { JobSubmittedResponse } from '@utility/protocol';
-import type { HttpResponse } from '../interfaces.js';
+import type { HttpResponse } from '../interfaces';
 import type { Observable } from 'rxjs';
 
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { ApiClientService } from './api-client.service.js';
-import { JobModel, JobModelsFromJobListResponse } from '../../domain/index.js';
+import { ApiClientService } from './api-client.service';
+import { JobModel, JobModelsFromJobListResponse } from '../../domain';
 import { Either } from 'effect';
 import { tap, forkJoin, map } from 'rxjs';
 import { Map as ImmutableMap, Set as ImmutableSet } from 'immutable';

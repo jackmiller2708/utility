@@ -1,12 +1,5 @@
 import { Data } from "effect";
 
-export class FileSystemError extends Data.TaggedError("FileSystemError")<{
-  readonly operation: string;
-  readonly path: string;
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
-
 export class WorkspaceError extends Data.TaggedError("WorkspaceError")<{
   readonly message: string;
   readonly workspaceId?: string;

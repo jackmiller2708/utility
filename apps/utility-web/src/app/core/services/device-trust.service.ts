@@ -1,9 +1,9 @@
 import type { AuthStatusResponse } from '@utility/protocol';
 
 import { Injectable, inject, signal } from '@angular/core';
-import { ApiClientService } from './api-client.service.js';
-import { DeviceIdentityService } from './device-identity.service.js';
-import { ResponseError } from '../errors.js';
+import { ApiClientService } from './api-client.service';
+import { DeviceIdentityService } from './device-identity.service';
+import { ResponseError } from '../errors';
 import { Either } from 'effect';
 
 const APPROVAL_POLL_INTERVAL_MS = 3000;

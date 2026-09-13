@@ -3,8 +3,8 @@ import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { firstValueFrom } from 'rxjs';
 import { vi } from 'vitest';
-import { responseInterceptor } from './interceptors.js';
-import { DeviceTrustService } from './services/device-trust.service.js';
+import { responseInterceptor } from './interceptors';
+import { DeviceTrustService } from './services/device-trust.service';
 
 describe('responseInterceptor', () => {
   let http: HttpClient;

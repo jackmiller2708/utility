@@ -36,10 +36,7 @@ export class AuthController {
   }
 
   @Post("enroll")
-  async enrollDevice(
-    @Body() body: { name: string; publicKey: string },
-    @Req() req: Request
-  ) {
+  async enrollDevice(@Body() body: { name: string; publicKey: string }, @Req() req: Request) {
     if (!body?.name || !body?.publicKey) {
       throw new BadRequestException("Device name and publicKey are required");
     }
@@ -47,11 +44,7 @@ export class AuthController {
     // Enrolling from `isLocal` (physically at the server) auto-approves —
     // there's no one else to ask. Every other enrollment starts pending
     // until the operator approves it from the Devices page.
-    const device = await this.authService.registerDevice(
-      body.name,
-      body.publicKey,
-      isLocalRequest(req)
-    );
+    const device = await this.authService.registerDevice(body.name, body.publicKey, isLocalRequest(req));
 
     return {
       deviceId: device.deviceId,

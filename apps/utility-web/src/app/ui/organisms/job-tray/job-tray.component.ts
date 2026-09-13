@@ -1,10 +1,10 @@
-import type { JobModel } from '../../../domain/index.js';
+import type { JobModel } from '@app/domain';
 
 import { Component, input, output, signal, computed } from '@angular/core';
-import { BatchTicketComponent } from '../../molecules/batch-ticket/batch-ticket.component.js';
-import { JobTicketComponent } from '../../molecules/job-ticket/job-ticket.component.js';
+import { BatchTicketComponent } from '@app/ui/molecules/batch-ticket/batch-ticket.component';
+import { JobTicketComponent } from '@app/ui/molecules/job-ticket/job-ticket.component';
 import { CommonModule } from '@angular/common';
-import { IconComponent } from '../../atoms/icon/icon.component.js';
+import { IconComponent } from '@app/ui/atoms/icon/icon.component';
 import { Set as ImmutableSet } from 'immutable';
 
 export type TrayEntry =

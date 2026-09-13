@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { deviceTrustGuard } from './core/guards/device-trust.guard.js';
+import { deviceTrustGuard } from './core/guards/device-trust.guard';
 
 export const routes: Routes = [
   {

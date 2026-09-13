@@ -1,6 +1,6 @@
 import { Context, Effect, Layer } from "effect";
-import * as path from "node:path";
-import { FileSystem, Process, ProcessError, WorkspaceInstance } from "@utility/runtime";
+import { FileSystem, Path } from "@effect/platform";
+import { Process, ProcessError, WorkspaceInstance } from "@utility/runtime";
 import { ProgressReporter } from "@utility/toolkit";
 import { InvalidPdfError, PdfProcessingError } from "./errors.js";
 
@@ -73,12 +73,13 @@ const mapProcessFailure = (operation: string) => (err: ProcessError) =>
 
 /** Lists every PNG in the workspace's output dir whose name starts with any of the given prefixes, sorted for stable ordering. */
 const listPngOutputs = (
-  fs: FileSystem,
+  fs: FileSystem.FileSystem,
+  path: Path.Path,
   workspace: WorkspaceInstance,
   matchesPrefix: (name: string) => boolean,
   operation: string
 ): Effect.Effect<readonly string[], PdfProcessingError> =>
-  fs.listDirectory(workspace.outputDir).pipe(
+  fs.readDirectory(workspace.outputDir).pipe(
     Effect.mapError(
       (err) =>
         new PdfProcessingError({
@@ -108,7 +109,8 @@ export const PopplerPdfServiceLive = Layer.effect(
   PdfService,
   Effect.gen(function* () {
     const process = yield* Process;
-    const fs = yield* FileSystem;
+    const fs = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
 
     return PdfService.of({
       inspect: (inputPath: string) =>
@@ -156,7 +158,7 @@ export const PopplerPdfServiceLive = Layer.effect(
 
             yield* process.spawn({ executable: "pdftoppm", args }).pipe(Effect.mapError(mapProcessFailure("pdf.render-pages")));
 
-            return yield* listPngOutputs(fs, workspace, (name) => name.startsWith(`${prefixName}-`), "pdf.render-pages");
+            return yield* listPngOutputs(fs, path, workspace, (name) => name.startsWith(`${prefixName}-`), "pdf.render-pages");
           }
 
           const total = options.lastPage - options.firstPage + 1;
@@ -174,7 +176,7 @@ export const PopplerPdfServiceLive = Layer.effect(
             onProgress({ completed, total, message: `Rendered page ${chunk.end} of ${options.lastPage}` });
           }
 
-          return yield* listPngOutputs(fs, workspace, (name) => name.startsWith(`${prefixName}-`), "pdf.render-pages");
+          return yield* listPngOutputs(fs, path, workspace, (name) => name.startsWith(`${prefixName}-`), "pdf.render-pages");
         }),
 
       extractImages: (inputPath: string, workspace: WorkspaceInstance, onProgress, totalPages) =>
@@ -187,7 +189,7 @@ export const PopplerPdfServiceLive = Layer.effect(
               .spawn({ executable: "pdfimages", args: ["-png", inputPath, outputPrefix] })
               .pipe(Effect.mapError(mapProcessFailure("pdf.extract-images")));
 
-            return yield* listPngOutputs(fs, workspace, (name) => name.startsWith(`${prefixName}-`), "pdf.extract-images");
+            return yield* listPngOutputs(fs, path, workspace, (name) => name.startsWith(`${prefixName}-`), "pdf.extract-images");
           }
 
           // pdfimages restarts its own counter at -000 on every invocation, so each chunk
@@ -209,7 +211,7 @@ export const PopplerPdfServiceLive = Layer.effect(
             onProgress({ completed, total: totalPages, message: `Scanned page ${chunk.end} of ${totalPages}` });
           }
 
-          return yield* listPngOutputs(fs, workspace, (name) => name.startsWith("image_p"), "pdf.extract-images");
+          return yield* listPngOutputs(fs, path, workspace, (name) => name.startsWith("image_p"), "pdf.extract-images");
         }),
 
       splitRanges: (inputPath: string, workspace: WorkspaceInstance, ranges: readonly PageRange[], onProgress) =>

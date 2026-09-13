@@ -1,8 +1,8 @@
 import { Component, input, output, effect, inject, ElementRef, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IconComponent } from '../../atoms/icon/icon.component.js';
-import { MotionService } from '../../../core/index.js';
-import type { JobModel } from '../../../domain/index.js';
+import { IconComponent } from '@app/ui/atoms/icon/icon.component';
+import { MotionService } from '@app/core';
+import type { JobModel } from '@app/domain';
 
 /**
  * A stamped job ledger ticket — used both compact in the footer tray and full

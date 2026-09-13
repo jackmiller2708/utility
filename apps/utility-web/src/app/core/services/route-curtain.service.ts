@@ -1,5 +1,5 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { MotionService } from './motion.service.js';
+import { MotionService } from './motion.service';
 
 /**
  * The press-room curtain's state, held here (not in the component) so a

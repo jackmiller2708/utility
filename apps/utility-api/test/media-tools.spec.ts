@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { Effect, Layer } from "effect";
+import { FileSystem } from "@effect/platform";
+import { NodeFileSystem, NodeCommandExecutor, NodePath } from "@effect/platform-node";
 import {
-  FileSystemLive,
   ProcessLive,
   WorkspaceManagerLive,
   ArtifactStoreLive,
-  FileSystem,
   WorkspaceManager,
 } from "@utility/runtime";
 import { makeToolRegistry, ToolRegistry } from "@utility/toolkit";
@@ -20,12 +20,18 @@ import {
 import { buildTestVideo } from "./support/media-fixtures.js";
 
 describe("Media tools", () => {
+  const ProcessServiceLive = ProcessLive.pipe(
+    Layer.provide(NodeCommandExecutor.layer),
+    Layer.provide(NodeFileSystem.layer)
+  );
+
   const TestEnv = Layer.mergeAll(
-    FileSystemLive,
-    ProcessLive,
-    WorkspaceManagerLive.pipe(Layer.provide(FileSystemLive)),
-    ArtifactStoreLive.pipe(Layer.provide(FileSystemLive)),
-    FfmpegMediaServiceLive.pipe(Layer.provide(ProcessLive)),
+    NodeFileSystem.layer,
+    NodePath.layer,
+    ProcessServiceLive,
+    WorkspaceManagerLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer))),
+    ArtifactStoreLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer))),
+    FfmpegMediaServiceLive.pipe(Layer.provide(ProcessServiceLive)),
     makeToolRegistry([mediaTool])
   );
 
@@ -51,12 +57,12 @@ describe("Media tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.mp4";
-          yield* fs.write(ws.resolveInputPath(filename), videoBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), videoBuffer);
 
           return yield* inspectOperation.execute({ file: filename }, { workspace: ws });
         })
@@ -77,12 +83,12 @@ describe("Media tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.mp4";
-          yield* fs.write(ws.resolveInputPath(filename), videoBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), videoBuffer);
 
           return yield* inspectOperation.execute({ file: filename }, { workspace: ws });
         })
@@ -97,12 +103,12 @@ describe("Media tools", () => {
   it("rejects a non-media file with a descriptive error", async () => {
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "not-a-video.mp4";
-          yield* fs.write(ws.resolveInputPath(filename), Buffer.from("this is not a video"));
+          yield* fs.writeFile(ws.resolveInputPath(filename), Buffer.from("this is not a video"));
 
           return yield* inspectOperation.execute({ file: filename }, { workspace: ws });
         })
@@ -117,12 +123,12 @@ describe("Media tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.mp4";
-          yield* fs.write(ws.resolveInputPath(filename), videoBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), videoBuffer);
 
           return yield* thumbnailOperation.execute(
             { file: filename, width: 32, format: "png" },
@@ -143,12 +149,12 @@ describe("Media tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.mp4";
-          yield* fs.write(ws.resolveInputPath(filename), videoBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), videoBuffer);
 
           return yield* thumbnailOperation.execute({ file: filename }, { workspace: ws });
         })
@@ -165,12 +171,12 @@ describe("Media tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.mp4";
-          yield* fs.write(ws.resolveInputPath(filename), videoBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), videoBuffer);
 
           return yield* extractAudioOperation.execute(
             { file: filename, format: "mp3" },
@@ -191,12 +197,12 @@ describe("Media tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.mp4";
-          yield* fs.write(ws.resolveInputPath(filename), videoBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), videoBuffer);
 
           return yield* extractAudioOperation.execute(
             { file: filename, format: "wav" },
@@ -217,12 +223,12 @@ describe("Media tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.mp4";
-          yield* fs.write(ws.resolveInputPath(filename), videoBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), videoBuffer);
 
           return yield* transcodeOperation.execute(
             { file: filename, format: "mp4", resolution: "360p", quality: 50 },
@@ -247,12 +253,12 @@ describe("Media tools", () => {
 
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.mp4";
-          yield* fs.write(ws.resolveInputPath(filename), videoBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), videoBuffer);
 
           return yield* transcodeOperation.execute(
             { file: filename, format: "mp4", preserveAudio: false },
@@ -269,12 +275,12 @@ describe("Media tools", () => {
   it("rejects an invalid media file passed to transcode", async () => {
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "not-a-video.mp4";
-          yield* fs.write(ws.resolveInputPath(filename), Buffer.from("this is not a video"));
+          yield* fs.writeFile(ws.resolveInputPath(filename), Buffer.from("this is not a video"));
 
           return yield* transcodeOperation.execute({ file: filename }, { workspace: ws });
         })

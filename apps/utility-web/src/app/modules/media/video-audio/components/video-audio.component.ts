@@ -12,7 +12,7 @@ import {
   OperationFormComponent,
   VideoScrubberComponent,
 } from '@app/ui';
-import { VideoAudioService } from '../services/video-audio.service.js';
+import { VideoAudioService } from '../services/video-audio.service';
 import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OptionPipe } from '@app/core/pipes/option.pipe';
@@ -112,6 +112,7 @@ export class VideoAudioComponent {
       setTimeout(() => {
         const link = document.createElement('a');
         link.href = item.downloadUrl!;
+        link.download = item.label;
         link.rel = 'noopener';
         document.body.appendChild(link);
         link.click();
@@ -167,6 +168,7 @@ export class VideoAudioComponent {
     if (items[0]?.downloadUrl) {
       const link = document.createElement('a');
       link.href = items[0].downloadUrl;
+      link.download = items[0].label;
       link.rel = 'noopener';
       document.body.appendChild(link);
       link.click();

@@ -1,5 +1,5 @@
-import { Context, Effect, Layer } from "effect";
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { Context, Duration, Effect, Fiber, Layer, Ref, Stream } from "effect";
+import { Command as PlatformCommand, CommandExecutor } from "@effect/platform";
 import { ProcessError } from "./errors.js";
 
 export interface Command {
@@ -32,106 +32,85 @@ export interface Process {
 
 export const Process = Context.GenericTag<Process>("@utility/runtime/Process");
 
-export const ProcessLive = Layer.succeed(
+/** Drains a process' output stream into `ref` chunk by chunk, forwarding each chunk to `onChunk` as it arrives. A stream read failure is swallowed (mirroring a Node stream that simply stops emitting `data`) rather than failing the whole process invocation. */
+const drainToRef = (stream: Stream.Stream<Uint8Array, unknown>, ref: Ref.Ref<string>, onChunk?: (chunk: string) => void): Effect.Effect<void> => stream.pipe(
+  Stream.decodeText(),
+  Stream.tap((chunk) => Ref.update(ref, (acc) => acc + chunk).pipe(Effect.zipRight(Effect.sync(() => onChunk?.(chunk))))),
+  Stream.runDrain,
+  Effect.ignore
+);
+
+const buildPlatformCommand = (command: Command): PlatformCommand.Command => {
+  let platformCommand = PlatformCommand.make(command.executable, ...command.args);
+
+  if (command.cwd) {
+    platformCommand = PlatformCommand.workingDirectory(platformCommand, command.cwd);
+  }
+
+  if (command.env) {
+    platformCommand = PlatformCommand.env(platformCommand, command.env);
+  }
+
+  return platformCommand;
+};
+
+export const ProcessLive = Layer.effect(
   Process,
-  Process.of({
-    spawn: (command: Command) =>
-      Effect.async<ProcessResult, ProcessError>((resume) => {
-        let proc: ChildProcessWithoutNullStreams | undefined;
+  Effect.gen(function* () {
+    const executor = yield* CommandExecutor.CommandExecutor;
 
-        try {
-          proc = spawn(command.executable, [...command.args], {
-            cwd: command.cwd,
-            env: command.env ? { ...process.env, ...command.env } : process.env,
-            shell: false,
-          });
+    const spawn = (command: Command): Effect.Effect<ProcessResult, ProcessError> => Effect.gen(function* () {
+      const stdoutRef = yield* Ref.make("");
+      const stderrRef = yield* Ref.make("");
+      const platformCommand = buildPlatformCommand(command);
 
-          let stdout = "";
-          let stderr = "";
+      const run = Effect.scoped(Effect.gen(function* () {
+        const proc = yield* executor.start(platformCommand);
 
-          proc.stdout.on("data", (data) => {
-            const text = data.toString();
-            stdout += text;
-            command.onStdout?.(text);
-          });
+        const stdoutFiber = yield* Effect.fork(drainToRef(proc.stdout, stdoutRef, command.onStdout));
+        const stderrFiber = yield* Effect.fork(drainToRef(proc.stderr, stderrRef, command.onStderr));
 
-          proc.stderr.on("data", (data) => {
-            const text = data.toString();
-            stderr += text;
-            command.onStderr?.(text);
-          });
+        const exitCode = yield* proc.exitCode;
 
-          let timeoutId: NodeJS.Timeout | undefined;
-          if (command.timeoutMs && command.timeoutMs > 0) {
-            timeoutId = setTimeout(() => {
-              proc?.kill("SIGKILL");
-              resume(
-                Effect.fail(
-                  new ProcessError({
-                    executable: command.executable,
-                    message: `Process timed out after ${command.timeoutMs}ms`,
-                    stderr,
-                  })
-                )
-              );
-            }, command.timeoutMs);
-          }
+        // Joined before returning so the scope's exit doesn't interrupt these fibers
+        // mid-drain — otherwise the tail of a fast-closing process' output could be lost.
+        yield* Fiber.join(stdoutFiber);
+        yield* Fiber.join(stderrFiber);
 
-          proc.on("error", (err) => {
-            if (timeoutId) clearTimeout(timeoutId);
-            resume(
-              Effect.fail(
-                new ProcessError({
-                  executable: command.executable,
-                  message: `Failed to execute ${command.executable}: ${err.message}`,
-                  cause: err,
-                })
-              )
-            );
-          });
+        return Number(exitCode);
+      }));
 
-          proc.on("close", (code) => {
-            if (timeoutId) clearTimeout(timeoutId);
-            if (code === 0) {
-              resume(
-                Effect.succeed({
-                  exitCode: 0,
-                  stdout,
-                  stderr,
-                })
-              );
-            } else {
-              resume(
-                Effect.fail(
-                  new ProcessError({
-                    executable: command.executable,
-                    message: `Process ${command.executable} exited with code ${code}`,
-                    exitCode: code ?? undefined,
-                    stderr,
-                  })
-                )
-              );
-            }
-          });
-        } catch (err) {
-          resume(
-            Effect.fail(
-              new ProcessError({
-                executable: command.executable,
-                message: `Failed to spawn process ${command.executable}`,
-                cause: err,
-              })
-            )
-          );
-        }
+      const timed = command.timeoutMs && command.timeoutMs > 0
+        ? run.pipe(Effect.timeout(Duration.millis(command.timeoutMs)))
+        : run;
 
-        // Runs only if the fiber awaiting this effect is interrupted (e.g. a cancelled
-        // job) while the process is still running. Without this, cancellation stops
-        // Effect from waiting on the result but leaves the real OS process running to
-        // completion in the background — the entire point of cancellation lost silently.
-        return Effect.sync(() => {
-          proc?.kill("SIGKILL");
-        });
-      }),
+      const exitCode = yield* timed.pipe(
+        Effect.catchTag("TimeoutException", () => Ref.get(stderrRef).pipe(Effect.flatMap((stderr) => Effect.fail(new ProcessError({
+          executable: command.executable,
+          message: `Process timed out after ${command.timeoutMs}ms`,
+          stderr,
+        }))))),
+        Effect.mapError((err) => err instanceof ProcessError
+          ? err
+          : new ProcessError({ executable: command.executable, message: `Failed to execute ${command.executable}: ${err.message}`, cause: err })
+        ),
+      );
+
+      const stdout = yield* Ref.get(stdoutRef);
+      const stderr = yield* Ref.get(stderrRef);
+
+      if (exitCode !== 0) {
+        return yield* Effect.fail(new ProcessError({
+          executable: command.executable,
+          message: `Process ${command.executable} exited with code ${exitCode}`,
+          exitCode,
+          stderr,
+        }));
+      }
+
+      return { exitCode, stdout, stderr };
+    });
+
+    return { spawn };
   })
 );

@@ -1,6 +1,6 @@
 import { Component, input, output, viewChild, ElementRef, effect, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MotionService } from '../../../core/index.js';
+import { MotionService } from '@app/core';
 
 /**
  * A real <video> element paired with a draggable playhead — the one genuinely new material this

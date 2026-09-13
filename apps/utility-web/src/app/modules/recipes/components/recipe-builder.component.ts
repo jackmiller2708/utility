@@ -2,9 +2,9 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ButtonComponent, InputComponent, TileGroupComponent, TileItem, OperationFormComponent, IconComponent } from '@app/ui';
-import { RecipesService } from '../services/recipes.service.js';
-import { WorkflowModelFromWorkflowResponse } from '../../../domain/index.js';
-import type { ToolParameterModel } from '../../../domain/index.js';
+import { RecipesService } from '../services/recipes.service';
+import { WorkflowModelFromWorkflowResponse } from '@app/domain';
+import type { ToolParameterModel } from '@app/domain';
 import { Either } from 'effect';
 
 interface BuilderStep {

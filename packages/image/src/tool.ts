@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import * as path from "node:path";
+import { Path } from "@effect/platform";
 import {
   ImageResizeInput,
   ImageResizeInputSchema,
@@ -15,7 +15,7 @@ export const resizeOperation: Operation<
   ImageResizeInput,
   ImageResizeOutput,
   unknown,
-  ImageService | ArtifactStore
+  ImageService | ArtifactStore | Path.Path
 > = {
   id: "image.resize",
   name: "Resize Image",
@@ -88,6 +88,7 @@ export const resizeOperation: Operation<
     Effect.gen(function* () {
       const imageService = yield* ImageService;
       const artifactStore = yield* ArtifactStore;
+      const path = yield* Path.Path;
 
       const inputFilePath = context.workspace.resolveInputPath(input.file);
       const parsed = path.parse(input.file);

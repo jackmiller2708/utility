@@ -1,9 +1,9 @@
-import type { DeviceModel } from '../../../domain/index.js';
+import type { DeviceModel } from '@app/domain';
 
 import { Component, input, output, effect, inject, ElementRef, viewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BadgeComponent } from '../../atoms/badge/badge.component.js';
-import { MotionService } from '../../../core/index.js';
+import { BadgeComponent } from '@app/ui/atoms/badge/badge.component';
+import { MotionService } from '@app/core';
 
 /** Mirrors the server's `REVOKED_DEVICE_RETENTION_MS` (`DeviceAuthService`) — display only, the server is the actual source of truth for when a row gets purged. */
 const REVOKED_DEVICE_RETENTION_DAYS = 30;

@@ -1,9 +1,10 @@
+import type { JobModel } from '@app/domain';
+
 import { Component, input, output, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IconComponent } from '../../atoms/icon/icon.component.js';
-import { JobTicketComponent } from '../job-ticket/job-ticket.component.js';
-import { RuntimeStatusService } from '../../../core/index.js';
-import type { JobModel } from '../../../domain/index.js';
+import { IconComponent } from '@app/ui/atoms/icon/icon.component';
+import { JobTicketComponent } from '../job-ticket/job-ticket.component';
+import { RuntimeStatusService } from '@app/core';
 
 /**
  * One batch (N jobs submitted together against one shared settings form, e.g. 10 images

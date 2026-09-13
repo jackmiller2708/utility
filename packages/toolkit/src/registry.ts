@@ -33,22 +33,23 @@ export const makeToolRegistry = (initialTools: readonly Tool[] = []) =>
     }
 
     return ToolRegistry.of({
-      registerTool: (tool: Tool) =>
-        Effect.sync(() => {
-          registerToolSync(tool);
-        }),
+      registerTool: (tool: Tool) => Effect.sync(() => {
+        registerToolSync(tool);
+      }),
 
-      removeTool: (id: string) =>
-        Effect.sync(() => {
-          const tool = toolsMap.get(id);
-          if (!tool) {
-            return;
-          }
-          for (const op of tool.operations) {
-            operationsMap.delete(op.id);
-          }
-          toolsMap.delete(id);
-        }),
+      removeTool: (id: string) => Effect.sync(() => {
+        const tool = toolsMap.get(id);
+
+        if (!tool) {
+          return;
+        }
+
+        for (const op of tool.operations) {
+          operationsMap.delete(op.id);
+        }
+        
+        toolsMap.delete(id);
+      }),
 
       getTools: () => Effect.sync(() => Array.from(toolsMap.values())),
 
@@ -56,10 +57,9 @@ export const makeToolRegistry = (initialTools: readonly Tool[] = []) =>
 
       getOperation: (id: string) => Effect.sync(() => operationsMap.get(id)),
 
-      getToolsInfo: () =>
-        Effect.sync(() => ({
-          tools: Array.from(toolsMap.values()).map((t) => t.toInfo()),
-        })),
+      getToolsInfo: () => Effect.sync(() => ({
+        tools: Array.from(toolsMap.values()).map((t) => t.toInfo()),
+      })),
     });
   });
 

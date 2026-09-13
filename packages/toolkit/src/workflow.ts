@@ -1,10 +1,10 @@
 import { Context, Effect, Layer, Data, Schema } from "effect";
-import * as path from "node:path";
 import * as os from "node:os";
 import * as crypto from "node:crypto";
 import { WorkflowRunOutput, WorkflowRunOutputSchema } from "@utility/protocol";
 import { Artifact } from "@utility/domain";
-import { FileSystem, ArtifactStore } from "@utility/runtime";
+import { FileSystem, Path } from "@effect/platform";
+import { ArtifactStore } from "@utility/runtime";
 import { Operation } from "./operation.js";
 import { Tool, createTool } from "./tool.js";
 import { ToolRegistry } from "./registry.js";
@@ -88,7 +88,7 @@ const validateStepOperation = (
  */
 export const compileWorkflowOperation = (
   definition: WorkflowDefinition
-): Operation<{ readonly file: string }, WorkflowRunOutput, WorkflowStepError, ToolRegistry | ArtifactStore | FileSystem> => ({
+): Operation<{ readonly file: string }, WorkflowRunOutput, WorkflowStepError, ToolRegistry | ArtifactStore | FileSystem.FileSystem> => ({
   id: recipeOperationId(definition.id),
   name: definition.name,
   description: definition.description,
@@ -107,7 +107,7 @@ export const compileWorkflowOperation = (
     Effect.gen(function* () {
       const registry = yield* ToolRegistry;
       const artifactStore = yield* ArtifactStore;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       let currentFileName = input.file;
       const stepResults: { operationId: string; artifact: Artifact }[] = [];
@@ -161,7 +161,7 @@ export const compileWorkflowOperation = (
                 })
             )
           );
-          yield* fs.copy(storedPath, context.workspace.resolveInputPath(artifact.name)).pipe(
+          yield* fs.copyFile(storedPath, context.workspace.resolveInputPath(artifact.name)).pipe(
             Effect.mapError(
               (cause) =>
                 new WorkflowStepError({
@@ -222,17 +222,18 @@ export const makeWorkflowRegistry = (config: WorkflowRegistryConfig = {}) =>
   Layer.effect(
     WorkflowRegistry,
     Effect.gen(function* () {
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
+      const path = yield* Path.Path;
       const toolRegistry = yield* ToolRegistry;
       const storageDir = config.storageDir || path.join(os.homedir(), ".utility", "workflows");
 
-      yield* fs.createDirectory(storageDir).pipe(Effect.orDie);
+      yield* fs.makeDirectory(storageDir, { recursive: true }).pipe(Effect.orDie);
 
       const workflows = new Map<string, WorkflowDefinition>();
 
-      const files = yield* fs.listDirectory(storageDir).pipe(Effect.catchAll(() => Effect.succeed([] as readonly string[])));
+      const files = yield* fs.readDirectory(storageDir).pipe(Effect.catchAll(() => Effect.succeed([] as readonly string[])));
       for (const file of files.filter((f) => f.endsWith(".json"))) {
-        const content = yield* fs.readString(path.join(storageDir, file)).pipe(Effect.catchAll(() => Effect.succeed(null)));
+        const content = yield* fs.readFileString(path.join(storageDir, file)).pipe(Effect.catchAll(() => Effect.succeed(null)));
         if (!content) continue;
         try {
           const definition = JSON.parse(content) as WorkflowDefinition;
@@ -265,7 +266,7 @@ export const makeWorkflowRegistry = (config: WorkflowRegistryConfig = {}) =>
             createdAt: new Date().toISOString(),
           };
 
-          yield* fs.write(path.join(storageDir, `${definition.id}.json`), JSON.stringify(definition, null, 2)).pipe(
+          yield* fs.writeFileString(path.join(storageDir, `${definition.id}.json`), JSON.stringify(definition, null, 2)).pipe(
             Effect.mapError((cause) => new WorkflowValidationError({ message: `Failed to save recipe: ${cause.message}` }))
           );
 

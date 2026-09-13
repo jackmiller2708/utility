@@ -1,7 +1,7 @@
 import { Component, inject, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent, BadgeComponent, InputComponent, ButtonComponent, TileGroupComponent, TileItem } from '@app/ui';
-import { RecentArtifactsService } from '../services/recent-artifacts.service.js';
+import { RecentArtifactsService } from '../services/recent-artifacts.service';
 
 const IMAGE_MIME_PREFIX = 'image/';
 const ALL_OPERATIONS_TILE_ID = 'all';

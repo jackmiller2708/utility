@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
-import { ImageResizeComponent } from './components/image-resize.component.js';
-import { curtainReadyGuard } from '../../../core/index.js';
+import { ImageResizeComponent } from './components/image-resize.component';
+import { curtainReadyGuard } from '@app/core';
 
 export const IMAGE_RESIZE_ROUTES: Routes = [
   {

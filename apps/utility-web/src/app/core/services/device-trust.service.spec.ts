@@ -4,9 +4,9 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { Either } from 'effect';
 import { vi } from 'vitest';
-import { DeviceTrustService } from './device-trust.service.js';
-import { DeviceIdentityService } from './device-identity.service.js';
-import { ApiClientService } from './api-client.service.js';
+import { DeviceTrustService } from './device-trust.service';
+import { DeviceIdentityService } from './device-identity.service';
+import { ApiClientService } from './api-client.service';
 
 class FakeApiClient implements Pick<ApiClientService, 'getAuthStatus$'> {
   authStatus: AuthStatusResponse = { authenticated: true, isLocal: true };

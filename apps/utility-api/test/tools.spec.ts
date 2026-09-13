@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { Effect, Layer } from "effect";
+import { FileSystem } from "@effect/platform";
+import { NodeFileSystem, NodePath } from "@effect/platform-node";
 import sharp from "sharp";
 import {
-  FileSystemLive,
   WorkspaceManagerLive,
   ArtifactStoreLive,
-  FileSystem,
   WorkspaceManager,
   ArtifactStore,
 } from "@utility/runtime";
@@ -19,9 +19,10 @@ import {
 
 describe("Tool and Runtime Core", () => {
   const TestEnv = Layer.mergeAll(
-    FileSystemLive,
-    WorkspaceManagerLive.pipe(Layer.provide(FileSystemLive)),
-    ArtifactStoreLive.pipe(Layer.provide(FileSystemLive)),
+    NodeFileSystem.layer,
+    NodePath.layer,
+    WorkspaceManagerLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer))),
+    ArtifactStoreLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer))),
     SharpImageServiceLive,
     makeToolRegistry([imageTool])
   );
@@ -42,7 +43,7 @@ describe("Tool and Runtime Core", () => {
   it("executes image.resize operation inside isolated workspace", async () => {
     const program = Effect.gen(function* () {
       const wsManager = yield* WorkspaceManager;
-      const fs = yield* FileSystem;
+      const fs = yield* FileSystem.FileSystem;
 
       // Create a test image in memory
       const inputBuffer = yield* Effect.promise(() =>
@@ -61,7 +62,7 @@ describe("Tool and Runtime Core", () => {
       return yield* wsManager.withWorkspace((ws) =>
         Effect.gen(function* () {
           const filename = "input.png";
-          yield* fs.write(ws.resolveInputPath(filename), inputBuffer);
+          yield* fs.writeFile(ws.resolveInputPath(filename), inputBuffer);
 
           const result = yield* resizeOperation.execute(
             {

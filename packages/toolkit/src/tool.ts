@@ -11,14 +11,7 @@ export interface Tool {
   readonly toInfo: () => ToolInfo;
 }
 
-export function createTool(toolDef: {
-  readonly id: string;
-  readonly name: string;
-  readonly description: string;
-  readonly category: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly operations: readonly Operation<any, any, any, any>[];
-}): Tool {
+export function createTool(toolDef: Omit<Tool, "toInfo">): Tool {
   return {
     ...toolDef,
     toInfo: (): ToolInfo => ({

@@ -81,6 +81,7 @@ export class ImageResizeComponent {
       setTimeout(() => {
         const link = document.createElement('a');
         link.href = item.downloadUrl!;
+        link.download = item.label;
         link.rel = 'noopener';
         document.body.appendChild(link);
         link.click();

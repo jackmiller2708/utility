@@ -15,7 +15,7 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 // path directly (see below) would otherwise make express.static infer the
 // type from that suffix instead of the asset's real extension.
 const STATIC_CONTENT_TYPES: Record<string, string> = {
-  '.js': 'text/javascript; charset=utf-8',
+  '': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
   '.json': 'application/json; charset=utf-8',

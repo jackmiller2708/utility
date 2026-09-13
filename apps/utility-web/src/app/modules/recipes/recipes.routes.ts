@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { curtainReadyGuard } from '../../core/index.js';
-import { RecipesListComponent } from './components/recipes-list.component.js';
-import { RecipeBuilderComponent } from './components/recipe-builder.component.js';
-import { RecipeRunComponent } from './components/recipe-run.component.js';
+import { curtainReadyGuard } from '../../core';
+import { RecipesListComponent } from './components/recipes-list.component';
+import { RecipeBuilderComponent } from './components/recipe-builder.component';
+import { RecipeRunComponent } from './components/recipe-run.component';
 
 export const RECIPES_ROUTES: Routes = [
   {

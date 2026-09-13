@@ -8,13 +8,13 @@ import {
   InternalServerErrorException,
 } from "@nestjs/common";
 import { Effect, Layer, ManagedRuntime, Cause } from "effect";
+import { NodeFileSystem, NodeCommandExecutor, NodePath } from "@effect/platform-node";
+import { isPlatformError } from "@effect/platform/Error";
 import {
-  FileSystemLive,
   ProcessLive,
   WorkspaceManagerLive,
   ArtifactStoreLive,
   ArtifactNotFoundError,
-  FileSystemError,
   WorkspaceError,
   ProcessError,
   ArtifactError,
@@ -52,19 +52,33 @@ import { SecurityError, ValidationError } from "@utility/domain";
 
 const toolRegistryLayer = makeToolRegistry([imageTool, pdfTool, pdfMergeSplitTool, mediaTool]);
 
+// Process, backed by Effect Platform's Command/CommandExecutor, needs a FileSystem to
+// build the Node executor — so it isn't a fully closed layer on its own like ProcessLive
+// used to be; every site that needs it provides FileSystem alongside it here.
+const ProcessServiceLive = ProcessLive.pipe(
+  Layer.provide(NodeCommandExecutor.layer),
+  Layer.provide(NodeFileSystem.layer)
+);
+
 // Compose the full Live layer
 export const AppLive = Layer.mergeAll(
-  FileSystemLive,
-  ProcessLive,
-  WorkspaceManagerLive.pipe(Layer.provide(FileSystemLive)),
-  ArtifactStoreLive.pipe(Layer.provide(FileSystemLive)),
+  NodeFileSystem.layer,
+  NodePath.layer,
+  ProcessServiceLive,
+  WorkspaceManagerLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer))),
+  ArtifactStoreLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer))),
   SharpImageServiceLive,
-  PopplerPdfServiceLive.pipe(Layer.provide(Layer.mergeAll(ProcessLive, FileSystemLive))),
-  FfmpegMediaServiceLive.pipe(Layer.provide(ProcessLive)),
+  PopplerPdfServiceLive.pipe(Layer.provide(Layer.mergeAll(ProcessServiceLive, NodeFileSystem.layer, NodePath.layer))),
+  FfmpegMediaServiceLive.pipe(Layer.provide(ProcessServiceLive)),
   toolRegistryLayer,
   JobRegistryLive,
   WorkflowRegistryLive.pipe(
-    Layer.provide(Layer.mergeAll(toolRegistryLayer, FileSystemLive, ArtifactStoreLive.pipe(Layer.provide(FileSystemLive))))
+    Layer.provide(Layer.mergeAll(
+      toolRegistryLayer,
+      NodeFileSystem.layer,
+      NodePath.layer,
+      ArtifactStoreLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer)))
+    ))
   )
 ).pipe(Layer.orDie);
 
@@ -168,7 +182,7 @@ export class EffectRuntimeService implements OnModuleInit {
     }
 
     if (
-      error instanceof FileSystemError ||
+      isPlatformError(error) ||
       error instanceof WorkspaceError ||
       error instanceof ProcessError ||
       error instanceof ArtifactError

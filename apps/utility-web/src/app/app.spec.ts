@@ -5,9 +5,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { Either } from 'effect';
-import { App } from './app.js';
-import { routes } from './app.routes.js';
-import { ApiClientService, DeviceTrustService } from './core/index.js';
+import { App } from './app';
+import { routes } from './app.routes';
+import { ApiClientService, DeviceTrustService } from './core';
 
 /** Stands in for the real device-trust round trip so `deviceTrustGuard` resolves deterministically instead of racing an unmocked HTTP call — the gate's own behavior is covered by `DeviceTrustService`'s own specs. */
 class FakeApiClient implements Pick<ApiClientService, 'getAuthStatus$' | 'getTools$'> {

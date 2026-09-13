@@ -1,10 +1,11 @@
-import type { ArtifactModel, ArtifactFileDetails, ToolParameterModel, JobModel } from '../../../../domain/index.js';
+import type { ArtifactModel, ArtifactFileDetails, ToolParameterModel, JobModel } from '@app/domain';
 import type { ImageResizeOutput } from '@utility/protocol';
 
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
-import { ApiClientService } from '../../../../core/services/api-client.service.js';
-import { JobTrackerService, RuntimeStatusService } from '../../../../core/index.js';
-import { ArtifactModelFromImageResizeOutput } from '../../../../domain/index.js';
+import { ApiClientService } from '@app/core/services/api-client.service';
+import { ArtifactObjectUrlService } from '@app/core/services/artifact-object-url.service';
+import { JobTrackerService, RuntimeStatusService } from '@app/core';
+import { ArtifactModelFromImageResizeOutput } from '@app/domain';
 import { Either, Option } from 'effect';
 import { finalize } from 'rxjs';
 
@@ -63,6 +64,7 @@ export interface SizeDelta {
 @Injectable()
 export class ImageResizeService {
   private readonly _apiClient = inject(ApiClientService);
+  private readonly _artifactObjectUrl = inject(ArtifactObjectUrlService);
   private readonly _jobTracker = inject(JobTrackerService);
   private readonly _runtimeStatus = inject(RuntimeStatusService);
 
@@ -179,12 +181,12 @@ export class ImageResizeService {
     this._collectedBatchJobIds.clear();
   }
 
-  getArtifactFileUrl(id: string): string {
-    return this._apiClient.getArtifactFileUrl(id);
+  getArtifactFileUrl(id: string): string | null {
+    return this._artifactObjectUrl.getFileUrl(id);
   }
 
-  getArtifactDownloadUrl(id: string): string {
-    return this._apiClient.getArtifactDownloadUrl(id);
+  getArtifactDownloadUrl(id: string): string | null {
+    return this._artifactObjectUrl.getDownloadUrl(id);
   }
 
   private readonly _selectedImage = signal<Option.Option<ArtifactFileDetails>>(Option.none());
@@ -402,12 +404,12 @@ export class ImageResizeService {
     return `${w.value}×${h.value}`;
   });
 
-  readonly artifactDownloadUrl = computed(() => this._resultArtifact().pipe(Option.map(({ id }) => 
-    this._apiClient.getArtifactDownloadUrl(id)
+  readonly artifactDownloadUrl = computed(() => this._resultArtifact().pipe(Option.flatMap(({ id }) =>
+    Option.fromNullable(this._artifactObjectUrl.getDownloadUrl(id))
   )));
 
-  readonly artifactFileUrl = computed(() => this._resultArtifact().pipe(Option.map(({ id }) => 
-    this._apiClient.getArtifactFileUrl(id)
+  readonly artifactFileUrl = computed(() => this._resultArtifact().pipe(Option.flatMap(({ id }) =>
+    Option.fromNullable(this._artifactObjectUrl.getFileUrl(id))
 )));
 
   setImage(file: File): void {

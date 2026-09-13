@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IconComponent } from '../../atoms/icon/icon.component.js';
+import { IconComponent } from '@app/ui/atoms/icon/icon.component';
 
 @Component({
   selector: 'app-error-diagnostic',

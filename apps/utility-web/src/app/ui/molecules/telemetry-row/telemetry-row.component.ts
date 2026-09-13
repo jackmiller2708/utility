@@ -1,6 +1,6 @@
 import { Component, input, effect, inject, ElementRef, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MotionService } from '../../../core/index.js';
+import { MotionService } from '@app/core';
 
 @Component({
   selector: 'app-telemetry-row',

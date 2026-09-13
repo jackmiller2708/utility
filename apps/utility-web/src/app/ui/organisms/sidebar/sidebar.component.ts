@@ -1,7 +1,7 @@
 import { Component, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IconComponent } from '../../atoms/icon/icon.component.js';
-import type { ToolModel } from '../../../domain/index.js';
+import { IconComponent } from '@app/ui/atoms/icon/icon.component';
+import type { ToolModel } from '@app/domain';
 
 export interface ToolCategoryGroup {
   readonly category: string;

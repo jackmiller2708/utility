@@ -1,9 +1,10 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { DeviceIdentity, DeviceId } from "@utility/domain";
+
 import * as crypto from "node:crypto";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
-import { DeviceIdentity, DeviceId } from "@utility/domain";
 
 /** How long a revoked device sticks around before the sweep purges it for good. */
 const REVOKED_DEVICE_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
@@ -102,12 +103,17 @@ export class DeviceAuthService implements OnModuleInit, OnModuleDestroy {
 
   async approveDevice(deviceId: string): Promise<DeviceIdentity | undefined> {
     const device = this.devices.get(deviceId);
+
     if (!device) {
       return undefined;
     }
+    
     const updated: DeviceIdentity = { ...device, approved: true };
+    
     this.devices.set(deviceId, updated);
+    
     await this.saveDevices();
+    
     return updated;
   }
 
@@ -117,23 +123,33 @@ export class DeviceAuthService implements OnModuleInit, OnModuleDestroy {
 
   async renameDevice(deviceId: string, name: string): Promise<DeviceIdentity | undefined> {
     const device = this.devices.get(deviceId);
+    
     if (!device) {
       return undefined;
     }
+    
     const updated: DeviceIdentity = { ...device, name };
+    
     this.devices.set(deviceId, updated);
+    
     await this.saveDevices();
+    
     return updated;
   }
 
   async revokeDevice(deviceId: string): Promise<DeviceIdentity | undefined> {
     const device = this.devices.get(deviceId);
+    
     if (!device) {
       return undefined;
     }
+    
     const updated: DeviceIdentity = { ...device, revoked: true, revokedAt: new Date().toISOString() };
+    
     this.devices.set(deviceId, updated);
+    
     await this.saveDevices();
+    
     return updated;
   }
 
@@ -144,14 +160,19 @@ export class DeviceAuthService implements OnModuleInit, OnModuleDestroy {
    */
   async deleteDevice(deviceId: string): Promise<"deleted" | "not-found" | "not-revoked"> {
     const device = this.devices.get(deviceId);
+    
     if (!device) {
       return "not-found";
     }
+    
     if (!device.revoked) {
       return "not-revoked";
     }
+    
     this.devices.delete(deviceId);
+    
     await this.saveDevices();
+    
     return "deleted";
   }
 
@@ -159,15 +180,18 @@ export class DeviceAuthService implements OnModuleInit, OnModuleDestroy {
   async purgeExpiredDevices(retentionMs: number = REVOKED_DEVICE_RETENTION_MS): Promise<number> {
     const now = Date.now();
     let purged = 0;
+    
     for (const device of this.devices.values()) {
       if (device.revoked && device.revokedAt && now - Date.parse(device.revokedAt) > retentionMs) {
         this.devices.delete(device.deviceId);
         purged++;
       }
     }
+    
     if (purged > 0) {
       await this.saveDevices();
     }
+    
     return purged;
   }
 
@@ -185,6 +209,7 @@ export class DeviceAuthService implements OnModuleInit, OnModuleDestroy {
     bodyHash?: string;
   }): boolean {
     const device = this.devices.get(options.deviceId);
+    
     if (!device || device.revoked || !device.approved) {
       return false;
     }
@@ -192,6 +217,7 @@ export class DeviceAuthService implements OnModuleInit, OnModuleDestroy {
     // Check timestamp skew (5 minutes)
     const reqTime = parseInt(options.timestamp, 10);
     const now = Date.now();
+    
     if (isNaN(reqTime) || Math.abs(now - reqTime) > 5 * 60 * 1000) {
       return false;
     }
@@ -200,7 +226,9 @@ export class DeviceAuthService implements OnModuleInit, OnModuleDestroy {
     if (this.usedNonces.has(options.nonce)) {
       return false;
     }
+    
     this.usedNonces.add(options.nonce);
+    
     if (this.usedNonces.size > 10000) {
       this.usedNonces.clear();
     }
@@ -221,7 +249,9 @@ export class DeviceAuthService implements OnModuleInit, OnModuleDestroy {
       // it's ignored (harmless) for non-EC keys, so this stays one call for
       // every supported key type.
       const verifier = crypto.createVerify("SHA256");
+    
       verifier.update(payload);
+    
       return verifier.verify({ key: device.publicKey, dsaEncoding: "ieee-p1363" }, options.signature, "hex");
     } catch {
       return false;

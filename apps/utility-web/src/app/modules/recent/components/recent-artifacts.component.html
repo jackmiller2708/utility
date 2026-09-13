@@ -88,6 +88,7 @@
 
           <a
             [href]="service.getArtifactDownloadUrl(artifact.id)"
+            [attr.download]="artifact.name"
             [attr.aria-label]="'Download ' + artifact.name"
             class="shrink-0 text-ink-faint hover:text-riso-blue transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
           >

@@ -1,6 +1,6 @@
 import { Component, input, output, signal, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BadgeComponent } from '../../atoms/badge/badge.component.js';
+import { BadgeComponent } from '@app/ui/atoms/badge/badge.component';
 
 const isFileDrag = (event: DragEvent): boolean => !!event.dataTransfer?.types.includes('Files');
 

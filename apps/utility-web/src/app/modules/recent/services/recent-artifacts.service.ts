@@ -1,9 +1,10 @@
-import type { ArtifactModel } from '../../../domain/index.js';
+import type { ArtifactModel } from '@app/domain';
 
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { ApiClientService } from '../../../core/services/api-client.service.js';
-import { RuntimeStatusService } from '../../../core/services/runtime-status.service.js';
-import { ArtifactModelsFromArtifactResponseList } from '../../../domain/index.js';
+import { ApiClientService } from '@app/core/services/api-client.service';
+import { ArtifactObjectUrlService } from '@app/core/services/artifact-object-url.service';
+import { RuntimeStatusService } from '@app/core/services/runtime-status.service';
+import { ArtifactModelsFromArtifactResponseList } from '@app/domain';
 import { Either } from 'effect';
 import { finalize, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
@@ -47,6 +48,7 @@ const dayLabel = (isoDate: string): string => {
 @Injectable()
 export class RecentArtifactsService {
   private readonly apiClient = inject(ApiClientService);
+  private readonly _artifactObjectUrl = inject(ArtifactObjectUrlService);
   private readonly runtimeStatus = inject(RuntimeStatusService);
 
   private readonly _artifacts = signal<readonly ArtifactModel[]>([]);
@@ -150,12 +152,12 @@ export class RecentArtifactsService {
     return new Date(isoDate).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
   }
 
-  getArtifactFileUrl(id: string): string {
-    return this.apiClient.getArtifactFileUrl(id);
+  getArtifactFileUrl(id: string): string | null {
+    return this._artifactObjectUrl.getFileUrl(id);
   }
 
-  getArtifactDownloadUrl(id: string): string {
-    return this.apiClient.getArtifactDownloadUrl(id);
+  getArtifactDownloadUrl(id: string): string | null {
+    return this._artifactObjectUrl.getDownloadUrl(id);
   }
 
   private _activeFilters(): { search?: string; operation?: string } {

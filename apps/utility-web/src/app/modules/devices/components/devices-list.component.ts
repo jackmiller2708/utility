@@ -1,9 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BadgeComponent, DeviceTicketComponent, IconComponent } from '@app/ui';
-import { DevicesService } from '../services/devices.service.js';
-import { DeviceIdentityService, RuntimeStatusService, DeviceTrustService } from '../../../core/index.js';
-import type { DeviceModel } from '../../../domain/index.js';
+import { DevicesService } from '../services/devices.service';
+import { DeviceIdentityService, RuntimeStatusService, DeviceTrustService } from '@app/core';
+import type { DeviceModel } from '@app/domain';
 import { Either } from 'effect';
 
 @Component({

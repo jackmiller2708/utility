@@ -16,7 +16,8 @@ import { Effect } from "effect";
 import { DeviceAuthGuard } from "../auth/device-auth.guard.js";
 import { EffectRuntimeService } from "../effect/effect-runtime.service.js";
 import { ToolRegistry } from "@utility/toolkit";
-import { FileSystem, WorkspaceManager } from "@utility/runtime";
+import { WorkspaceManager } from "@utility/runtime";
+import { FileSystem } from "@effect/platform";
 import { ImageFit, ImageFormat } from "@utility/protocol";
 
 export interface MulterUploadedFile {
@@ -75,7 +76,7 @@ export class ToolsController {
       Effect.gen(function* () {
         const registry = yield* ToolRegistry;
         const wsManager = yield* WorkspaceManager;
-        const fs = yield* FileSystem;
+        const fs = yield* FileSystem.FileSystem;
 
         const op = yield* registry.getOperation("image.resize");
         if (!op) {
@@ -87,7 +88,7 @@ export class ToolsController {
             // Write input file to workspace input folder
             const filename = file.originalname || "input_image.png";
             const inputPath = ws.resolveInputPath(filename);
-            yield* fs.write(inputPath, file.buffer);
+            yield* fs.writeFile(inputPath, file.buffer);
 
             // Execute tool operation
             return yield* op.execute(
@@ -133,7 +134,7 @@ export class ToolsController {
       Effect.gen(function* () {
         const registry = yield* ToolRegistry;
         const wsManager = yield* WorkspaceManager;
-        const fs = yield* FileSystem;
+        const fs = yield* FileSystem.FileSystem;
 
         const op = yield* registry.getOperation("pdf.split");
         if (!op) {
@@ -143,7 +144,7 @@ export class ToolsController {
         return yield* wsManager.withWorkspace((ws) =>
           Effect.gen(function* () {
             const filename = file.originalname || "input.pdf";
-            yield* fs.write(ws.resolveInputPath(filename), file.buffer);
+            yield* fs.writeFile(ws.resolveInputPath(filename), file.buffer);
 
             return yield* op.execute({ file: filename, ranges }, { workspace: ws });
           })
@@ -163,7 +164,7 @@ export class ToolsController {
       Effect.gen(function* () {
         const registry = yield* ToolRegistry;
         const wsManager = yield* WorkspaceManager;
-        const fs = yield* FileSystem;
+        const fs = yield* FileSystem.FileSystem;
 
         const op = yield* registry.getOperation("pdf.merge");
         if (!op) {
@@ -176,7 +177,7 @@ export class ToolsController {
 
             for (let i = 0; i < files.length; i++) {
               const filename = `${i}_${files[i].originalname || "input.pdf"}`;
-              yield* fs.write(ws.resolveInputPath(filename), files[i].buffer);
+              yield* fs.writeFile(ws.resolveInputPath(filename), files[i].buffer);
               filenames.push(filename);
             }
 
@@ -205,7 +206,7 @@ export class ToolsController {
       Effect.gen(function* () {
         const registry = yield* ToolRegistry;
         const wsManager = yield* WorkspaceManager;
-        const fs = yield* FileSystem;
+        const fs = yield* FileSystem.FileSystem;
 
         const op = yield* registry.getOperation(operationId);
         if (!op) {
@@ -220,7 +221,7 @@ export class ToolsController {
             if (file) {
               const filename = file.originalname || "input_file";
               const inputPath = ws.resolveInputPath(filename);
-              yield* fs.write(inputPath, file.buffer);
+              yield* fs.writeFile(inputPath, file.buffer);
               input = { ...input, file: filename };
             }
 

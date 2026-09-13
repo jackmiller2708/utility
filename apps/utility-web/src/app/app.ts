@@ -1,8 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
-import { WorkbenchLayoutComponent, RouteCurtainComponent, EnrollmentGateComponent } from './ui/index.js';
-import { RuntimeStatusService, DeviceTrustService } from './core/index.js';
+import { WorkbenchLayoutComponent, RouteCurtainComponent, EnrollmentGateComponent } from './ui';
+import { RuntimeStatusService, DeviceTrustService } from './core';
 
 const TOOL_ROUTES: Record<string, string> = {
   image: '/media/image-resize',

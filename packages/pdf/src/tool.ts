@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import * as path from "node:path";
+import { Path } from "@effect/platform";
 import {
   PdfInspectInput,
   PdfInspectOutput,
@@ -60,7 +60,7 @@ export const renderPagesOperation: Operation<
   PdfRenderPagesInput,
   PdfRenderPagesOutput,
   unknown,
-  PdfService | ArtifactStore
+  PdfService | ArtifactStore | Path.Path
 > = {
   id: "pdf.render-pages",
   name: "Render Pages",
@@ -106,6 +106,7 @@ export const renderPagesOperation: Operation<
     Effect.gen(function* () {
       const pdfService = yield* PdfService;
       const artifactStore = yield* ArtifactStore;
+      const path = yield* Path.Path;
 
       const inputFilePath = context.workspace.resolveInputPath(input.file);
       const parsed = path.parse(input.file);
@@ -151,7 +152,7 @@ export const extractImagesOperation: Operation<
   PdfExtractImagesInput,
   PdfExtractImagesOutput,
   unknown,
-  PdfService | ArtifactStore
+  PdfService | ArtifactStore | Path.Path
 > = {
   id: "pdf.extract-images",
   name: "Extract Images",
@@ -171,6 +172,7 @@ export const extractImagesOperation: Operation<
     Effect.gen(function* () {
       const pdfService = yield* PdfService;
       const artifactStore = yield* ArtifactStore;
+      const path = yield* Path.Path;
 
       const inputFilePath = context.workspace.resolveInputPath(input.file);
       const parsed = path.parse(input.file);
@@ -205,7 +207,7 @@ export const splitOperation: Operation<
   PdfSplitInput,
   PdfSplitOutput,
   unknown,
-  PdfService | ArtifactStore
+  PdfService | ArtifactStore | Path.Path
 > = {
   id: "pdf.split",
   name: "Split PDF",
@@ -232,6 +234,7 @@ export const splitOperation: Operation<
     Effect.gen(function* () {
       const pdfService = yield* PdfService;
       const artifactStore = yield* ArtifactStore;
+      const path = yield* Path.Path;
 
       const inputFilePath = context.workspace.resolveInputPath(input.file);
       const parsed = path.parse(input.file);

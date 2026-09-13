@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import * as path from "node:path";
+import { Path } from "@effect/platform";
 import {
   MediaInspectInput,
   MediaInspectOutput,
@@ -51,7 +51,7 @@ export const thumbnailOperation: Operation<
   MediaThumbnailInput,
   MediaThumbnailOutput,
   unknown,
-  MediaService | ArtifactStore
+  MediaService | ArtifactStore | Path.Path
 > = {
   id: "media.thumbnail",
   name: "Extract Thumbnail",
@@ -97,6 +97,7 @@ export const thumbnailOperation: Operation<
     Effect.gen(function* () {
       const mediaService = yield* MediaService;
       const artifactStore = yield* ArtifactStore;
+      const path = yield* Path.Path;
 
       const inputFilePath = context.workspace.resolveInputPath(input.file);
       const parsed = path.parse(input.file);
@@ -128,7 +129,7 @@ export const extractAudioOperation: Operation<
   MediaExtractAudioInput,
   MediaExtractAudioOutput,
   unknown,
-  MediaService | ArtifactStore
+  MediaService | ArtifactStore | Path.Path
 > = {
   id: "media.extract-audio",
   name: "Extract Audio",
@@ -166,6 +167,7 @@ export const extractAudioOperation: Operation<
     Effect.gen(function* () {
       const mediaService = yield* MediaService;
       const artifactStore = yield* ArtifactStore;
+      const path = yield* Path.Path;
 
       const inputFilePath = context.workspace.resolveInputPath(input.file);
       const parsed = path.parse(input.file);
@@ -195,7 +197,7 @@ export const transcodeOperation: Operation<
   MediaTranscodeInput,
   MediaTranscodeOutput,
   unknown,
-  MediaService | ArtifactStore
+  MediaService | ArtifactStore | Path.Path
 > = {
   id: "media.transcode",
   name: "Transcode Video",
@@ -251,6 +253,7 @@ export const transcodeOperation: Operation<
     Effect.gen(function* () {
       const mediaService = yield* MediaService;
       const artifactStore = yield* ArtifactStore;
+      const path = yield* Path.Path;
 
       const inputFilePath = context.workspace.resolveInputPath(input.file);
       const parsed = path.parse(input.file);

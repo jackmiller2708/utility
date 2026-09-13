@@ -1,8 +1,8 @@
 import { Component, input, output, signal, effect, inject, ElementRef, viewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IconComponent } from '../../atoms/icon/icon.component.js';
-import { ButtonComponent } from '../../atoms/button/button.component.js';
-import { MotionService } from '../../../core/index.js';
+import { IconComponent } from '@app/ui/atoms/icon/icon.component';
+import { ButtonComponent } from '@app/ui/atoms/button/button.component';
+import { MotionService } from '@app/core';
 
 export interface SortableFileItem {
   readonly id: string;
