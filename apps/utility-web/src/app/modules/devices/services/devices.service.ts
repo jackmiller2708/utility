@@ -3,8 +3,16 @@ import { ApiClientService } from '../../../core/services/api-client.service.js';
 import { DeviceModel, DeviceModelsFromDeviceListResponse } from '../../../domain/index.js';
 import { Either } from 'effect';
 
-/** The enrolled-device registry backing the Devices page — parallels `RecipesService`: fetched once, refreshed after a mutation. */
-@Injectable({ providedIn: 'root' })
+/**
+ * The enrolled-device registry backing the Devices page. Deliberately component-scoped
+ * (provided on `DevicesListComponent`, not `providedIn: 'root'`) rather than a `RecipesService`-style
+ * app-wide singleton: this list changes from *outside* this browser's own actions all the time —
+ * another device gets approved or revoked, or (the case that motivated this) revoking your own
+ * current device sends you back through the enrollment gate and you return with a new device
+ * row. A root singleton's "fetched once" flag would never know to refetch after any of that; a
+ * fresh instance per visit to the page means it always does.
+ */
+@Injectable()
 export class DevicesService {
   private readonly apiClient = inject(ApiClientService);
 

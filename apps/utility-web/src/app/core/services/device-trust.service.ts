@@ -203,6 +203,33 @@ export class DeviceTrustService {
     this.pollTimer = setTimeout(tick, APPROVAL_POLL_INTERVAL_MS);
   }
 
+  /**
+   * Called when a signed request comes back 401 after this browser was already
+   * confirmed trusted — the identity that got it there is no longer honored
+   * (self-revoked from the Devices page, or revoked by an operator mid-session).
+   * A no-op before that point: enrollment and approval-polling already field
+   * their own 401s/`authenticated: false` responses from a fresh or
+   * not-yet-approved device without discarding anything (see
+   * `startApprovalPolling`) — only a previously-*confirmed* trust regressing
+   * means the local identity itself is now dead.
+   */
+  invalidateTrust(message: string): void {
+    if (!this.trustConfirmed) {
+      return;
+    }
+
+    this.trustConfirmed = false;
+    if (this.pollTimer) {
+      clearTimeout(this.pollTimer);
+      this.pollTimer = null;
+    }
+
+    this.errorMessage.set(message);
+    this.trusted.set('untrusted');
+    this.gateVisible.set(true);
+    this.identity.clear();
+  }
+
   private finalizeTrusted(): void {
     if (this.pollTimer) {
       clearTimeout(this.pollTimer);

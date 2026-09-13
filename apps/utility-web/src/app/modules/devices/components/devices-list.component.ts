@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BadgeComponent, DeviceTicketComponent, IconComponent } from '@app/ui';
 import { DevicesService } from '../services/devices.service.js';
-import { DeviceIdentityService, RuntimeStatusService } from '../../../core/index.js';
+import { DeviceIdentityService, RuntimeStatusService, DeviceTrustService } from '../../../core/index.js';
 import type { DeviceModel } from '../../../domain/index.js';
 import { Either } from 'effect';
 
@@ -12,11 +12,15 @@ import { Either } from 'effect';
   imports: [CommonModule, BadgeComponent, IconComponent, DeviceTicketComponent],
   templateUrl: './devices-list.component.html',
   host: { class: 'flex flex-col gap-6 min-w-0 w-full' },
+  // Component-scoped, not root: see DevicesService's own doc comment for why this list needs a
+  // fresh fetch every time this page is entered rather than a value cached for the app's lifetime.
+  providers: [DevicesService],
 })
 export class DevicesListComponent implements OnInit {
   readonly service = inject(DevicesService);
   private readonly identity = inject(DeviceIdentityService);
   private readonly runtimeStatus = inject(RuntimeStatusService);
+  private readonly deviceTrust = inject(DeviceTrustService);
 
   readonly confirmingId = signal<string | null>(null);
   readonly revokingId = signal<string | null>(null);
@@ -84,6 +88,15 @@ export class DevicesListComponent implements OnInit {
         this.service.onRevoked(device.deviceId);
         this.confirmingId.set(null);
         this.revokingId.set(null);
+
+        // The revoke response itself never 401s — the signature that carried
+        // it was still valid at verification time — so nothing would
+        // otherwise catch this until some *later* protected call happened to
+        // fail. Closing the gate here, immediately, is what stops the SPA
+        // from staying navigable on a session the server no longer trusts.
+        if (this.isThisDevice(device)) {
+          this.deviceTrust.invalidateTrust('You revoked this device. Ask to be trusted again to continue.');
+        }
       },
       onLeft: () => {
         this.revokingId.set(null);

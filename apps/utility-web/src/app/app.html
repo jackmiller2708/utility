@@ -1,16 +1,18 @@
-<app-workbench-layout
-  [authStatus]="runtimeStatus.authStatus()"
-  [tools]="runtimeStatus.tools()"
-  [activeToolId]="activeToolId()"
-  [onRecentRoute]="onRecentRoute()"
-  [onRecipesRoute]="onRecipesRoute()"
-  [onDevicesRoute]="onDevicesRoute()"
-  (toolSelected)="selectTool($event)"
-  (recentSelected)="selectRecent()"
-  (recipesSelected)="selectRecipes()"
-  (devicesSelected)="selectDevices()"
->
-  <router-outlet></router-outlet>
-</app-workbench-layout>
+@if (deviceTrust.trusted() === 'trusted') {
+  <app-workbench-layout
+    [authStatus]="runtimeStatus.authStatus()"
+    [tools]="runtimeStatus.tools()"
+    [activeToolId]="activeToolId()"
+    [onRecentRoute]="onRecentRoute()"
+    [onRecipesRoute]="onRecipesRoute()"
+    [onDevicesRoute]="onDevicesRoute()"
+    (toolSelected)="selectTool($event)"
+    (recentSelected)="selectRecent()"
+    (recipesSelected)="selectRecipes()"
+    (devicesSelected)="selectDevices()"
+  >
+    <router-outlet></router-outlet>
+  </app-workbench-layout>
+}
 <app-route-curtain></app-route-curtain>
 <app-enrollment-gate></app-enrollment-gate>

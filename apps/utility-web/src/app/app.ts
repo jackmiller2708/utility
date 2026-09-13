@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { WorkbenchLayoutComponent, RouteCurtainComponent, EnrollmentGateComponent } from './ui/index.js';
-import { RuntimeStatusService } from './core/index.js';
+import { RuntimeStatusService, DeviceTrustService } from './core/index.js';
 
 const TOOL_ROUTES: Record<string, string> = {
   image: '/media/image-resize',
@@ -37,6 +37,7 @@ const routeToToolId = (url: string): string | null => {
 export class App implements OnInit {
   private readonly router = inject(Router);
   readonly runtimeStatus = inject(RuntimeStatusService);
+  readonly deviceTrust = inject(DeviceTrustService);
 
   readonly activeToolId = signal<string>(routeToToolId(this.router.url) ?? 'image');
   readonly onRecentRoute = signal<boolean>(this.router.url.startsWith('/recent'));

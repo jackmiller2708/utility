@@ -5,6 +5,7 @@ import { ResponseError } from './errors';
 import { Either, Match } from 'effect';
 import { inject } from '@angular/core';
 import { DeviceIdentityService } from './services/device-identity.service.js';
+import { DeviceTrustService } from './services/device-trust.service.js';
 
 const isErrorEvent = (): SafeRefinement<InstanceType<typeof ErrorEvent>, never> => (
 	(error: unknown) => typeof globalThis.ErrorEvent !== 'undefined' && error instanceof globalThis.ErrorEvent
@@ -72,13 +73,32 @@ export const deviceSigningInterceptor: HttpInterceptorFn = (req, next) => {
 	);
 };
 
-export const responseInterceptor: HttpInterceptorFn = (req, next) => next(req).pipe(
-	map((event) => event instanceof HttpResponse
-		? event.clone({ body: Either.right(event.body) })
-		: event
-	),
-	catchError((error: HttpErrorResponse) => of(new HttpResponse({
-		body: Either.left(new ResponseError({ code: error.status, message: matchErrorMessage(error) })),
-		status: 200
-	})))
-);
+/**
+ * A 401 here means `DeviceAuthGuard` rejected the signature this request
+ * carried — the one case that can only mean the device backing it is no
+ * longer valid (revoked, most likely), never "not enrolled yet" (those go
+ * out unsigned, or against unguarded endpoints like `/auth/status`). Feeding
+ * every 401 through `DeviceTrustService.invalidateTrust` re-opens the gate
+ * the moment that happens, rather than leaving a revoked session free to
+ * keep navigating a UI whose every protected call now silently fails.
+ */
+export const responseInterceptor: HttpInterceptorFn = (req, next) => {
+	const deviceTrust = inject(DeviceTrustService);
+
+	return next(req).pipe(
+		map((event) => event instanceof HttpResponse
+			? event.clone({ body: Either.right(event.body) })
+			: event
+		),
+		catchError((error: HttpErrorResponse) => {
+			if (error.status === 401) {
+				deviceTrust.invalidateTrust('This device is no longer trusted. Ask to be trusted again to continue.');
+			}
+
+			return of(new HttpResponse({
+				body: Either.left(new ResponseError({ code: error.status, message: matchErrorMessage(error) })),
+				status: 200
+			}));
+		})
+	);
+};

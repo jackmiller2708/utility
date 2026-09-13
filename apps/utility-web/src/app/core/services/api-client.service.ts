@@ -1,8 +1,16 @@
 import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, DeviceResponse, DeviceListResponse, RevokeDeviceResponse, ApproveDeviceResponse, DeleteDeviceResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, MediaInspectOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse, WorkflowResponse, WorkflowListResponse } from '@utility/protocol';
+import type { HttpResponse } from '../interfaces.js';
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClientService } from './http-client.service.js';
+import { LruRequestCache } from './lru-request-cache.js';
 import { API_CONFIG } from '../tokens/api-config.token.js';
+import { Either } from 'effect';
+import { tap } from 'rxjs';
+
+const AUTH_STATUS_CACHE_KEY = 'status';
+/** Short enough that DeviceTrustService's 3s approval poll always sees a fresh answer, long enough to coalesce the startup burst (app.ts's refreshStatus() racing the device-trust guard's ensureTrusted()) into one request. */
+const AUTH_STATUS_CACHE_TTL_MS = 1000;
 
 export interface ArtifactListQuery {
   readonly limit?: number;
@@ -43,12 +51,30 @@ export class ApiClientService {
   private readonly http = inject(HttpClientService);
   private readonly config = inject(API_CONFIG);
 
+  /**
+   * The one endpoint cached at this (root, whole-session) scope: auth status is checked
+   * repeatedly from independent call sites (the startup guard, `RuntimeStatusService`, the
+   * approval poll) that all want the *same* answer at any given moment, so coalescing and a
+   * short TTL are a pure win here — see `lru-request-cache.ts` for the mechanism. Lists like
+   * tools and workflows deliberately do NOT get this treatment: their pages already decide for
+   * themselves when to (re)fetch (`RuntimeStatusService.refreshStatus()`, `RecipesService`), and
+   * a cache underneath that would go stale the moment another browser or operator changes the
+   * same data — e.g. a workflow list cached here would never notice a workflow created from
+   * another device. A page that wants "don't refetch while I'm still mounted" belongs to that
+   * page's own service instance, not to this singleton.
+   */
+  private readonly authStatusCache = new LruRequestCache<string, HttpResponse<AuthStatusResponse>>({
+    capacity: 1,
+    ttlMs: AUTH_STATUS_CACHE_TTL_MS,
+    shouldCache: Either.isRight,
+  });
+
   getAuthStatus$() {
-    return this.http.get<AuthStatusResponse>(`${this.config.baseUrl}/auth/status`);
+    return this.authStatusCache.get(AUTH_STATUS_CACHE_KEY, () => this.http.get<AuthStatusResponse>(`${this.config.baseUrl}/auth/status`));
   }
 
   enrollDevice$(name: string, publicKey: string) {
-    return this.http.post<DeviceResponse>(`${this.config.baseUrl}/auth/enroll`, { name, publicKey });
+    return this.http.post<DeviceResponse>(`${this.config.baseUrl}/auth/enroll`, { name, publicKey }).pipe(tap(() => this.authStatusCache.clear()));
   }
 
   listDevices$() {
@@ -60,15 +86,15 @@ export class ApiClientService {
   }
 
   revokeDevice$(deviceId: string) {
-    return this.http.delete<RevokeDeviceResponse>(`${this.config.baseUrl}/auth/devices/${deviceId}`);
+    return this.http.delete<RevokeDeviceResponse>(`${this.config.baseUrl}/auth/devices/${deviceId}`).pipe(tap(() => this.authStatusCache.clear()));
   }
 
   approveDevice$(deviceId: string) {
-    return this.http.post<ApproveDeviceResponse>(`${this.config.baseUrl}/auth/devices/${deviceId}/approve`, {});
+    return this.http.post<ApproveDeviceResponse>(`${this.config.baseUrl}/auth/devices/${deviceId}/approve`, {}).pipe(tap(() => this.authStatusCache.clear()));
   }
 
   deleteDevice$(deviceId: string) {
-    return this.http.post<DeleteDeviceResponse>(`${this.config.baseUrl}/auth/devices/${deviceId}/delete`, {});
+    return this.http.post<DeleteDeviceResponse>(`${this.config.baseUrl}/auth/devices/${deviceId}/delete`, {}).pipe(tap(() => this.authStatusCache.clear()));
   }
 
   getTools$() {
