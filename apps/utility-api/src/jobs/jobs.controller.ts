@@ -110,6 +110,20 @@ function prepareJobInput(
   });
 }
 
+/**
+ * Bounds how many jobs actually execute (decode/process) at once, process-wide — submitting
+ * a batch of N files from the UI fires N `POST /jobs/:operationId` requests essentially
+ * simultaneously, and without this, N jobs would start executing concurrently too. A single
+ * large photo can hold 100+ MB of decoded pixel data in memory at once; this container has a
+ * fixed `memory: 512M` cgroup limit (see docker-compose.yml), and letting even two or three
+ * such jobs decode concurrently reliably exceeds it and gets the whole process OOM-killed —
+ * which silently drops every in-flight job when Docker restarts the container, since job
+ * state lives only in memory. A job still shows up immediately as "pending" on submission; it
+ * just waits here for a permit before it actually starts running. Raise this only alongside
+ * the memory limit it's sized against.
+ */
+const jobExecutionLimiter = Effect.runSync(Effect.makeSemaphore(1));
+
 @UseGuards(DeviceAuthGuard)
 @Controller("jobs")
 export class JobsController {
@@ -122,6 +136,50 @@ export class JobsController {
     @UploadedFiles() files: MulterUploadedFile[] = [],
     @Body() body: Record<string, string> = {}
   ) {
+    const jobId = await this.submitOneJob(operationId, files, body);
+    return { jobId };
+  }
+
+  /**
+   * One HTTP request that creates N independent jobs, one per uploaded file, against a single
+   * shared parameter set — the server-side counterpart to `JobTrackerService`'s batch submission.
+   * Collapses what used to be N simultaneous `POST /jobs/:operationId` requests (one per file,
+   * all fired at once from the browser) into a single request; every resulting job is still
+   * exactly as independent, pollable, cancellable, and concurrency-limited (`jobExecutionLimiter`
+   * above) as if it had been submitted the old way — only the submission round-trip changes.
+   * Each file becomes its own job with exactly that one file, never a multi-file input, so this
+   * only makes sense for single-file operations (image.resize, media.thumbnail, a recipe's
+   * `recipe.<id>`, …), never a "files"-plural operation like pdf.merge.
+   */
+  @Post(":operationId/batch")
+  @UseInterceptors(AnyFilesInterceptor())
+  async submitBatch(
+    @Param("operationId") operationId: string,
+    @UploadedFiles() files: MulterUploadedFile[] = [],
+    @Body() body: Record<string, string> = {}
+  ) {
+    const jobs = await Promise.all(
+      files.map(async (file) => ({
+        jobId: await this.submitOneJob(operationId, [file], body),
+        filename: file.originalname,
+      }))
+    );
+
+    return { jobs };
+  }
+
+  /**
+   * Creates one job and starts its (concurrency-gated) execution in the background, returning
+   * as soon as the job record exists rather than waiting for it to run. Shared by the single-file
+   * and batch routes above — `files` holds more than one upload only for a "files"-typed
+   * parameter (e.g. pdf.merge); the batch route above always calls this with a single-element
+   * array.
+   */
+  private async submitOneJob(
+    operationId: string,
+    files: MulterUploadedFile[],
+    body: Record<string, string>
+  ): Promise<string> {
     const jobId = await this.effectRuntime.runPromise(
       Effect.gen(function* () {
         const registry = yield* ToolRegistry;
@@ -160,7 +218,7 @@ export class JobsController {
         })
       );
 
-      yield* trackJob(jobRegistry, jobId, runEffect);
+      yield* jobExecutionLimiter.withPermits(1)(trackJob(jobRegistry, jobId, runEffect));
     });
 
     const fiber = this.effectRuntime.runFork(jobEffect);
@@ -176,7 +234,7 @@ export class JobsController {
       )
       .catch(() => {});
 
-    return { jobId };
+    return jobId;
   }
 
   @Get()

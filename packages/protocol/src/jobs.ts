@@ -32,6 +32,17 @@ export const JobSubmittedResponseSchema = Schema.Struct({
 
 export type JobSubmittedResponse = typeof JobSubmittedResponseSchema.Type;
 
+export const BatchJobSubmittedResponseSchema = Schema.Struct({
+  jobs: Schema.Array(
+    Schema.Struct({
+      jobId: Schema.String,
+      filename: Schema.String,
+    })
+  ),
+});
+
+export type BatchJobSubmittedResponse = typeof BatchJobSubmittedResponseSchema.Type;
+
 export const JobListResponseSchema = Schema.Struct({
   jobs: Schema.Array(JobResponseSchema),
 });

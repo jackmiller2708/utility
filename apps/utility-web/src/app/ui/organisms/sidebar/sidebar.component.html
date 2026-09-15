@@ -11,13 +11,13 @@
         <button
           type="button"
           (click)="selectedToolId.emit(tool.id)"
-          [class.bg-riso-pink-pooled]="!onRecentRoute() && !onRecipesRoute() && activeToolId() === tool.id"
-          [class.border-l-riso-pink]="!onRecentRoute() && !onRecipesRoute() && activeToolId() === tool.id"
-          [class.text-press-text]="!onRecentRoute() && !onRecipesRoute() && activeToolId() === tool.id"
-          [class.font-bold]="!onRecentRoute() && !onRecipesRoute() && activeToolId() === tool.id"
-          [class.border-l-transparent]="onRecentRoute() || onRecipesRoute() || activeToolId() !== tool.id"
-          [class.text-press-text-muted]="onRecentRoute() || onRecipesRoute() || activeToolId() !== tool.id"
-          [class.hover:text-press-text]="onRecentRoute() || onRecipesRoute() || activeToolId() !== tool.id"
+          [class.bg-riso-pink-pooled]="!onRecentRoute() && !onRecipesRoute() && !onDevicesRoute() && activeToolId() === tool.id"
+          [class.border-l-riso-pink]="!onRecentRoute() && !onRecipesRoute() && !onDevicesRoute() && activeToolId() === tool.id"
+          [class.text-press-text]="!onRecentRoute() && !onRecipesRoute() && !onDevicesRoute() && activeToolId() === tool.id"
+          [class.font-bold]="!onRecentRoute() && !onRecipesRoute() && !onDevicesRoute() && activeToolId() === tool.id"
+          [class.border-l-transparent]="onRecentRoute() || onRecipesRoute() || onDevicesRoute() || activeToolId() !== tool.id"
+          [class.text-press-text-muted]="onRecentRoute() || onRecipesRoute() || onDevicesRoute() || activeToolId() !== tool.id"
+          [class.hover:text-press-text]="onRecentRoute() || onRecipesRoute() || onDevicesRoute() || activeToolId() !== tool.id"
           class="group w-full text-left pl-[17px] pr-5 py-2.5 text-sm border-l-[3px] active:bg-press-line transition-colors duration-shift ease-run cursor-pointer"
         >
           <span class="truncate block">{{ tool.name }}</span>

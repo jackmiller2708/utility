@@ -17,10 +17,12 @@ import type { JobModel } from '@app/domain';
   imports: [CommonModule, IconComponent],
   templateUrl: './job-ticket.component.html',
   host: {
-    class: 'flex relative items-start gap-3 border rounded-lg bg-paper-fresh border-paper-deckle overflow-hidden',
+    class: 'flex relative items-start gap-3 border rounded-lg bg-paper-fresh overflow-hidden',
     '[class.p-2]': 'compact()',
     '[class.p-4]': '!compact()',
     '[class.struck-plate]': "job().status === 'cancelled'",
+    '[class.border-paper-deckle]': '!job().failureKind',
+    '[class.border-riso-gold]': '!!job().failureKind',
   },
 })
 export class JobTicketComponent {
@@ -66,8 +68,12 @@ export class JobTicketComponent {
           this.motion.pulledSheet(el);
           this.drawStatusIcon();
         } else if (job.status === 'failed' && previous !== null) {
-          this.motion.misregister(el);
-          this.drawStatusIcon();
+          if (job.failureKind) {
+            this.motion.overrun(el);
+          } else {
+            this.motion.misregister(el);
+            this.drawStatusIcon();
+          }
         }
       }
 

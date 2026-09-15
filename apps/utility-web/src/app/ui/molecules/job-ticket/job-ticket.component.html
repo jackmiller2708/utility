@@ -10,7 +10,11 @@
       <app-icon #statusIcon name="check" className="w-4 h-4 text-riso-mint"></app-icon>
     }
     @case ('failed') {
-      <app-icon #statusIcon name="close" className="w-4 h-4 text-riso-red"></app-icon>
+      @if (job().failureKind) {
+        <span #statusIcon class="reg-cross text-riso-gold" aria-hidden="true"></span>
+      } @else {
+        <app-icon #statusIcon name="close" className="w-4 h-4 text-riso-red"></app-icon>
+      }
     }
     @case ('cancelled') {
       <span class="w-2 h-2 rounded-full bg-ink-faint"></span>
@@ -65,7 +69,7 @@
         <span class="text-riso-mint">DONE</span>
       }
       @case ('failed') {
-        <span class="text-riso-red">{{ job().error ?? 'FAILED' }}</span>
+        <span [class.text-riso-red]="!job().failureKind" [class.text-riso-gold]="job().failureKind">{{ job().error ?? 'FAILED' }}</span>
       }
       @case ('cancelled') {
         <span>CANCELLED</span>

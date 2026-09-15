@@ -26,6 +26,10 @@ If `docker inspect`'s ports output is `{}` for a container whose
 `docker compose ps` shows `Up`, the container is running but nothing on the
 host can reach it — jump to
 [docker compose ps shows everything Up but nothing responds](#docker-compose-ps-shows-everything-up-but-nothing-responds).
+If that's true right after a reboot *and* `LAN_IP` already matches
+`hostname -I`, jump straight to the
+[boot-time race](#ports-are--right-after-a-reboot-even-though-lan_ip-is-correct-boot-time-race)
+instead — it isn't IP drift and the fix is different.
 
 ## Server unreachable from LAN or the public Funnel URL (or both)
 
@@ -130,7 +134,117 @@ docker inspect utility-caddy-1 --format '{{json .NetworkSettings.Ports}}'
 
 `{}` confirms nothing is published. This is the same root cause as
 [Server unreachable](#server-unreachable-from-lan-or-the-public-funnel-url-or-both)
-above — check `LAN_IP` first.
+above — check `LAN_IP` first. If `LAN_IP` already matches `hostname -I`, see the
+boot-time race below instead.
+
+## Ports are `{}` right after a reboot even though `LAN_IP` is correct (boot-time race)
+
+**Symptom:** same signature as above — `docker compose ps` shows everything
+`Up`, `docker inspect utility-caddy-1 --format '{{json .NetworkSettings.Ports}}'`
+is `{}` — but `LAN_IP` in `.env` already matches `hostname -I` exactly, so
+it isn't [IP drift](#server-unreachable-from-lan-or-the-public-funnel-url-or-both).
+It follows a reboot or a `systemctl restart docker`, and the rest of the
+stack (`api`, `web`, `grafana`, `prometheus`) is unaffected since only
+`caddy` publishes host ports.
+
+**Cause:** `dockerd` starts (and restores/starts containers) as soon as
+`network-online.target` is reached. On a multi-NIC host,
+`NetworkManager-wait-online.service` — which satisfies that target — can
+report "online" once *any* managed connection activates (e.g. Wi-Fi), even
+while the wired interface that owns `LAN_IP` is still mid-DHCP. If Docker
+tries to bind `${LAN_IP}:80`/`:443` before that address exists on any
+interface, the bind fails:
+
+```
+failed to bind host port <LAN_IP>:80/tcp: cannot assign requested address
+```
+
+and Caddy comes up running (`docker compose logs caddy` looks completely
+healthy — it doesn't know its host ports never got published) with none of
+its ports actually published.
+
+**Diagnose:**
+
+```
+journalctl -u docker --since "1 hour ago" | grep "cannot assign requested address"
+```
+
+A hit around the last boot/docker restart confirms this.
+
+**Fix — right now:**
+
+```
+docker compose up -d --force-recreate caddy
+```
+
+Plain `docker compose restart caddy` is **not** enough — restarting an
+already-running container does not redo the host port-publish step once it
+has failed, even after the IP shows up (confirmed by testing: `restart`
+left `NetworkSettings.Ports` at `{}`; only a recreate fixed it). Plain
+`docker compose up -d caddy` alone is also not reliable here — compose only
+recreates a container when it detects a config change (e.g. after editing
+`LAN_IP` in `.env`); with nothing changed, it can no-op on an already-`Up`
+container. `--force-recreate` is what forces a fresh network endpoint and a
+new bind attempt.
+
+**Permanent fix (installed on this host, 2026-09-14):** a systemd
+`ExecStartPre` blocks `docker.service` from starting until `LAN_IP` (read
+from `.env`) is actually present on an interface, up to a 60s timeout (then
+starts anyway rather than hanging boot forever).
+
+`/usr/local/bin/utility-wait-for-lan-ip.sh`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+ENV_FILE="/home/jackmiller/Projects/Utility/.env"
+TIMEOUT_SECS=60
+
+[ -f "$ENV_FILE" ] || exit 0
+
+LAN_IP="$(grep -E '^LAN_IP=' "$ENV_FILE" | head -n1 | cut -d= -f2-)"
+[ -n "$LAN_IP" ] || exit 0
+
+deadline=$((SECONDS + TIMEOUT_SECS))
+while ! ip -4 addr show 2>/dev/null | grep -q "inet ${LAN_IP}/"; do
+  if [ "$SECONDS" -ge "$deadline" ]; then
+    logger -t utility-wait-for-lan-ip "timed out after ${TIMEOUT_SECS}s waiting for ${LAN_IP}; starting docker anyway"
+    exit 0
+  fi
+  sleep 1
+done
+
+logger -t utility-wait-for-lan-ip "LAN_IP ${LAN_IP} is present, proceeding with docker startup"
+exit 0
+```
+
+`/etc/systemd/system/docker.service.d/wait-for-lan-ip.conf`:
+
+```ini
+[Unit]
+After=network-online.target
+
+[Service]
+ExecStartPre=/usr/local/bin/utility-wait-for-lan-ip.sh
+```
+
+Install (or reinstall after rebuilding this host):
+
+```
+sudo install -o root -g root -m 0755 utility-wait-for-lan-ip.sh /usr/local/bin/utility-wait-for-lan-ip.sh
+sudo mkdir -p /etc/systemd/system/docker.service.d
+sudo install -o root -g root -m 0644 wait-for-lan-ip.conf /etc/systemd/system/docker.service.d/wait-for-lan-ip.conf
+sudo systemctl daemon-reload
+```
+
+Verify: `systemctl cat docker.service` should show the override's
+`ExecStartPre` merged in after the base unit, and
+`systemd-analyze verify docker.service` should print no errors.
+
+If this races again despite the wait script (e.g. the interface takes
+longer than 60s to get a lease), raise `TIMEOUT_SECS` in the script, or
+fall back to the "Fix — right now" command above.
 
 ## Caddyfile edits don't take effect, even after `caddy reload`
 
@@ -283,3 +397,52 @@ topology), or the raw command in
 A device revoked before this feature existed shows no purge countdown —
 its `revokedAt` is unknown, so the sweep leaves it alone; delete it
 manually if you want it gone.
+
+## A batch of jobs stalls partway through, or the whole job tray suddenly empties
+
+**Symptom:** you submit a batch (several files at once — image resize, a
+recipe, etc.) and it stops making progress, or the tray's history — even
+older, already-completed tickets — vanishes mid-batch with nothing marked
+failed.
+
+**Cause: the `api` container got OOM-killed and restarted.** Job state
+lives only in the process's memory (`JobRegistry` — see the docker-compose
+comment on the `api` service: no database/Redis by design), so a crash
+wipes every job, running or already completed, not just the batch you just
+submitted. A batch fires one `POST /jobs/:operationId` per file at once;
+each image/media job can hold 100+ MB of decoded data in memory, and this
+container has a fixed `memory: 512M` cgroup limit — a handful of large
+files decoding concurrently reliably exceeds it. `docker compose ps` still
+shows `Up (healthy)` afterward since `restart: unless-stopped` brings the
+process back quickly.
+
+As of the fix below, this shouldn't silently stall anymore: job execution
+is now serialized process-wide (`jobExecutionLimiter` in
+`apps/utility-api/src/jobs/jobs.controller.ts`, an `Effect` semaphore with
+1 permit) — files in a batch queue as "pending" and execute one at a time
+rather than all decoding concurrently — and the frontend
+(`JobTrackerService` in `apps/utility-web/src/app/core/services/job-tracker.service.ts`)
+now detects a job that was active but disappeared from the server (or the
+server being unreachable for several consecutive polls) and marks it
+**failed** with a clear message instead of just dropping the ticket.
+
+**Diagnose (confirm it's this, not something else):**
+
+```
+docker inspect utility-api-1 --format 'RestartCount={{.RestartCount}}'   # bumped since last check?
+journalctl -k --since "1 hour ago" | grep -i "out of memory"             # kernel OOM killer log
+docker stats --no-stream utility-api-1                                   # watch MEM USAGE while a batch runs
+```
+
+A `Memory cgroup out of memory: Killed process ... (MainThread)` entry
+naming this container's cgroup confirms it.
+
+**Fix:** nothing to do per-incident — retry the batch; with the
+concurrency limiter in place it should no longer overlap enough to repeat.
+If it still does (unusually large images, or several people batching at
+once), `jobExecutionLimiter`'s permit count is already at the safe floor
+(1), so the only further lever is raising `memory:` on the `api` service in
+`docker-compose.yml`. Headroom is already thin even with concurrency
+capped: this container measured ~500MB peak RSS decoding a *single* one of
+this project's largest source images (full-resolution photos, not the
+small synthetic files used in earlier tests) against the 512M limit.

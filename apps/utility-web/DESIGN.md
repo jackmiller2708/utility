@@ -133,8 +133,8 @@ The palette is a working ink set, not a brand gradient: a small number of named 
 
 ### Tertiary / Status Accents
 - **Riso Mint** (`#12A66B`): Successful runs, completed jobs, positive size reductions.
-- **Riso Gold** (`#E8A200`): Caution — connecting, queued, size inflation, anything worth a second look before it prints.
-- **Riso Red** (`#E23B2E`): Misregistration — validation errors, rejected files, failed jobs.
+- **Riso Gold** (`#E8A200`): Caution — connecting, queued, size inflation, anything worth a second look before it prints. Also an Overrun (below): a job the press's own capacity dropped, never the file's fault.
+- **Riso Red** (`#E23B2E`): Misregistration — validation errors, rejected files, failed jobs the file or its parameters actually caused.
 
 ### Canvas (press room — dark, for chrome only)
 - **Press Black** (`#16130F`): Root application canvas. A warm ink-black, not a cool neutral gray — this is a room, not a screen.
@@ -256,7 +256,8 @@ Motion is the press running, made visible. Two engines, split by what the moment
 - **Index Turn** *(CSS)* — running, the registration cross spins.
 - **Odometer Tick** *(Motion)* — a ledger number's `scale` retargets on every increment instead of restarting, so a fast run of progress updates never stutters.
 - **Pulled Sheet** *(Motion, the system's one authored focal moment)* — a job completing: content lifts clear, border sharpens, a mint stamp lands. The same call fires whether the surface is a tray ticket or a workbench's results grid — one completion moment, reused, never re-invented per surface.
-- **Misregistration** *(Motion)* — a failed job snaps 2px out of register in red, then back — literally what the ink calls a bad print, never a generic shake.
+- **Misregistration** *(Motion)* — a failed job snaps 2px out of register in red, then back — literally what the ink calls a bad print, never a generic shake. Only for a failure the file or its parameters actually caused.
+- **Overrun** *(Motion)* — a job the press itself dropped (the server hit its own capacity limit, restarted, and lost the job mid-run) rather than one the file broke: a steady gold registration cross replaces the status icon, the ticket's border shifts to gold, and it settles with a plain no-overshoot fade — never the Misregistration snap, which would wrongly blame the input. A dropped batch job gets one silent, invisible retry first (the ticket just stays on Waiting Ink a beat longer, using the file still held in the browser — see `JobTrackerService`'s `ticketId`/`_retryContext`); Overrun only ever renders after that retry also drops, or immediately for a job with nothing left to retry with (a single-file submission, or a batch job whose page reloaded mid-run).
 - **Struck Plate** *(CSS)* — a cancelled job desaturates and takes one diagonal strike, then holds muted.
 - **Stamped In / Pulled Away** *(Motion)* — a job ticket entering or leaving a list: entrance staggers up to four slots (40ms step) regardless of batch size; exit plays before the DOM node is removed, so the remaining tickets reflow instead of jumping. Stamped In generalizes beyond jobs to any single element arriving for the first time — a file's summary card replacing the dropzone, a removal-confirmation alert appearing — same call, same meaning: something just landed on the press.
 - **The Punch** *(Motion, Odometer Tick reused)* — selecting a preset, format, fit-mode, or DPI tile plays the same scale-flash as a ledger number ticking: "a chosen plate punched into the rail" (the tile system's own language in Components, above), not a new gesture.
@@ -283,7 +284,8 @@ One `prefers-reduced-motion` gate, not a designed alternate path: the two CSS lo
 - **Do** pair light spot inks with dark text and deep spot inks with light text (The Overprint Rule) — never guess contrast.
 - **Do** spend spot color on exactly one thing per view: the action, or the state, never both, never decoration.
 - **Do** show before/after comparison and explicit size deltas as stamped ledger tags, exactly as before.
-- **Do** reuse the named motion patterns (Waiting Ink, Index Turn, Odometer Tick, Pulled Sheet, Misregistration, Struck Plate, Stamped In/Pulled Away) for any new state that matches their meaning, rather than inventing a new transition for the same kind of moment.
+- **Do** reuse the named motion patterns (Waiting Ink, Index Turn, Odometer Tick, Pulled Sheet, Misregistration, Overrun, Struck Plate, Stamped In/Pulled Away) for any new state that matches their meaning, rather than inventing a new transition for the same kind of moment.
+- **Do** reach for Overrun, never Misregistration, when a failure is the system's fault (a dropped job, a capacity ceiling) rather than the file's — Red always means the input was the problem; Gold never does.
 - **Do** give every clickable element hover, active, and (for inputs/selects) focus treatment — `active:shadow-stamped` for anything with a plate, `active:opacity-60` for plain text/icon links, never a scale transform.
 
 ### Don't:

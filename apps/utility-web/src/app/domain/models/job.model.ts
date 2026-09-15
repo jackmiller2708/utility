@@ -1,6 +1,17 @@
 import type { JobResponse, JobListResponse, JobStatus, JobProgress } from '@utility/protocol';
 import type { From } from '@utility/adapter';
 
+/**
+ * Distinguishes *why* a job is `failed`, for jobs JobTrackerService fails client-side rather
+ * than the server reporting an ordinary processing error (a bad file, invalid params — those
+ * stay `failureKind: undefined`, rendered as an ordinary Misregistration).
+ * - `overrun`: the server dropped this job twice in a row (its own process restarted under
+ *   memory pressure) — a capacity ceiling, not anything wrong with the file itself.
+ * - `session-lost`: the server dropped it once and there's no way to resubmit it automatically
+ *   (a single-file submission, not a batch one — see JobTrackerService's `_retryContext`).
+ */
+export type JobFailureKind = 'overrun' | 'session-lost';
+
 export interface JobModelParams {
   readonly id: string;
   readonly operationId: string;
@@ -15,6 +26,9 @@ export interface JobModelParams {
   readonly label?: string;
   /** Groups jobs submitted together as one batch (e.g. N files resized with one settings form). Not part of the wire DTO — attached client-side by JobTrackerService at submission time; the backend has no batch concept, every job is independent. */
   readonly batchId?: string;
+  /** Stable client-side identity, independent of `id` — see JobTrackerService's class doc for why `id` alone can't be a tracking key. Defaults to `id` for any job that never needs to survive an id change. */
+  readonly ticketId?: string;
+  readonly failureKind?: JobFailureKind;
 }
 
 const ACTIVE_STATUSES: readonly JobStatus[] = ['pending', 'running'];
@@ -32,6 +46,8 @@ export class JobModel {
   readonly completedAt: string | null;
   readonly label?: string;
   readonly batchId?: string;
+  readonly ticketId: string;
+  readonly failureKind?: JobFailureKind;
 
   constructor(params: JobModelParams) {
     this.id = params.id;
@@ -45,6 +61,8 @@ export class JobModel {
     this.completedAt = params.completedAt;
     this.label = params.label;
     this.batchId = params.batchId;
+    this.ticketId = params.ticketId ?? params.id;
+    this.failureKind = params.failureKind;
   }
 
   get isActive(): boolean {
@@ -61,6 +79,10 @@ export class JobModel {
 
   withBatchId(batchId: string | undefined): JobModel {
     return new JobModel({ ...this, batchId });
+  }
+
+  withTicketId(ticketId: string | undefined): JobModel {
+    return new JobModel({ ...this, ticketId: ticketId ?? this.id });
   }
 }
 

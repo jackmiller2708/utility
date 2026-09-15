@@ -1,4 +1,4 @@
-import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, DeviceResponse, DeviceListResponse, RevokeDeviceResponse, ApproveDeviceResponse, DeleteDeviceResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, MediaInspectOutput, JobResponse, JobListResponse, JobSubmittedResponse, JobCancelResponse, WorkflowResponse, WorkflowListResponse } from '@utility/protocol';
+import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, DeviceResponse, DeviceListResponse, RevokeDeviceResponse, ApproveDeviceResponse, DeleteDeviceResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, MediaInspectOutput, JobResponse, JobListResponse, JobSubmittedResponse, BatchJobSubmittedResponse, JobCancelResponse, WorkflowResponse, WorkflowListResponse } from '@utility/protocol';
 import type { HttpResponse } from '../interfaces';
 
 import { Injectable, inject } from '@angular/core';
@@ -289,6 +289,27 @@ export class ApiClientService {
     }
 
     return this.http.post<JobSubmittedResponse>(`${this.config.baseUrl}/jobs/${operationId}`, formData);
+  }
+
+  /**
+   * The batch counterpart to `submitJob$`: every file goes into one multipart request against
+   * one shared parameter set, and the server creates one independent job per file from it — see
+   * `JobsController.submitBatch`. Used by `JobTrackerService.submitBatch$` in place of firing one
+   * `submitJob$` request per file, so a batch of N files costs one HTTP round-trip instead of N.
+   */
+  submitBatchJob$(operationId: string, files: readonly File[], params: Readonly<Record<string, unknown>>) {
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append('file', file, file.name);
+    }
+
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== '') {
+        formData.append(key, String(value));
+      }
+    }
+
+    return this.http.post<BatchJobSubmittedResponse>(`${this.config.baseUrl}/jobs/${operationId}/batch`, formData);
   }
 
   /**

@@ -58,7 +58,7 @@
 
 @if (expanded()) {
   <div class="mt-2 pt-2 border-t border-paper-hairline flex flex-col gap-1.5">
-    @for (job of jobs(); track job.id; let i = $index) {
+    @for (job of jobs(); track job.ticketId; let i = $index) {
       <app-job-ticket [job]="job" [index]="i" [compact]="true" (cancelled)="jobCancelled.emit($event)"></app-job-ticket>
     }
   </div>

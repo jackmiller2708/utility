@@ -58,6 +58,20 @@ export class MotionService {
     animate(el, { x: [0, -2, 2, 0] }, { duration: 0.22, ease: 'easeOut' });
   }
 
+  /**
+   * Overrun — a job the press itself dropped (a capacity ceiling, not a bad file) settles into
+   * its gold failure state, never snaps out of register: that jolt says "wrong input," and this
+   * one is honest that the input was never the problem. Same no-overshoot spring as every other
+   * arrival in the system, just a plain settle rather than an authored focal moment.
+   */
+  overrun(el: Element): void {
+    if (this.reducedMotion) {
+      return;
+    }
+
+    animate(el, { opacity: [0.5, 1] }, { ...PRESS_SPRING, visualDuration: 0.4 });
+  }
+
   /** Stamped In — a new ticket lands in the tray; stagger caps at four slots so a large batch never queues a visible cascade. */
   stampIn(el: Element, index: number): void {
     const delay = Math.min(index, STAMP_STAGGER_CAP) * STAMP_STAGGER_STEP;
