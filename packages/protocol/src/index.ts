@@ -6,3 +6,4 @@ export * from "./pdf.js";
 export * from "./auth.js";
 export * from "./jobs.js";
 export * from "./workflow.js";
+export * from "./video-download.js";
