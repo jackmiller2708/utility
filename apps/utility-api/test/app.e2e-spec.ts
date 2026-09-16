@@ -402,4 +402,18 @@ describe("Utility API (e2e)", () => {
     expect(job?.status).toBe("completed");
     expect(job?.result?.artifact.mimeType).toBe("video/mp4");
   });
+
+  it("GET /api/v1/tools returns the video-download tool and its operations", async () => {
+    const res = await request(app.getHttpServer())
+      .get("/api/v1/tools")
+      .expect(200);
+
+    const tool = res.body.tools.find((t: { id: string }) => t.id === "video-download");
+    expect(tool).toBeDefined();
+    expect(tool.name).toBe("Video Downloader");
+    expect(tool.operations.map((op: { id: string }) => op.id).sort()).toEqual([
+      "video-download.download",
+      "video-download.download-audio",
+    ]);
+  });
 });

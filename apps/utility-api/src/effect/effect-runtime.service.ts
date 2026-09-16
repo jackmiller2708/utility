@@ -51,9 +51,15 @@ import {
   InvalidMediaError,
   MediaProcessingError,
 } from "@utility/media";
+import {
+  videoDownloadTool,
+  VideoDownloadServiceLive,
+  UnsupportedSourceError,
+  DownloadError,
+} from "@utility/video-download";
 import { SecurityError, ValidationError } from "@utility/domain";
 
-const toolRegistryLayer = makeToolRegistry([imageTool, pdfTool, pdfMergeSplitTool, mediaTool]);
+const toolRegistryLayer = makeToolRegistry([imageTool, pdfTool, pdfMergeSplitTool, mediaTool, videoDownloadTool]);
 
 // Process, backed by Effect Platform's Command/CommandExecutor, needs a FileSystem to
 // build the Node executor — so it isn't a fully closed layer on its own like ProcessLive
@@ -73,6 +79,7 @@ export const AppLive = Layer.mergeAll(
   SharpImageServiceLive,
   PopplerPdfServiceLive.pipe(Layer.provide(Layer.mergeAll(ProcessServiceLive, NodeFileSystem.layer, NodePath.layer))),
   FfmpegMediaServiceLive.pipe(Layer.provide(ProcessServiceLive)),
+  VideoDownloadServiceLive.pipe(Layer.provide(ProcessServiceLive)),
   toolRegistryLayer,
   JobRegistryLive,
   WorkflowRegistryLive.pipe(
@@ -203,6 +210,14 @@ export class EffectRuntimeService implements OnModuleInit, OnModuleDestroy {
     }
 
     if (error instanceof MediaProcessingError) {
+      return new BadRequestException(error.message);
+    }
+
+    if (error instanceof UnsupportedSourceError) {
+      return new BadRequestException(error.message);
+    }
+
+    if (error instanceof DownloadError) {
       return new BadRequestException(error.message);
     }
 
