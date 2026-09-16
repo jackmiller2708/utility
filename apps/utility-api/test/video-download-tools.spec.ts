@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { Effect } from "effect";
+import { Effect, Layer } from "effect";
+import { NodeCommandExecutor, NodeFileSystem, NodePath } from "@effect/platform-node";
+import { Process, ProcessLive } from "@utility/runtime";
+import { makeToolRegistry, ToolRegistry } from "@utility/toolkit";
+import { videoDownloadTool, VideoDownloadServiceLive } from "@utility/video-download";
 import {
   parseExtractorKey,
   assertSupportedExtractor,
@@ -61,5 +65,47 @@ describe("video-download pure helpers", () => {
     it("returns null before any progress line has arrived", () => {
       expect(parseDownloadPercent("[youtube] Extracting URL\n")).toBeNull();
     });
+  });
+});
+
+describe("video-download tool", () => {
+  const ProcessServiceLive = ProcessLive.pipe(
+    Layer.provide(NodeCommandExecutor.layer),
+    Layer.provide(NodeFileSystem.layer)
+  );
+
+  const TestEnv = Layer.mergeAll(
+    NodeFileSystem.layer,
+    NodePath.layer,
+    ProcessServiceLive,
+    VideoDownloadServiceLive.pipe(Layer.provide(ProcessServiceLive)),
+    makeToolRegistry([videoDownloadTool])
+  );
+
+  it("registers the video-download tool with both operations", async () => {
+    const program = Effect.gen(function* () {
+      const registry = yield* ToolRegistry;
+      return yield* registry.getToolsInfo();
+    }).pipe(Effect.provide(TestEnv));
+
+    const result = await Effect.runPromise(program);
+    const tool = result.tools.find((t) => t.id === "video-download");
+    expect(tool).toBeDefined();
+    expect(tool?.name).toBe("Video Downloader");
+    expect(tool?.operations.map((op) => op.id).sort()).toEqual([
+      "video-download.download",
+      "video-download.download-audio",
+    ]);
+  });
+
+  it("invokes the real yt-dlp binary (no network) to confirm it's installed and wired", async () => {
+    const program = Effect.gen(function* () {
+      const process = yield* Process;
+      return yield* process.spawn({ executable: "yt-dlp", args: ["--version"] });
+    }).pipe(Effect.provide(TestEnv));
+
+    const result = await Effect.runPromise(program);
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout.trim()).toMatch(/^\d{4}\.\d{2}\.\d{2}/);
   });
 });
