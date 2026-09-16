@@ -6,6 +6,7 @@
   [value]="value() ?? ''"
   [placeholder]="placeholder()"
   [disabled]="disabled()"
+  [attr.aria-required]="required() || null"
   (input)="onInput($event)"
   [class.font-mono]="mono()"
   [class.pr-8]="unitSuffix() !== ''"

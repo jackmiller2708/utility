@@ -4,7 +4,9 @@
     <app-brand-mark [size]="22" variant="reversed" />
     <div class="flex items-baseline gap-2.5">
       <span class="text-[1.375rem] font-black tracking-[-0.01em] leading-none text-press-text">UTILITY</span>
-      <span class="font-mono text-xs font-bold tracking-[0.04em] text-press-text-muted">IMAGES</span>
+      @if (sectionLabel()) {
+        <span class="font-mono text-xs font-bold tracking-[0.04em] text-press-text-muted">{{ sectionLabel() }}</span>
+      }
     </div>
   </div>
 

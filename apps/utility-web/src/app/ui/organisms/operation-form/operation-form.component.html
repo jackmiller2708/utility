@@ -28,12 +28,50 @@
           ></app-select>
         }
       }
+      @case ('number') {
+        @if (isSlider(param)) {
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between gap-2">
+              <label [for]="'op-form-' + param.name" class="text-xs font-mono font-bold uppercase tracking-[0.04em] text-ink">
+                {{ param.label }} <span class="text-ink font-black">{{ sliderValue(param) }}{{ param.max === 100 ? '%' : '' }}</span>
+              </label>
+            </div>
+            <input
+              [id]="'op-form-' + param.name"
+              type="range"
+              [min]="param.min ?? 0"
+              [max]="param.max ?? 100"
+              step="1"
+              [attr.aria-valuemin]="param.min ?? 0"
+              [attr.aria-valuemax]="param.max ?? 100"
+              [attr.aria-valuenow]="sliderValue(param)"
+              [value]="sliderValue(param)"
+              (input)="onSliderInput(param, $event)"
+              class="w-full h-1.5 bg-paper-deckle rounded-full appearance-none cursor-pointer accent-riso-pink"
+              [attr.aria-label]="param.label"
+            />
+            <div class="flex justify-between text-xs font-mono font-bold text-ink-faint">
+              <span>{{ param.min ?? 0 }}{{ param.max === 100 ? '%' : '' }}</span>
+              <span>{{ param.max ?? 100 }}{{ param.max === 100 ? '%' : '' }}</span>
+            </div>
+          </div>
+        } @else {
+          <label [for]="'op-form-' + param.name" class="text-sm font-bold text-ink block mb-1.5">{{ param.label }}</label>
+          <app-input
+            [id]="'op-form-' + param.name"
+            type="number"
+            [value]="numberValue(param)"
+            [placeholder]="param.required ? '' : 'Optional'"
+            (valueChange)="setValue(param.name, $event)"
+          ></app-input>
+        }
+      }
       @default {
         <label [for]="'op-form-' + param.name" class="text-sm font-bold text-ink block mb-1.5">{{ param.label }}</label>
         <app-input
           [id]="'op-form-' + param.name"
-          [type]="param.type === 'number' ? 'number' : 'text'"
-          [value]="param.type === 'number' ? numberValue(param) : stringValue(param)"
+          type="text"
+          [value]="stringValue(param)"
           [placeholder]="param.required ? '' : 'Optional'"
           (valueChange)="setValue(param.name, $event)"
         ></app-input>

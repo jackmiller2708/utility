@@ -35,6 +35,13 @@ export class ArtifactModel {
     const op = this.metadata?.['operation'];
     return typeof op === 'string' ? op : null;
   }
+
+  /** The real pixel dimensions Sharp actually produced, when the operation recorded them — distinct from any dimensions a caller requested, since a fit mode like `inside`/`outside` doesn't necessarily hit the requested box exactly. */
+  get outputDimensions(): { width: number; height: number } | null {
+    const width = this.metadata?.['width'];
+    const height = this.metadata?.['height'];
+    return typeof width === 'number' && typeof height === 'number' ? { width, height } : null;
+  }
 }
 
 export const ArtifactModelFromImageResizeOutput: From<ImageResizeOutput, ArtifactModel> = {
@@ -45,6 +52,7 @@ export const ArtifactModelFromImageResizeOutput: From<ImageResizeOutput, Artifac
     size: dto.artifact.size,
     checksum: dto.artifact.checksum,
     createdAt: dto.artifact.createdAt,
+    metadata: dto.artifact.metadata,
   }),
 };
 

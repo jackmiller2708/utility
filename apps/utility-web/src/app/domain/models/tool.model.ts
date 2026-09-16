@@ -9,8 +9,10 @@ export interface ToolParameterModel {
   readonly description?: string;
   readonly defaultValue?: unknown;
   readonly options?: readonly string[];
+  readonly optionLabels?: Readonly<Record<string, string>>;
   readonly min?: number;
   readonly max?: number;
+  readonly inputStyle?: 'slider';
 }
 
 export interface ToolOperationModel {
@@ -36,8 +38,10 @@ const toolParameterModelFrom = (dto: ToolParameter): ToolParameterModel => ({
   description: dto.description,
   defaultValue: dto.defaultValue,
   options: dto.options,
+  optionLabels: dto.optionLabels,
   min: dto.min,
   max: dto.max,
+  inputStyle: dto.inputStyle,
 });
 
 const toolOperationModelFrom = (dto: OperationInfo): ToolOperationModel => ({

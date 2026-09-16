@@ -11,6 +11,8 @@
         <button
           type="button"
           (click)="selectedToolId.emit(tool.id)"
+          [attr.aria-current]="!onRecentRoute() && !onRecipesRoute() && !onDevicesRoute() && activeToolId() === tool.id ? 'page' : null"
+          [attr.aria-label]="tool.operations.length > 1 ? tool.name + ': ' + operationsLabel(tool) : null"
           [class.bg-riso-pink-pooled]="!onRecentRoute() && !onRecipesRoute() && !onDevicesRoute() && activeToolId() === tool.id"
           [class.border-l-riso-pink]="!onRecentRoute() && !onRecipesRoute() && !onDevicesRoute() && activeToolId() === tool.id"
           [class.text-press-text]="!onRecentRoute() && !onRecipesRoute() && !onDevicesRoute() && activeToolId() === tool.id"
@@ -37,6 +39,7 @@
   <button
     type="button"
     (click)="recipesSelected.emit()"
+    [attr.aria-current]="onRecipesRoute() ? 'page' : null"
     [class.bg-riso-pink-pooled]="onRecipesRoute()"
     [class.border-l-riso-pink]="onRecipesRoute()"
     [class.text-press-text]="onRecipesRoute()"
@@ -53,6 +56,7 @@
   <button
     type="button"
     (click)="recentSelected.emit()"
+    [attr.aria-current]="onRecentRoute() ? 'page' : null"
     [class.bg-riso-pink-pooled]="onRecentRoute()"
     [class.border-l-riso-pink]="onRecentRoute()"
     [class.text-press-text]="onRecentRoute()"
@@ -69,6 +73,7 @@
   <button
     type="button"
     (click)="devicesSelected.emit()"
+    [attr.aria-current]="onDevicesRoute() ? 'page' : null"
     [class.bg-riso-pink-pooled]="onDevicesRoute()"
     [class.border-l-riso-pink]="onDevicesRoute()"
     [class.text-press-text]="onDevicesRoute()"

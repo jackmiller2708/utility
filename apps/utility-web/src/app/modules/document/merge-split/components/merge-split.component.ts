@@ -1,4 +1,4 @@
-import { ButtonComponent, BadgeComponent, InputComponent, DropzoneComponent, FileSummaryCardComponent, GalleryGridComponent, TileGroupComponent, ErrorDiagnosticComponent, SortableFileListComponent, GalleryItem, SortableFileItem } from '@app/ui';
+import { ButtonComponent, BadgeComponent, BounceTextComponent, InputComponent, DropzoneComponent, FileSummaryCardComponent, GalleryGridComponent, TileGroupComponent, ErrorDiagnosticComponent, SortableFileListComponent, GalleryItem, SortableFileItem } from '@app/ui';
 import { MergeSplitService } from '../services/merge-split.service';
 import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -11,6 +11,7 @@ import { OptionPipe } from '@app/core/pipes/option.pipe';
     CommonModule,
     ButtonComponent,
     BadgeComponent,
+    BounceTextComponent,
     InputComponent,
     DropzoneComponent,
     FileSummaryCardComponent,

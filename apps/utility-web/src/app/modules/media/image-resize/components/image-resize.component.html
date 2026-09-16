@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-2 min-w-0">
   <div class="flex items-end gap-4 flex-wrap">
     <h1 class="text-[clamp(1.875rem,3.2vw,2.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-press-text">
-      Resize an image
+      <app-bounce-text text="Resize an image" />
     </h1>
     <app-badge variant="pink" surface="press">image.resize</app-badge>
   </div>
@@ -55,6 +55,15 @@
           <div class="p-3 rounded-sm border border-riso-gold bg-riso-gold/10 text-xs font-mono font-bold text-ink flex items-start gap-2" role="status">
             <span class="flex-1 min-w-0 break-words">{{ notice }}</span>
           </div>
+        }
+
+        @if (service.batchFiles().length > 0) {
+          <app-tile-group
+            heading="PRESETS"
+            [tiles]="batchPresets"
+            activeInk="pink"
+            (tileSelected)="onBatchPresetSelected($event)"
+          ></app-tile-group>
         }
 
         <app-operation-form
@@ -303,9 +312,10 @@
       [downloadUrl]="service.artifactDownloadUrl() | option"
       [loading]="service.isProcessing()"
       [source]="service.comparisonSource()"
-      [targetDimensionsLabel]="service.targetDimensionsLabel()"
+      [targetDimensionsLabel]="service.resultDimensionsLabel()"
       [outputFormatLabel]="service.outputFormatLabel()"
       [sizeDelta]="service.sizeDelta()"
+      [stale]="service.isResultStale()"
     ></app-telemetry-deck>
   } @else {
     <app-gallery-grid

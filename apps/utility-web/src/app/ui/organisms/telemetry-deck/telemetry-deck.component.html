@@ -5,6 +5,8 @@
     <h2 class="flex-1 text-xl font-extrabold text-ink">Original vs. export</h2>
     @if (loading()) {
       <app-badge variant="gold">WORKING&hellip;</app-badge>
+    } @else if (artifact() && stale()) {
+      <app-badge variant="gold">SETTINGS CHANGED</app-badge>
     } @else if (artifact()) {
       <app-badge variant="mint">DONE</app-badge>
     } @else {
@@ -79,6 +81,12 @@
   <div class="px-6 py-5 border-b border-paper-hairline">
     <h2 class="text-xl font-extrabold text-ink">What changes</h2>
   </div>
+
+  @if (!loading() && artifact() && stale()) {
+    <div class="mx-6 mt-5 p-3 rounded-sm border border-riso-gold bg-riso-gold/10 text-xs font-mono font-bold text-ink flex items-start gap-2" role="status">
+      <span class="flex-1 min-w-0 break-words">Settings changed since this export — numbers below are from the last run. Resize again to update them.</span>
+    </div>
+  }
 
   @if (loading()) {
     <div class="flex-1 flex flex-col justify-center gap-3 px-6 py-6" role="status" aria-label="Image transformation in progress">

@@ -198,10 +198,149 @@ html, body {
   cursor: default;
 }
 
+/* Char Bounce — a masthead-sized tool title inviting a poke: each character
+   (`app-bounce-text`) bounces on its own hover, independent of its
+   neighbors. The one deliberate exception to this system's no-bounce
+   character (DESIGN.md: "Don't use bounce/elastic easing... as a motion
+   effect") — everywhere else confident deceleration holds, but a title
+   that visibly wobbles when you touch it is the entire point here, not a
+   reflexive spring.
+   The animation itself is `BounceTextComponent`'s native `Element.animate()`
+   call, not a CSS `animation` here: the bounce has to keep playing even
+   after the pointer leaves mid-flight, and a CSS `animation` scoped to
+   `:hover` is canceled the instant that pseudo-class stops matching. This
+   rule only sets the element up to receive that transform. */
+.bounce-char {
+  display: inline-block;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reg-cross-spin,
   .pulse-slow,
   .pulse-fast {
     animation: none;
+  }
+}
+
+/* Press-room atmosphere. The halftone screen sits still; the ink plates, the
+   registration-cross field, and the bleed mark are moved by
+   InkAtmosphereComponent writing `opacity`/`transform` straight to these
+   elements in response to the cursor, and the transitions below are what
+   turn those per-frame writes into an eased chase instead of a snap. */
+
+/* Ink plate — light pooled on the press bed rather than printed ink: a soft
+   radial falloff with a generous blur, closer to the fluorescent wash the
+   dropzone's own active-drag state already uses than to a hard-edged print
+   swatch. Confirmed against the source reference (blur(18px), screen blend)
+   after an in-browser hard-edged pass read as banding, not ink.
+   Two gradient stops, not three: a middle stop survives blur as a faint ring,
+   and once the bold cursor-pull (InkAtmosphereComponent) sends plates across
+   the same territory, two rings crossing reads as a hard lens-shaped seam,
+   not light. `lighten` replaces `screen` for the same reason at the
+   composite level — `screen` compounds toward white fast with three
+   overlapping layers; `lighten` (per-channel max) stays legible however many
+   plates cross the same point. */
+.ink-atmosphere-plate {
+  position: absolute;
+  border-radius: 9999px;
+  opacity: 0.55;
+  filter: blur(64px);
+  mix-blend-mode: lighten;
+  /* transform gets its own, longer duration than opacity: with the pull
+     target now stable (InkAtmosphereComponent anchors it to each plate's
+     rest center), a slower glide reads as light flowing through the room;
+     at --transition-duration-press (400ms) the same stable target still
+     felt like a snap. */
+  transition: opacity var(--transition-duration-press) var(--ease-run), transform 900ms var(--ease-run);
+  will-change: opacity, transform;
+}
+
+.ink-atmosphere-plate--pink {
+  background: radial-gradient(circle at center, rgb(255 62 165 / 0.62) 0%, transparent 70%);
+}
+
+.ink-atmosphere-plate--blue {
+  background: radial-gradient(circle at center, rgb(0 120 191 / 0.56) 0%, transparent 70%);
+}
+
+.ink-atmosphere-plate--gold {
+  background: radial-gradient(circle at center, rgb(232 162 0 / 0.5) 0%, transparent 70%);
+}
+
+/* Idle breathing — the press bed at rest is not the press bed switched off:
+   once InkAtmosphereComponent settles a plate back to its resting opacity it
+   adds this class, which keeps the ink very slowly alive rather than frozen.
+   Deliberately a different keyframe from Waiting Ink (`pulse-slow`/`ink-pulse`)
+   — that pattern means "a job is pending," this one means "nobody's pointing
+   at anything," and conflating them would blur a real status signal into mood
+   lighting. Removed the instant the cursor moves again. */
+@keyframes press-breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.64; }
+}
+
+.ink-atmosphere-plate.is-idle {
+  animation: press-breathe 6s var(--ease-run) infinite;
+}
+
+.ink-atmosphere-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--color-press-line) 1.4px, transparent 1.4px);
+  background-size: 22px 22px;
+  opacity: 0.85;
+}
+
+/* Two stacked crosses per position: `--base` is the always-visible faint
+   grid (pure CSS, JS never touches it); `--ink` is the pink pass that fades
+   and grows in as the cursor finds register against it. */
+.ink-atmosphere-mark-cross {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px;
+  background:
+    linear-gradient(currentColor, currentColor) center / 100% 1px no-repeat,
+    linear-gradient(currentColor, currentColor) center / 1px 100% no-repeat;
+}
+
+.ink-atmosphere-mark-cross--base {
+  color: var(--color-press-line);
+}
+
+.ink-atmosphere-mark-cross--ink {
+  color: var(--color-riso-pink);
+  opacity: 0;
+  transition: opacity var(--transition-duration-shift) var(--ease-run), transform var(--transition-duration-shift) var(--ease-run);
+  will-change: opacity, transform;
+}
+
+.ink-atmosphere-mark {
+  position: absolute;
+  right: -120px;
+  bottom: -150px;
+  opacity: 0.16;
+  /* Same 900ms glide as the plates (InkAtmosphereComponent drifts this the
+     same way, now) — matching duration keeps the mark reading as part of
+     the same room instead of a second, snappier motion system. */
+  transition: transform 900ms var(--ease-run);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-atmosphere-plate,
+  .ink-atmosphere-mark-cross--ink {
+    transition: none;
+  }
+
+  .ink-atmosphere-plate.is-idle {
+    animation: none;
+  }
+
+  .ink-atmosphere-plate,
+  .ink-atmosphere-mark {
+    transition: none;
+    transform: none !important;
   }
 }

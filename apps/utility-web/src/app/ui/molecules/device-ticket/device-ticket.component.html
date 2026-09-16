@@ -26,7 +26,8 @@
           type="button"
           [disabled]="device().revoked || !canManage()"
           (click)="startRename()"
-          class="text-sm font-bold text-ink truncate enabled:hover:text-riso-pink transition-colors duration-shift ease-run enabled:cursor-pointer text-left disabled:opacity-70"
+          class="text-sm font-bold text-ink truncate border-b border-dashed border-transparent enabled:hover:text-riso-pink enabled:hover:border-riso-pink enabled:focus-visible:border-riso-pink transition-colors duration-shift ease-run enabled:cursor-pointer text-left disabled:opacity-70"
+          [attr.aria-label]="canManage() && !device().revoked ? 'Rename device: ' + device().name : null"
           title="Rename this device"
         >{{ device().name }}</button>
       }

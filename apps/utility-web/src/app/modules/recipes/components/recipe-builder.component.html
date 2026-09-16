@@ -11,10 +11,11 @@
   <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
 
   <div>
-    <label for="recipe-name" class="text-sm font-bold text-ink block mb-1.5">Name</label>
+    <label for="recipe-name" class="text-sm font-bold text-ink block mb-1.5">Name <span class="font-normal text-riso-red">*</span></label>
     <app-input
       id="recipe-name"
       [mono]="false"
+      [required]="true"
       placeholder="e.g. Web thumbnail"
       [value]="name()"
       (valueChange)="setName($event)"
@@ -87,14 +88,19 @@
   </div>
 }
 
-<div class="flex justify-end">
+<div class="flex flex-col items-end gap-1.5">
   <app-button
     variant="primary"
     size="lg"
     [disabled]="!canSave()"
     [loading]="isSaving()"
+    [attr.title]="!canSave() ? saveBlockedReason() : null"
     (clicked)="save()"
   >
     {{ isSaving() ? 'Saving…' : 'Save recipe' }}
   </app-button>
+
+  @if (!canSave() && saveBlockedReason(); as reason) {
+    <p class="text-xs font-bold text-ink-faint">{{ reason }}</p>
+  }
 </div>

@@ -1,6 +1,7 @@
 import {
   ButtonComponent,
   BadgeComponent,
+  BounceTextComponent,
   DropzoneComponent,
   FileSummaryCardComponent,
   GalleryGridComponent,
@@ -34,6 +35,7 @@ const kindForMimeType = (mimeType: string): 'image' | 'video' | 'audio' => {
     CommonModule,
     ButtonComponent,
     BadgeComponent,
+    BounceTextComponent,
     DropzoneComponent,
     FileSummaryCardComponent,
     GalleryGridComponent,

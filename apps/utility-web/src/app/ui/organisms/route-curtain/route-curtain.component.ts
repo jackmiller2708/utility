@@ -23,6 +23,8 @@ import { filter } from 'rxjs';
   host: {
     class: 'fixed inset-0 z-50 bg-press flex items-center justify-center',
     style: 'opacity: 1',
+    role: 'status',
+    'aria-live': 'polite',
     '[class.pointer-events-none]': '!blocking()',
     '[attr.aria-hidden]': '!blocking()',
   },

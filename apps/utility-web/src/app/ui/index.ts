@@ -6,6 +6,7 @@ export * from './atoms/input/input.component';
 export * from './atoms/select/select.component';
 export * from './atoms/toggle/toggle.component';
 export * from './atoms/icon/icon.component';
+export * from './atoms/bounce-text/bounce-text.component';
 
 // Molecules
 export * from './molecules/dropzone/dropzone.component';

@@ -32,6 +32,8 @@ export class TelemetryDeckComponent {
   readonly targetDimensionsLabel = input<string>('—');
   readonly outputFormatLabel = input<string>('—');
   readonly sizeDelta = input<SizeDelta | null>(null);
+  /** True when a setting has changed since the artifact currently shown was generated — the numbers below are real, just not for the settings on screen right now. */
+  readonly stale = input<boolean>(false);
   readonly downloadClicked = output<void>();
 
   readonly lightroomOpenSide = signal<LightroomSide | null>(null);

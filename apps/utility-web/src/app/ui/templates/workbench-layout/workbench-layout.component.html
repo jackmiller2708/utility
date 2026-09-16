@@ -1,10 +1,13 @@
+<app-ink-atmosphere></app-ink-atmosphere>
+
 <app-header
   [activeJobCount]="jobTracker.activeCount()"
+  [sectionLabel]="sectionLabel()"
   (jobTrayToggled)="tray.expanded.set(true)"
   (devicesClicked)="devicesSelected.emit()"
 ></app-header>
 
-<div class="flex-1 flex items-stretch flex-wrap">
+<div class="relative z-10 flex-1 flex items-stretch flex-wrap">
   <app-sidebar
     [tools]="tools()"
     [activeToolId]="activeToolId()"
@@ -24,7 +27,7 @@
   </main>
 </div>
 
-<footer class="flex-none bg-press-elevated border-t border-press-line">
+<footer class="relative z-10 flex-none bg-press-elevated border-t border-press-line">
   <app-job-tray
     #tray
     [jobs]="jobTracker.jobs()"

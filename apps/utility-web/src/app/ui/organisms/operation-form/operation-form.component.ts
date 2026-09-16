@@ -62,11 +62,23 @@ export class OperationFormComponent {
   }
 
   tileItems(param: ToolParameterModel): readonly TileItem[] {
-    return (param.options ?? []).map((option) => ({ id: option, label: option.toUpperCase() }));
+    return (param.options ?? []).map((option) => ({ id: option, label: (param.optionLabels?.[option] ?? option).toUpperCase() }));
   }
 
   selectOptions(param: ToolParameterModel): readonly SelectOption[] {
-    return (param.options ?? []).map((option) => ({ value: option, label: option }));
+    return (param.options ?? []).map((option) => ({ value: option, label: param.optionLabels?.[option] ?? option }));
+  }
+
+  isSlider(param: ToolParameterModel): boolean {
+    return param.type === 'number' && param.inputStyle === 'slider';
+  }
+
+  sliderValue(param: ToolParameterModel): number {
+    return this.numberValue(param) ?? (typeof param.defaultValue === 'number' ? param.defaultValue : (param.min ?? 0));
+  }
+
+  onSliderInput(param: ToolParameterModel, event: Event): void {
+    this.setValue(param.name, Number((event.target as HTMLInputElement).value));
   }
 
   setValue(name: string, value: unknown): void {

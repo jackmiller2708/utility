@@ -1,4 +1,4 @@
-import { ButtonComponent, BadgeComponent, InputComponent, ToggleComponent, IconComponent, DropzoneComponent, FileSummaryCardComponent, TelemetryDeckComponent, TileGroupComponent, ErrorDiagnosticComponent, SortableFileListComponent, SortableFileItem, OperationFormComponent, GalleryGridComponent, GalleryItem } from '@app/ui';
+import { ButtonComponent, BadgeComponent, InputComponent, ToggleComponent, IconComponent, DropzoneComponent, FileSummaryCardComponent, TelemetryDeckComponent, TileGroupComponent, ErrorDiagnosticComponent, SortableFileListComponent, SortableFileItem, OperationFormComponent, GalleryGridComponent, GalleryItem, BounceTextComponent } from '@app/ui';
 import { ImageResizeService } from '../services/image-resize.service';
 import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -11,6 +11,7 @@ import { OptionPipe } from '@app/core/pipes/option.pipe';
     CommonModule,
     ButtonComponent,
     BadgeComponent,
+    BounceTextComponent,
     InputComponent,
     ToggleComponent,
     IconComponent,
@@ -149,6 +150,21 @@ export class ImageResizeComponent {
         }
       }
     }
+  }
+
+  /**
+   * Only the absolute-dimension presets from Single mode's `presets` carry over — 100%/50%/25%
+   * are scale-relative to one known image's pixels, which has no coherent meaning applied
+   * uniformly across a batch of files with different source dimensions.
+   */
+  readonly batchPresets = [
+    { id: '1080p', label: '1080p' },
+    { id: 'sq800', label: 'Square' },
+  ];
+
+  onBatchPresetSelected(presetId: string): void {
+    const [width, height] = presetId === 'sq800' ? [800, 800] : [1920, 1080];
+    this.service.setBatchSettings({ ...this.service.batchSettings(), width, height });
   }
 
   onPresetSelected(presetId: string): void {

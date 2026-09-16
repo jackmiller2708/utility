@@ -18,6 +18,7 @@ export class InputComponent {
   placeholder = input<string>('');
   unitSuffix = input<string>('');
   disabled = input<boolean>(false);
+  required = input<boolean>(false);
   mono = input<boolean>(true);
   valueChange = output<any>();
 

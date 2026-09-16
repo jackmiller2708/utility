@@ -1,0 +1,39 @@
+<span
+  #pinkPlate
+  class="ink-atmosphere-plate ink-atmosphere-plate--pink"
+  style="left:-140px; top:-180px; width:520px; height:520px;"
+></span>
+<span
+  #bluePlate
+  class="ink-atmosphere-plate ink-atmosphere-plate--blue"
+  style="left:58%; top:-12%; width:620px; height:620px;"
+></span>
+<span
+  #goldPlate
+  class="ink-atmosphere-plate ink-atmosphere-plate--gold"
+  style="left:38%; top:-16%; width:360px; height:360px;"
+></span>
+
+<span class="ink-atmosphere-grid"></span>
+
+@for (m of marks; track $index) {
+  <span
+    class="ink-atmosphere-mark-cross ink-atmosphere-mark-cross--base"
+    [style.left.%]="m.leftPct"
+    [style.top.%]="m.topPct"
+    [style.transform]="'rotate(' + m.baseRotation + 'deg)'"
+    [style.opacity]="m.baseOpacity"
+  ></span>
+  <span
+    #inkCross
+    class="ink-atmosphere-mark-cross ink-atmosphere-mark-cross--ink"
+    [style.left.%]="m.leftPct"
+    [style.top.%]="m.topPct"
+    [style.transform]="'rotate(' + m.baseRotation + 'deg)'"
+  ></span>
+}
+
+<svg #mark class="ink-atmosphere-mark" width="460" height="460" viewBox="0 0 32 32" fill="none">
+  <rect x="2.25" y="2.25" width="27.5" height="27.5" stroke="var(--color-press-text)" stroke-width="0.6" fill="none" />
+  <rect x="4.5" y="4.5" width="14" height="14" fill="var(--color-riso-pink)" opacity="0.55" />
+</svg>

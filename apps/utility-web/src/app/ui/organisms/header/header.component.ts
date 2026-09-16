@@ -17,6 +17,7 @@ export class HeaderComponent {
   readonly deviceTrust = inject(DeviceTrustService);
 
   readonly activeJobCount = input<number>(0);
+  readonly sectionLabel = input<string>('');
   readonly jobTrayToggled = output<void>();
   readonly devicesClicked = output<void>();
 }

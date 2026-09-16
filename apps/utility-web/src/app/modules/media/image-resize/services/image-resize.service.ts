@@ -192,6 +192,8 @@ export class ImageResizeService {
 
   private readonly _selectedImage = signal<Option.Option<ArtifactFileDetails>>(Option.none());
   private readonly _resultArtifact = signal<Option.Option<ArtifactModel>>(Option.none());
+  /** The file and settings that actually produced `_resultArtifact` — compared against the live form state so the results panel can tell the user when it's showing a stale result rather than silently mixing pending settings with a previous run's numbers. */
+  private readonly _resultSnapshot = signal<{ file: File; state: ImageResizeFormState } | null>(null);
   private readonly _isProcessing = signal<boolean>(false);
   private readonly _errorMessage = signal<Option.Option<string>>(Option.none());
   private readonly _lockAspectRatio = signal<boolean>(true);
@@ -406,6 +408,40 @@ export class ImageResizeService {
     return `${w.value}×${h.value}`;
   });
 
+  /**
+   * `targetDimensionsLabel` is the requested bounding box — correct for `cover`/`fill`/`contain`,
+   * where Sharp always hits that box exactly, but wrong for `inside`/`outside`, which preserve
+   * aspect ratio and so land on some other size within (or around) the box. Once a real result
+   * exists, prefer the dimensions Sharp actually reported over the requested target.
+   */
+  readonly resultDimensionsLabel = computed(() => {
+    const dims = this.resultArtifact()?.outputDimensions;
+    return dims ? `${dims.width}×${dims.height}` : this.targetDimensionsLabel();
+  });
+
+  /** True once any setting relevant to the last generated result has changed — the results panel uses this to mark itself outdated instead of silently showing yesterday's numbers under today's settings. */
+  readonly isResultStale = computed(() => {
+    const snapshot = this._resultSnapshot();
+    const img = Option.getOrNull(this._selectedImage());
+
+    if (!snapshot || !img) {
+      return false;
+    }
+    if (img.file !== snapshot.file) {
+      return true;
+    }
+
+    const s = this._formState();
+    return (
+      Option.getOrNull(s.targetWidth) !== Option.getOrNull(snapshot.state.targetWidth) ||
+      Option.getOrNull(s.targetHeight) !== Option.getOrNull(snapshot.state.targetHeight) ||
+      s.fitMode !== snapshot.state.fitMode ||
+      s.outputFormat !== snapshot.state.outputFormat ||
+      s.withoutEnlargement !== snapshot.state.withoutEnlargement ||
+      (this.isLossyFormat() && s.quality !== snapshot.state.quality)
+    );
+  });
+
   readonly artifactDownloadUrl = computed(() => this._resultArtifact().pipe(Option.flatMap(({ id }) =>
     Option.fromNullable(this._artifactObjectUrl.getDownloadUrl(id))
   )));
@@ -418,6 +454,7 @@ export class ImageResizeService {
   setImage(file: File): void {
     this._errorMessage.set(Option.none());
     this._resultArtifact.set(Option.none());
+    this._resultSnapshot.set(null);
     this._activePresetId.set(Option.none());
 
     const previewUrl = URL.createObjectURL(file);
@@ -499,6 +536,7 @@ export class ImageResizeService {
   resetImage(): void {
     this._selectedImage.set(Option.none());
     this._resultArtifact.set(Option.none());
+    this._resultSnapshot.set(null);
     this._errorMessage.set(Option.none());
     this._activePresetId.set(Option.none());
   }
@@ -616,11 +654,15 @@ export class ImageResizeService {
     this._isProcessing.set(true);
     this._errorMessage.set(Option.none());
 
-    this._resizeImage$(img.value.file, this._formState())
+    const submittedFile = img.value.file;
+    const submittedState = this._formState();
+
+    this._resizeImage$(submittedFile, submittedState)
       .pipe(finalize(() => this._isProcessing.set(false)))
       .subscribe(Either.match({
         onRight: (res) => {
           this._resultArtifact.set(Option.some(ArtifactModelFromImageResizeOutput.from(res)));
+          this._resultSnapshot.set({ file: submittedFile, state: submittedState });
         },
         onLeft: (err) => {
           this._errorMessage.set(Option.some(err.message || 'Failed to process image transformation'));

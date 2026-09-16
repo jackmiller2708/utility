@@ -1,0 +1,3 @@
+@for (char of chars(); track $index) {
+  <span class="bounce-char" aria-hidden="true" (pointerenter)="onCharEnter($event)">{{ char === ' ' ? ' ' : char }}</span>
+}

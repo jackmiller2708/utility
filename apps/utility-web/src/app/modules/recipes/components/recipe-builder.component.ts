@@ -49,6 +49,23 @@ export class RecipeBuilderComponent {
     this.steps().every((step) => !!step.operationId)
   );
 
+  /** Names what's still missing so a disabled Save button explains itself instead of just refusing clicks. */
+  readonly saveBlockedReason = computed<string | null>(() => {
+    const missingName = this.name().trim().length === 0;
+    const missingOperation = this.steps().some((step) => !step.operationId);
+
+    if (missingName && missingOperation) {
+      return 'Name this recipe and choose an operation for every step to save it.';
+    }
+    if (missingName) {
+      return 'Name this recipe to save it.';
+    }
+    if (missingOperation) {
+      return 'Choose an operation for every step to save this recipe.';
+    }
+    return null;
+  });
+
   setName(value: string): void {
     this.name.set(value);
   }

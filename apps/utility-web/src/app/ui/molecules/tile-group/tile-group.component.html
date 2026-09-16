@@ -1,5 +1,5 @@
 @if (heading()) {
-  <div class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted mb-2.5">{{ heading() }}</div>
+  <div class="text-xs font-mono font-bold uppercase tracking-[0.04em] text-ink-muted mb-2.5">{{ heading() }}</div>
 }
 <div class="flex gap-2 flex-wrap">
   @for (tile of tiles(); track tile.id) {
