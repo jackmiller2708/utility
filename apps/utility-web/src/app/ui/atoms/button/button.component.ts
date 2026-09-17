@@ -9,10 +9,10 @@ import { CommonModule } from '@angular/common';
   host: { class: 'inline-flex max-w-full' },
 })
 export class ButtonComponent {
-  variant = input<'primary' | 'secondary' | 'ghost' | 'success'>('primary');
-  size = input<'sm' | 'md' | 'lg'>('md');
-  disabled = input<boolean>(false);
-  loading = input<boolean>(false);
-  type = input<'button' | 'submit'>('button');
-  clicked = output<MouseEvent>();
+  readonly variant = input<'primary' | 'secondary' | 'ghost' | 'success'>('primary');
+  readonly size = input<'sm' | 'md' | 'lg'>('md');
+  readonly disabled = input<boolean>(false);
+  readonly loading = input<boolean>(false);
+  readonly type = input<'button' | 'submit'>('button');
+  readonly clicked = output<MouseEvent>();
 }

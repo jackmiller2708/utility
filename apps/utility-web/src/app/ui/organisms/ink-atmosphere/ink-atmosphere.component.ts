@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, inject, viewChild, viewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, inject, viewChild, viewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 interface RegisterMark {
@@ -102,6 +102,9 @@ function buildMarks(): readonly RegisterMark[] {
   host: {
     class: 'absolute inset-0 z-0 overflow-hidden pointer-events-none',
     'aria-hidden': 'true',
+    '(window:pointermove)': 'onPointerMove($event)',
+    '(window:resize)': 'onWindowResize()',
+    '(window:mouseleave)': 'onPointerLeaveWindow()',
   },
 })
 export class InkAtmosphereComponent implements AfterViewInit, OnDestroy {
@@ -143,7 +146,6 @@ export class InkAtmosphereComponent implements AfterViewInit, OnDestroy {
   private isIdle = true;
   private idleTimer: ReturnType<typeof setTimeout> | null = null;
 
-  @HostListener('window:pointermove', ['$event'])
   onPointerMove(event: PointerEvent): void {
     if (this.reducedMotion || !this.canTrackPointer) {
       return;
@@ -165,7 +167,6 @@ export class InkAtmosphereComponent implements AfterViewInit, OnDestroy {
   }
 
   /** The cursor leaving the window is a harder signal than mere stillness — settle immediately rather than waiting out the idle timer. `document:mouseleave` (not `window:`) is what actually fires when the pointer crosses the viewport edge. */
-  @HostListener('document:mouseleave')
   onPointerLeaveWindow(): void {
     if (this.reducedMotion || !this.canTrackPointer) {
       return;
@@ -176,7 +177,6 @@ export class InkAtmosphereComponent implements AfterViewInit, OnDestroy {
   }
 
   /** A layout change invalidates every cached rest center — recapture rather than let the pull vectors drift stale against the old viewport size. */
-  @HostListener('window:resize')
   onWindowResize(): void {
     this.captureRestCenters();
   }
@@ -232,17 +232,20 @@ export class InkAtmosphereComponent implements AfterViewInit, OnDestroy {
     this.inkCrosses().forEach((crossRef, i) => {
       const m = this.marks[i];
       const el = crossRef.nativeElement;
+
       el.style.opacity = '0';
       el.style.transform = `rotate(${m.baseRotation}deg) scale(1)`;
     });
 
     const markEl = this.bleedMark()?.nativeElement;
+
     if (markEl) {
       markEl.style.transform = 'translate(0px, 0px)';
     }
 
     for (const plateRef of [this.pinkPlate(), this.bluePlate(), this.goldPlate()]) {
       const el = plateRef?.nativeElement;
+
       if (el) {
         el.style.transform = 'translate(0px, 0px)';
         el.style.opacity = '0.55';
@@ -255,6 +258,7 @@ export class InkAtmosphereComponent implements AfterViewInit, OnDestroy {
   private wake(): void {
     for (const plateRef of [this.pinkPlate(), this.bluePlate(), this.goldPlate()]) {
       const el = plateRef?.nativeElement;
+
       if (el) {
         el.classList.remove('is-idle');
         el.style.opacity = PLATE_ACTIVE_OPACITY;
@@ -319,6 +323,7 @@ export class InkAtmosphereComponent implements AfterViewInit, OnDestroy {
     }
 
     const rest = this.restCenters.get(el);
+
     if (!rest) {
       return;
     }

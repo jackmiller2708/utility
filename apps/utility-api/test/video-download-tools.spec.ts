@@ -6,6 +6,7 @@ import { makeToolRegistry, ToolRegistry } from "@utility/toolkit";
 import { videoDownloadTool, VideoDownloadServiceLive } from "@utility/video-download";
 import {
   parseExtractorKey,
+  parseVideoMetadata,
   assertSupportedExtractor,
   parseFinalOutputPath,
   parseDownloadPercent,
@@ -22,6 +23,34 @@ describe("video-download pure helpers", () => {
     it("defaults to Generic when extractor_key is missing", () => {
       const stdout = JSON.stringify({ title: "Some Video" });
       expect(parseExtractorKey(stdout)).toBe("Generic");
+    });
+  });
+
+  describe("parseVideoMetadata", () => {
+    it("reads title, thumbnail, duration, and uploader from a real site's yt-dlp --dump-json output", () => {
+      const stdout = JSON.stringify({
+        title: "Me at the zoo",
+        thumbnail: "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg",
+        duration: 19,
+        uploader: "jawed",
+        extractor_key: "Youtube",
+      });
+      expect(parseVideoMetadata(stdout)).toEqual({
+        title: "Me at the zoo",
+        thumbnailUrl: "https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg",
+        durationSeconds: 19,
+        uploader: "jawed",
+      });
+    });
+
+    it("defaults title to Untitled and leaves the rest undefined when the fields are missing", () => {
+      const stdout = JSON.stringify({ extractor_key: "Youtube" });
+      expect(parseVideoMetadata(stdout)).toEqual({
+        title: "Untitled",
+        thumbnailUrl: undefined,
+        durationSeconds: undefined,
+        uploader: undefined,
+      });
     });
   });
 
@@ -93,7 +122,7 @@ describe("video-download tool", () => {
     makeToolRegistry([videoDownloadTool])
   );
 
-  it("registers the video-download tool with both operations", async () => {
+  it("registers the video-download tool with all three operations", async () => {
     const program = Effect.gen(function* () {
       const registry = yield* ToolRegistry;
       return yield* registry.getToolsInfo();
@@ -106,6 +135,7 @@ describe("video-download tool", () => {
     expect(tool?.operations.map((op) => op.id).sort()).toEqual([
       "video-download.download",
       "video-download.download-audio",
+      "video-download.info",
     ]);
   });
 

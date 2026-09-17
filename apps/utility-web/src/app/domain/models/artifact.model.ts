@@ -1,4 +1,4 @@
-import type { ImageResizeOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, PdfSplitOutput, PdfMergeOutput, ArtifactResponse, MediaThumbnailOutput, MediaExtractAudioOutput, MediaTranscodeOutput } from '@utility/protocol';
+import type { ImageResizeOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, PdfSplitOutput, PdfMergeOutput, ArtifactResponse, MediaThumbnailOutput, MediaExtractAudioOutput, MediaTranscodeOutput, VideoDownloadOutput, VideoDownloadAudioOutput } from '@utility/protocol';
 import type { From } from '@utility/adapter';
 
 export interface ArtifactModelParams {
@@ -81,6 +81,14 @@ export const ArtifactModelFromMediaExtractAudioOutput: From<MediaExtractAudioOut
 };
 
 export const ArtifactModelFromMediaTranscodeOutput: From<MediaTranscodeOutput, ArtifactModel> = {
+  from: (dto) => new ArtifactModel(dto.artifact),
+};
+
+export const ArtifactModelFromVideoDownloadOutput: From<VideoDownloadOutput, ArtifactModel> = {
+  from: (dto) => new ArtifactModel(dto.artifact),
+};
+
+export const ArtifactModelFromVideoDownloadAudioOutput: From<VideoDownloadAudioOutput, ArtifactModel> = {
   from: (dto) => new ArtifactModel(dto.artifact),
 };
 

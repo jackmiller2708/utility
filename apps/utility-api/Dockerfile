@@ -12,7 +12,7 @@ FROM node:24-bookworm-slim
 RUN apt-get update \
     && apt-get install -y --no-install-recommends poppler-utils ffmpeg python3-pip \
     && rm -rf /var/lib/apt/lists/* \
-    && pip install --break-system-packages --no-cache-dir yt-dlp \
+    && pip install --break-system-packages --no-cache-dir yt-dlp curl_cffi \
     && yt-dlp -U
 
 WORKDIR /app

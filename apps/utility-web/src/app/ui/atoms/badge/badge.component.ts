@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   templateUrl: './badge.component.html',
   host: {
-    class: 'inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-xs font-bold border tracking-[0.04em]',
+    class: 'inline-flex items-center gap-1 px-2 pt-[3px] pb-[1px] rounded-sm text-xs font-bold border tracking-[0.04em]',
     '[class.font-mono]': 'mono()',
     '[class.bg-paper-fresh]': "surface() === 'paper' && variant() === 'neutral'",
     '[class.border-paper-deckle]': "surface() === 'paper' && variant() === 'neutral'",

@@ -27,12 +27,12 @@ import { RuntimeStatusService } from '@app/core';
 export class BatchTicketComponent {
   private readonly runtimeStatus = inject(RuntimeStatusService);
 
-  jobs = input.required<readonly JobModel[]>();
-  index = input<number>(0);
+  readonly jobs = input.required<readonly JobModel[]>();
+  readonly index = input<number>(0);
 
-  cancelled = output<void>();
-  dismissed = output<void>();
-  jobCancelled = output<string>();
+  readonly cancelled = output<void>();
+  readonly dismissed = output<void>();
+  readonly jobCancelled = output<string>();
 
   readonly expanded = signal(false);
 
@@ -55,6 +55,7 @@ export class BatchTicketComponent {
     const registered = this.runtimeStatus.tools()
       .flatMap((tool) => tool.operations)
       .find((op) => op.id === id)?.name;
+
     return registered ?? id.replace(/[.-]/g, ' ');
   });
 

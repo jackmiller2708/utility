@@ -30,6 +30,7 @@ A fast, secure, local-first media transformation workstation for designers and c
   - Image manipulation (`image.resize`): Width/height adjustments, aspect ratio preserving fit modes (`inside`, `cover`, `contain`, `fill`, `outside`), format conversion (`webp`, `jpeg`, `png`, `avif`), upscale controls, and preset shortcuts (50%, 25%, 1080p, square).
   - PDF: render pages, extract embedded images, inspect metadata, merge, and split (a dedicated Merge & Split workbench).
   - Video/audio: inspect, thumbnail capture, audio extraction, and transcoding, with a scrubbable video preview.
+  - Video Downloader: pull a video or its audio track from a supported site URL — metadata preview (title, thumbnail, duration, uploader) before committing, curated format presets with an advanced free-text fallback.
   - Recipes: composed multi-step operations chaining one tool's output into the next's input, saved and re-runnable.
   - Async jobs: any operation can run as a background job with real progress and cancellation in a persistent footer tray; batch mode submits many files as independent jobs under one ticket.
   - File inspection: Live previews, dimension tracking, raw size vs. output size comparison, and SHA-256 fingerprint display.

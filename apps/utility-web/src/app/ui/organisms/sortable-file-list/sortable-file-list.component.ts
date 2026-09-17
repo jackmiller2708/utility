@@ -21,10 +21,10 @@ export interface SortableFileItem {
 export class SortableFileListComponent {
   private readonly motion = inject(MotionService);
 
-  items = input<readonly SortableFileItem[]>([]);
-  reorder = output<{ fromIndex: number; toIndex: number }>();
-  remove = output<string>();
-  clearAll = output<void>();
+  readonly items = input<readonly SortableFileItem[]>([]);
+  readonly reorder = output<{ fromIndex: number; toIndex: number }>();
+  readonly remove = output<string>();
+  readonly clearAll = output<void>();
 
   readonly dragIndex = signal<number | null>(null);
   readonly dragOverIndex = signal<number | null>(null);
@@ -42,6 +42,7 @@ export class SortableFileListComponent {
       currentItems.forEach((item, i) => {
         seenIds.add(item.id);
         const el = rowEls[i]?.nativeElement;
+
         if (!el) {
           return;
         }
@@ -67,6 +68,7 @@ export class SortableFileListComponent {
   onDragStart(index: number, event: DragEvent): void {
     this.dragIndex.set(index);
     event.dataTransfer?.setData('text/plain', String(index));
+
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
     }

@@ -12,13 +12,13 @@ import { MotionService } from '@app/core';
 export class TelemetryRowComponent {
   private readonly motion = inject(MotionService);
 
-  label = input<string>('');
-  srcValue = input<string>('');
-  outValue = input<string>('');
-  filled = input<boolean>(false);
-  tone = input<'neutral' | 'mint' | 'gold'>('neutral');
+  readonly label = input<string>('');
+  readonly srcValue = input<string>('');
+  readonly outValue = input<string>('');
+  readonly filled = input<boolean>(false);
+  readonly tone = input<'neutral' | 'mint' | 'gold'>('neutral');
   /** Position among the sibling rows revealing together — staggers Pulled Sheet so the ledger fills in as one cascade. */
-  index = input<number>(0);
+  readonly index = input<number>(0);
 
   private readonly badge = viewChild<ElementRef<HTMLElement>>('badge');
   private _seenFirstRender = false;
@@ -37,6 +37,7 @@ export class TelemetryRowComponent {
 
       if (filled && !this._previousFilled) {
         const el = this.badge()?.nativeElement;
+
         if (el) {
           this.motion.pulledSheet(el, this.index());
         }

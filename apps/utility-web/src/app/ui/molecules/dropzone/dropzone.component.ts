@@ -27,19 +27,19 @@ const isFileDrag = (event: DragEvent): boolean => !!event.dataTransfer?.types.in
 export class DropzoneComponent {
   private readonly fileInputRef = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
 
-  accept = input<string>('image/png,image/jpeg,image/webp,image/avif,image/gif');
-  supportedFormats = input<readonly string[]>(['PNG', 'JPEG', 'WebP', 'AVIF']);
-  title = input<string>('Drop input file here, or browse');
+  readonly accept = input<string>('image/png,image/jpeg,image/webp,image/avif,image/gif');
+  readonly supportedFormats = input<readonly string[]>(['PNG', 'JPEG', 'WebP', 'AVIF']);
+  readonly title = input<string>('Drop input file here, or browse');
   /** When true, accepts and emits every selected/dropped file via `filesSelected` instead of just the first. */
-  multiple = input<boolean>(false);
-  showPasteHint = input<boolean>(true);
-  fileSelected = output<File>();
-  filesSelected = output<File[]>();
+  readonly multiple = input<boolean>(false);
+  readonly showPasteHint = input<boolean>(true);
+  readonly fileSelected = output<File>();
+  readonly filesSelected = output<File[]>();
 
   /** Cursor is over this exact plate. */
-  isDragging = signal(false);
+  readonly isDragging = signal(false);
   /** A file is being dragged somewhere over the page, not yet over this plate — the earlier, quieter invitation. */
-  isFileOverDocument = signal(false);
+  readonly isFileOverDocument = signal(false);
 
   private dragEnterDepth = 0;
 
@@ -48,6 +48,7 @@ export class DropzoneComponent {
     if (!isFileDrag(event)) {
       return;
     }
+
     this.dragEnterDepth++;
     this.isFileOverDocument.set(true);
   }
@@ -56,7 +57,9 @@ export class DropzoneComponent {
     if (!isFileDrag(event)) {
       return;
     }
+
     this.dragEnterDepth = Math.max(0, this.dragEnterDepth - 1);
+    
     if (this.dragEnterDepth === 0) {
       this.isFileOverDocument.set(false);
     }
@@ -97,8 +100,7 @@ export class DropzoneComponent {
   }
 
   onFileInputChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.emitFiles(input.files);
+    this.emitFiles((event.target as HTMLInputElement).files);
   }
 
   openFilePicker(): void {

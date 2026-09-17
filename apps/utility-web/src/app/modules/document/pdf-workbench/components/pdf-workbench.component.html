@@ -88,7 +88,7 @@
         @if (batchCostEstimateLabel(); as estimate) {
           <div class="flex items-center gap-2">
             <span class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">ESTIMATED COST</span>
-            <span class="inline-block bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5 text-xs font-mono font-bold text-ink">{{ estimate }}</span>
+            <span class="inline-block bg-paper-fresh border border-paper-deckle rounded-sm px-2 pt-[3px] pb-[1px] text-xs font-mono font-bold text-ink">{{ estimate }}</span>
           </div>
         }
 
@@ -193,7 +193,7 @@
           @if (costEstimateLabel(); as estimate) {
             <div class="flex items-center gap-2">
               <span class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted">ESTIMATED COST</span>
-              <span class="inline-block bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5 text-xs font-mono font-bold text-ink">{{ estimate }}</span>
+              <span class="inline-block bg-paper-fresh border border-paper-deckle rounded-sm px-2 pt-[3px] pb-[1px] text-xs font-mono font-bold text-ink">{{ estimate }}</span>
             </div>
           }
 
@@ -284,7 +284,7 @@
             @for (row of service.batchInspectResults(); track row.fileName) {
               <div class="flex items-center gap-4 py-3 border-b border-paper-hairline last:border-b-0 flex-wrap">
                 <span class="flex-1 min-w-[140px] text-sm font-bold text-ink truncate">{{ row.fileName }}</span>
-                <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5">{{ row.pages }} PAGE{{ row.pages === 1 ? '' : 'S' }}</span>
+                <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 pt-[3px] pb-[1px]">{{ row.pages }} PAGE{{ row.pages === 1 ? '' : 'S' }}</span>
                 @if (row.title) {
                   <span class="font-mono text-xs text-ink-faint truncate max-w-[160px]">{{ row.title }}</span>
                 }

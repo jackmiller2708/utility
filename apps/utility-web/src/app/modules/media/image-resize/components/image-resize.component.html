@@ -230,7 +230,7 @@
                   [class.bg-riso-blue]="service.formState().quality === q"
                   [class.text-paper-fresh]="service.formState().quality === q"
                   [class.text-ink-muted]="service.formState().quality !== q"
-                  class="px-2 py-1 text-xs font-mono font-bold rounded-sm hover:text-ink transition-colors duration-shift ease-run cursor-pointer active:shadow-stamped"
+                  class="px-2 pt-[5px] pb-[3px] text-xs font-mono font-bold rounded-sm hover:text-ink transition-colors duration-shift ease-run cursor-pointer active:shadow-stamped"
                   [attr.aria-label]="'Set quality to ' + q + '%'"
                 >
                   {{ q }}
@@ -285,7 +285,7 @@
               <span>Resizing&hellip;</span>
             } @else {
               <span>Resize</span>
-              <kbd class="ml-1 px-1.5 py-0.5 rounded-sm bg-riso-pink-hover text-paper-fresh text-xs font-mono font-normal shrink-0 whitespace-nowrap">Ctrl+Enter</kbd>
+              <kbd class="ml-1 px-1.5 pt-[3px] pb-[1px] rounded-sm bg-riso-pink-hover text-paper-fresh text-xs font-mono font-normal shrink-0 whitespace-nowrap">Ctrl+Enter</kbd>
             }
           </app-button>
         </div>

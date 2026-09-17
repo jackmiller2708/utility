@@ -26,3 +26,18 @@ export const VideoDownloadAudioOutputSchema = Schema.Struct({
 });
 
 export type VideoDownloadAudioOutput = typeof VideoDownloadAudioOutputSchema.Type;
+
+export const VideoDownloadInfoInputSchema = Schema.Struct({
+  url: Schema.String,
+});
+
+export type VideoDownloadInfoInput = typeof VideoDownloadInfoInputSchema.Type;
+
+export const VideoDownloadInfoOutputSchema = Schema.Struct({
+  title: Schema.String,
+  thumbnailUrl: Schema.optional(Schema.String),
+  durationSeconds: Schema.optional(Schema.Number),
+  uploader: Schema.optional(Schema.String),
+});
+
+export type VideoDownloadInfoOutput = typeof VideoDownloadInfoOutputSchema.Type;

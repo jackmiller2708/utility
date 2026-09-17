@@ -1,0 +1,190 @@
+<div class="flex flex-col gap-2 min-w-0">
+  <div class="flex items-end gap-4 flex-wrap">
+    <h1 class="text-[clamp(1.875rem,3.2vw,2.5rem)] font-black leading-[1.1] tracking-[-0.01em] text-press-text">
+      <app-bounce-text text="Pull a video" />
+    </h1>
+    <app-badge variant="pink" surface="press">video-download</app-badge>
+  </div>
+  <p class="text-[0.9375rem] leading-relaxed text-press-text-muted max-w-[70ch]">
+    Paste a URL from a supported site, load the plate, then pull the video or just its audio.
+  </p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 min-w-0">
+  <section class="lg:col-span-5 min-w-0 relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift">
+    <span class="reg-cross absolute top-2 right-2 text-riso-pink"></span>
+
+    <div class="px-6 py-5 border-b border-paper-hairline">
+      <h2 class="text-xl font-extrabold text-ink">Source URL</h2>
+    </div>
+
+    <div class="p-6 flex flex-col gap-6 min-w-0">
+      <div class="flex flex-col gap-3 min-w-0">
+        <div class="flex items-end gap-2 min-w-0">
+          <app-input
+            class="min-w-0 flex-1"
+            id="video-download-url"
+            ariaLabel="Video URL"
+            type="url"
+            placeholder="https://www.youtube.com/watch?v=..."
+            [mono]="false"
+            [value]="service.url()"
+            [disabled]="service.isLoadingInfo()"
+            (valueChange)="onUrlChange($event)"
+            (keydown)="onUrlKeydown($event)"
+          ></app-input>
+
+          <app-button
+            variant="secondary"
+            size="lg"
+            [disabled]="!service.canLoadInfo()"
+            [loading]="service.isLoadingInfo()"
+            (clicked)="service.loadInfo()"
+          >
+            @if (service.isLoadingInfo()) {
+              <span>Loading&hellip;</span>
+            } @else {
+              <span>Load</span>
+            }
+          </app-button>
+        </div>
+
+        @if (service.infoError(); as infoErr) {
+          <div class="p-3 rounded-sm border border-riso-red bg-riso-red/10 text-xs font-mono font-bold text-riso-red flex items-start gap-2" role="alert">
+            <span class="flex-1 min-w-0 break-words">{{ infoErr }}</span>
+          </div>
+        }
+      </div>
+
+      @if (service.hasLoadedInfo()) {
+        @let info = service.info();
+
+        @if (info) {
+          <div class="flex flex-col gap-3 min-w-0 border-t border-paper-hairline pt-5">
+            <div class="flex gap-4 min-w-0">
+              @if (info.thumbnailUrl && !thumbnailFailed()) {
+                <img
+                  [src]="info.thumbnailUrl"
+                  (error)="onThumbnailError()"
+                  alt=""
+                  loading="lazy"
+                  class="w-28 h-16 shrink-0 object-cover rounded-sm border border-paper-deckle bg-paper-fresh"
+                />
+              }
+              <div class="flex flex-col gap-1.5 min-w-0">
+                <h3 class="text-sm font-bold text-ink line-clamp-2">{{ info.title }}</h3>
+                <div class="flex flex-wrap gap-1.5">
+                  @if (info.durationSeconds != null) {
+                    <app-badge variant="neutral">{{ service.formatDuration(info.durationSeconds) }}</app-badge>
+                  }
+                  @if (info.uploader) {
+                    <app-badge variant="neutral">{{ info.uploader }}</app-badge>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-3 min-w-0 border-t border-paper-hairline pt-5">
+            <h3 class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">VIDEO</h3>
+
+            <app-tile-group
+              [tiles]="videoTiles"
+              [activeId]="service.activeVideoTileId()"
+              activeInk="blue"
+              (tileSelected)="selectVideoTile($event)"
+            ></app-tile-group>
+
+            @if (service.activeVideoTileId() === 'custom-video') {
+              <app-input
+                id="video-download-custom-video-format"
+                ariaLabel="Custom video format selector"
+                placeholder="e.g. best[height<=480]"
+                [mono]="true"
+                [value]="service.customVideoFormat()"
+                (valueChange)="service.setCustomVideoFormat($event)"
+              ></app-input>
+            }
+          </div>
+
+          <div class="flex flex-col gap-3 min-w-0 border-t border-paper-hairline pt-5">
+            <h3 class="text-sm font-mono font-bold tracking-[0.04em] text-ink-muted">AUDIO ONLY</h3>
+
+            <app-tile-group
+              [tiles]="audioTiles"
+              [activeId]="service.activeAudioTileId()"
+              activeInk="blue"
+              (tileSelected)="selectAudioTile($event)"
+            ></app-tile-group>
+
+            @if (service.activeAudioTileId() === 'custom-audio') {
+              <app-input
+                id="video-download-custom-audio-format"
+                ariaLabel="Custom audio format selector"
+                placeholder="e.g. flac"
+                [mono]="true"
+                [value]="service.customAudioFormat()"
+                (valueChange)="service.setCustomAudioFormat($event)"
+              ></app-input>
+            }
+          </div>
+
+          <div class="border-t border-paper-hairline pt-5 flex flex-col gap-3 min-w-0">
+            <app-button
+              variant="primary"
+              size="lg"
+              class="[&>button]:w-full"
+              [disabled]="!service.canPull()"
+              [loading]="service.isProcessing()"
+              (clicked)="service.executeDownload()"
+            >
+              @if (service.isProcessing()) {
+                <span>Pulling&hellip;</span>
+              } @else {
+                <span>Pull</span>
+              }
+            </app-button>
+
+            @if (service.errorDiagnostic() | option; as diag) {
+              <app-error-diagnostic
+                [title]="diag.title"
+                [message]="diag.message"
+                [suggestion]="diag.suggestion"
+                retryLabel="Retry"
+                (retryClicked)="service.retryLastOperation()"
+              ></app-error-diagnostic>
+            }
+          </div>
+        }
+      } @else if (!service.isLoadingInfo() && !service.infoError()) {
+        <div class="h-24 flex items-center justify-center text-center text-sm text-ink-faint border border-dashed border-ink-faint rounded-sm">
+          Paste a URL above and load it to see download options.
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="lg:col-span-7 min-w-0 flex flex-col gap-4">
+    @if (service.lastResult(); as result) {
+      @let resultInfo = service.lastResultInfo();
+      @if (resultInfo?.durationSeconds != null) {
+        <div class="flex flex-wrap gap-1.5">
+          <span class="text-xs font-mono font-bold tracking-[0.04em] text-ink-muted self-center">DURATION</span>
+          <app-badge variant="neutral">{{ service.formatDuration(resultInfo!.durationSeconds!) }}</app-badge>
+        </div>
+      }
+    }
+
+    <app-gallery-grid
+      class="flex-1"
+      [title]="galleryTitle()"
+      [items]="galleryItems()"
+      [loading]="service.isProcessing()"
+      [job]="service.activeJob()"
+      emptyTitle="No output yet"
+      emptyMessage="Load a URL and pull it to see the result here."
+      (downloadAllClicked)="downloadResult()"
+      (cancelJob)="service.cancelActiveJob()"
+    ></app-gallery-grid>
+  </section>
+</div>

@@ -3,9 +3,9 @@ import type { JobModel } from '@app/domain';
 import { Component, input, output, signal, computed } from '@angular/core';
 import { BatchTicketComponent } from '@app/ui/molecules/batch-ticket/batch-ticket.component';
 import { JobTicketComponent } from '@app/ui/molecules/job-ticket/job-ticket.component';
+import { Set as ImmutableSet } from 'immutable';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from '@app/ui/atoms/icon/icon.component';
-import { Set as ImmutableSet } from 'immutable';
 
 export type TrayEntry =
   | { readonly kind: 'job'; readonly job: JobModel }

@@ -152,8 +152,9 @@ export class RecentArtifactsService {
     return new Date(isoDate).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
   }
 
-  getArtifactFileUrl(id: string): string | null {
-    return this._artifactObjectUrl.getFileUrl(id);
+  /** The compressed WebP preview, for the list's small thumbnail — see `getArtifactDownloadUrl` for the real file bytes. */
+  getArtifactPreviewUrl(id: string): string | null {
+    return this._artifactObjectUrl.getPreviewUrl(id);
   }
 
   getArtifactDownloadUrl(id: string): string | null {

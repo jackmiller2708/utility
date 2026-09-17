@@ -9,11 +9,37 @@ import {
   VideoDownloadAudioInputSchema,
   VideoDownloadAudioOutput,
   VideoDownloadAudioOutputSchema,
+  VideoDownloadInfoInput,
+  VideoDownloadInfoInputSchema,
+  VideoDownloadInfoOutput,
+  VideoDownloadInfoOutputSchema,
 } from "@utility/protocol";
 import { ArtifactStore } from "@utility/runtime";
 import { createTool, Operation } from "@utility/toolkit";
 import { Artifact } from "@utility/domain";
+import { UnsupportedSourceError, DownloadError } from "./errors.js";
 import { VideoDownloadService } from "./service.js";
+
+export const infoOperation: Operation<
+  VideoDownloadInfoInput,
+  VideoDownloadInfoOutput,
+  UnsupportedSourceError | DownloadError,
+  VideoDownloadService
+> = {
+  id: "video-download.info",
+  name: "Video Info",
+  description: "Fetch title, thumbnail, duration, and uploader for a supported site URL without downloading anything.",
+  parameters: [
+    { name: "url", label: "Video URL", type: "string", required: true, description: "A URL from a site yt-dlp recognizes" },
+  ],
+  inputSchema: VideoDownloadInfoInputSchema,
+  outputSchema: VideoDownloadInfoOutputSchema,
+  execute: (input) =>
+    Effect.gen(function* () {
+      const service = yield* VideoDownloadService;
+      return yield* service.getInfo(input.url);
+    }),
+};
 
 export const downloadOperation: Operation<
   VideoDownloadInput,
@@ -112,5 +138,5 @@ export const videoDownloadTool = createTool({
   name: "Video Downloader",
   description: "Download a video (or just its audio) from a supported site URL.",
   category: "Media",
-  operations: [downloadOperation, downloadAudioOperation],
+  operations: [infoOperation, downloadOperation, downloadAudioOperation],
 });

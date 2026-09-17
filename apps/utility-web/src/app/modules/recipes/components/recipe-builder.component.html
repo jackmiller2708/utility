@@ -39,7 +39,7 @@
     @if (isExpanded(step)) {
       <div class="relative bg-paper border border-paper-deckle rounded-lg shadow-paper-lift p-6 flex flex-col gap-5 min-w-0">
         <div class="flex items-center justify-between gap-4">
-          <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5">STEP {{ i + 1 }}</span>
+          <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 pt-[3px] pb-[1px]">STEP {{ i + 1 }}</span>
           @if (steps().length > 1) {
             <app-button variant="ghost" size="sm" (clicked)="removeStep(step.localId)">Remove</app-button>
           }
@@ -67,7 +67,7 @@
         (click)="expand(step.localId)"
         class="text-left flex items-center gap-4 px-6 py-4 bg-paper border border-paper-deckle rounded-lg shadow-paper-lift cursor-pointer hover:border-riso-pink transition-colors duration-shift ease-run active:shadow-stamped"
       >
-        <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5 shrink-0">STEP {{ i + 1 }}</span>
+        <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 pt-[3px] pb-[1px] shrink-0">STEP {{ i + 1 }}</span>
         <span class="flex-1 text-sm font-bold text-ink truncate">{{ operationName(step.operationId) }}</span>
         <app-icon name="chevron" className="w-4 h-4 -rotate-90 text-ink-faint shrink-0"></app-icon>
       </button>

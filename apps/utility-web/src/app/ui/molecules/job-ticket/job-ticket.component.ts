@@ -1,8 +1,9 @@
+import type { JobModel } from '@app/domain';
+
 import { Component, input, output, effect, inject, ElementRef, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from '@app/ui/atoms/icon/icon.component';
 import { MotionService } from '@app/core';
-import type { JobModel } from '@app/domain';
 
 /**
  * A stamped job ledger ticket — used both compact in the footer tray and full
@@ -29,16 +30,16 @@ export class JobTicketComponent {
   private readonly motion = inject(MotionService);
   private readonly hostRef = inject(ElementRef<HTMLElement>);
 
-  job = input.required<JobModel>();
+  readonly job = input.required<JobModel>();
   /** Position within the tray's list — caps the Stamped In stagger delay. */
-  index = input<number>(0);
-  compact = input<boolean>(false);
+  readonly index = input<number>(0);
+  readonly compact = input<boolean>(false);
   /** Set by the parent to start the Pulled Away exit; the parent removes the ticket only after `leftView` fires. */
-  leaving = input<boolean>(false);
+  readonly leaving = input<boolean>(false);
 
-  cancelled = output<string>();
-  dismissed = output<string>();
-  leftView = output<void>();
+  readonly cancelled = output<string>();
+  readonly dismissed = output<string>();
+  readonly leftView = output<void>();
 
   private readonly ledger = viewChild<ElementRef<HTMLElement>>('ledger');
   private readonly statusIcon = viewChild<ElementRef<HTMLElement>>('statusIcon');
@@ -78,12 +79,15 @@ export class JobTicketComponent {
       }
 
       const completed = job.progress?.completed ?? null;
+
       if (completed != null && this._previousCompleted != null && completed > this._previousCompleted) {
         const ledgerEl = this.ledger()?.nativeElement;
+
         if (ledgerEl) {
           this.motion.tick(ledgerEl);
         }
       }
+
       this._previousCompleted = completed;
     });
 
@@ -97,6 +101,7 @@ export class JobTicketComponent {
   /** Ink Stroke — the completed/failed glyph draws its own outline rather than appearing whole. */
   private drawStatusIcon(): void {
     const svg = this.statusIcon()?.nativeElement.querySelector('svg');
+
     if (svg) {
       this.motion.drawOn(svg);
     }

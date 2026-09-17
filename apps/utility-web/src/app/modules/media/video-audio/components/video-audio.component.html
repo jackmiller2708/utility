@@ -317,7 +317,7 @@
               @for (row of service.batchInspectResults(); track row.fileName) {
                 <div class="flex items-center gap-4 py-3 border-b border-paper-hairline last:border-b-0 flex-wrap">
                   <span class="flex-1 min-w-[140px] text-sm font-bold text-ink truncate">{{ row.fileName }}</span>
-                  <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5">{{ service.formatDuration(row.durationSeconds) }}</span>
+                  <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 pt-[3px] pb-[1px]">{{ service.formatDuration(row.durationSeconds) }}</span>
                   @if (row.video) {
                     <span class="font-mono text-xs text-ink-faint truncate">{{ row.video.width }}&times;{{ row.video.height }}</span>
                   }

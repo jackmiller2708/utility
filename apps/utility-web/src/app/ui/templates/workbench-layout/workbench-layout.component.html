@@ -42,3 +42,17 @@
     <span class="leading-none pt-[4.5px]">Utility &middot; Your files stay private &mdash; nothing uploads to the cloud</span>
   </div>
 </footer>
+
+@if (lightroom.request(); as request) {
+  <app-lightroom
+    [initialSide]="request.initialSide"
+    [originalUrl]="request.originalUrl"
+    [exportUrl]="request.exportUrl"
+    [originalCaption]="request.originalCaption"
+    [exportCaption]="request.exportCaption"
+    [label]="request.label"
+    [leaving]="lightroom.leaving()"
+    (closeRequested)="lightroom.close()"
+    (leftView)="lightroom.onLeftView()"
+  ></app-lightroom>
+}

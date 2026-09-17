@@ -1,7 +1,8 @@
+import type { ToolModel } from '@app/domain';
+
 import { Component, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from '@app/ui/atoms/icon/icon.component';
-import type { ToolModel } from '@app/domain';
 
 export interface ToolCategoryGroup {
   readonly category: string;
@@ -19,18 +20,18 @@ export interface ToolCategoryGroup {
   },
 })
 export class SidebarComponent {
-  tools = input<readonly ToolModel[]>([]);
-  activeToolId = input<string>('image');
+  readonly tools = input<readonly ToolModel[]>([]);
+  readonly activeToolId = input<string>('image');
   /** True on the /recent route — no tool is the active one there. */
-  onRecentRoute = input<boolean>(false);
+  readonly onRecentRoute = input<boolean>(false);
   /** True on the Recipes management routes (list, builder) — no tool is the active one there either. */
-  onRecipesRoute = input<boolean>(false);
+  readonly onRecipesRoute = input<boolean>(false);
   /** True on the Devices route — no tool is the active one there either. */
-  onDevicesRoute = input<boolean>(false);
-  selectedToolId = output<string>();
-  recentSelected = output<void>();
-  recipesSelected = output<void>();
-  devicesSelected = output<void>();
+  readonly onDevicesRoute = input<boolean>(false);
+  readonly selectedToolId = output<string>();
+  readonly recentSelected = output<void>();
+  readonly recipesSelected = output<void>();
+  readonly devicesSelected = output<void>();
 
   /** Grouped in first-seen order, matching the order the backend registers tools in — never re-sorted, so a category's position stays stable as tools inside it change. */
   readonly groups = computed<readonly ToolCategoryGroup[]>(() => {

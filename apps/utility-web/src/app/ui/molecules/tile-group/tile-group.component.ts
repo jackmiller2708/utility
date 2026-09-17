@@ -17,12 +17,12 @@ export interface TileItem {
 export class TileGroupComponent {
   private readonly motion = inject(MotionService);
 
-  heading = input<string>('');
-  tiles = input<readonly TileItem[]>([]);
-  activeId = input<string | null>(null);
+  readonly heading = input<string>('');
+  readonly tiles = input<readonly TileItem[]>([]);
+  readonly activeId = input<string | null>(null);
   /** Which spot ink marks the selected tile — pink for the primary shortcut, blue for a setting. */
-  activeInk = input<'pink' | 'blue'>('blue');
-  tileSelected = output<string>();
+  readonly activeInk = input<'pink' | 'blue'>('blue');
+  readonly tileSelected = output<string>();
 
   /** A chosen plate punched into the rail — the same scale-flash as Odometer Tick, reused for any newly-selected tile. */
   selectTile(id: string, event: MouseEvent): void {

@@ -13,6 +13,35 @@ export const parseExtractorKey = (dumpJsonStdout: string): string => {
   return parsed.extractor_key ?? "Generic";
 };
 
+export interface VideoMetadata {
+  readonly title: string;
+  readonly thumbnailUrl?: string;
+  readonly durationSeconds?: number;
+  readonly uploader?: string;
+}
+
+/**
+ * Reads the fields `video-download.info` reports from the same `--dump-json` payload
+ * `parseExtractorKey` already reads the extractor from. A separate function, not a shared
+ * parse, so each stays independently testable against its own single field set — the same
+ * "one parser, one job" shape as `parseExtractorKey` and `parseFinalOutputPath`.
+ */
+export const parseVideoMetadata = (dumpJsonStdout: string): VideoMetadata => {
+  const parsed = JSON.parse(dumpJsonStdout) as {
+    title?: string;
+    thumbnail?: string;
+    duration?: number;
+    uploader?: string;
+  };
+
+  return {
+    title: parsed.title ?? "Untitled",
+    thumbnailUrl: parsed.thumbnail,
+    durationSeconds: parsed.duration,
+    uploader: parsed.uploader,
+  };
+};
+
 /** The one input-validation check this package performs: does yt-dlp recognize this URL as a real, named site, rather than falling through to its generic/direct-file extractor? */
 export const assertSupportedExtractor = (extractorKey: string, url: string): Effect.Effect<void, UnsupportedSourceError> =>
   extractorKey === "Generic"
@@ -61,6 +90,7 @@ export interface VideoDownloadOptions {
 
 export interface VideoDownloadService {
   readonly checkSourceSupported: (url: string) => Effect.Effect<void, UnsupportedSourceError | DownloadError>;
+  readonly getInfo: (url: string) => Effect.Effect<VideoMetadata, UnsupportedSourceError | DownloadError>;
   readonly download: (
     url: string,
     workspace: WorkspaceInstance,
@@ -85,7 +115,8 @@ export const VideoDownloadServiceLive = Layer.effect(
   Effect.gen(function* () {
     const process = yield* Process;
 
-    const checkSourceSupported = (url: string): Effect.Effect<void, UnsupportedSourceError | DownloadError> =>
+    /** The one `--dump-json` preflight call, shared by `checkSourceSupported` (reads only the extractor key) and `getInfo` (reads the display fields too) — one yt-dlp invocation per URL, not two. */
+    const fetchDumpJson = (url: string, operation: string): Effect.Effect<string, DownloadError> =>
       process
         .spawn({
           executable: "yt-dlp",
@@ -93,22 +124,45 @@ export const VideoDownloadServiceLive = Layer.effect(
           timeoutMs: PREFLIGHT_TIMEOUT_MS,
         })
         .pipe(
+          Effect.map((res) => res.stdout),
           Effect.mapError((err: ProcessError) => new DownloadError({
-            operation: "video-download.check-source",
+            operation,
             message: `Could not resolve this URL: ${err.stderr?.trim() || err.message}`,
             cause: err,
-          })),
-          Effect.flatMap((res) =>
-            Effect.try({
-              try: () => parseExtractorKey(res.stdout),
-              catch: (cause) => new DownloadError({
-                operation: "video-download.check-source",
-                message: `yt-dlp reported unreadable metadata for this URL: ${cause instanceof Error ? cause.message : String(cause)}`,
-                cause,
-              }),
-            }).pipe(Effect.flatMap((extractorKey) => assertSupportedExtractor(extractorKey, url)))
-          )
+          }))
         );
+
+    const checkSourceSupported = (url: string): Effect.Effect<void, UnsupportedSourceError | DownloadError> =>
+      fetchDumpJson(url, "video-download.check-source").pipe(
+        Effect.flatMap((stdout) =>
+          Effect.try({
+            try: () => parseExtractorKey(stdout),
+            catch: (cause) => new DownloadError({
+              operation: "video-download.check-source",
+              message: `yt-dlp reported unreadable metadata for this URL: ${cause instanceof Error ? cause.message : String(cause)}`,
+              cause,
+            }),
+          }).pipe(Effect.flatMap((extractorKey) => assertSupportedExtractor(extractorKey, url)))
+        )
+      );
+
+    const getInfo = (url: string): Effect.Effect<VideoMetadata, UnsupportedSourceError | DownloadError> =>
+      fetchDumpJson(url, "video-download.info").pipe(
+        Effect.flatMap((stdout) =>
+          Effect.try({
+            try: () => ({ extractorKey: parseExtractorKey(stdout), metadata: parseVideoMetadata(stdout) }),
+            catch: (cause) => new DownloadError({
+              operation: "video-download.info",
+              message: `yt-dlp reported unreadable metadata for this URL: ${cause instanceof Error ? cause.message : String(cause)}`,
+              cause,
+            }),
+          }).pipe(
+            Effect.flatMap(({ extractorKey, metadata }) =>
+              assertSupportedExtractor(extractorKey, url).pipe(Effect.as(metadata))
+            )
+          )
+        )
+      );
 
     const run = (
       operation: string,
@@ -207,6 +261,6 @@ export const VideoDownloadServiceLive = Layer.effect(
         return yield* run("video-download.download-audio", args, onProgress);
       });
 
-    return VideoDownloadService.of({ checkSourceSupported, download, downloadAudio });
+    return VideoDownloadService.of({ checkSourceSupported, getInfo, download, downloadAudio });
   })
 );

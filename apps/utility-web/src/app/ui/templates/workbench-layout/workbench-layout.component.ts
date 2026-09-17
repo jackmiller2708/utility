@@ -6,17 +6,20 @@ import { JobTrayComponent } from '@app/ui/organisms/job-tray/job-tray.component'
 import { SidebarComponent } from '@app/ui/organisms/sidebar/sidebar.component';
 import { HeaderComponent } from '@app/ui/organisms/header/header.component';
 import { InkAtmosphereComponent } from '@app/ui/organisms/ink-atmosphere/ink-atmosphere.component';
+import { LightroomComponent } from '@app/ui/organisms/lightroom/lightroom.component';
+import { LightroomService } from '@app/ui/organisms/lightroom/lightroom.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-workbench-layout',
   standalone: true,
-  imports: [CommonModule, HeaderComponent, SidebarComponent, JobTrayComponent, InkAtmosphereComponent],
+  imports: [CommonModule, HeaderComponent, SidebarComponent, JobTrayComponent, InkAtmosphereComponent, LightroomComponent],
   templateUrl: './workbench-layout.component.html',
   host: { class: 'min-h-screen bg-press text-press-text flex flex-col font-sans relative overflow-hidden' },
 })
 export class WorkbenchLayoutComponent {
   readonly jobTracker = inject(JobTrackerService);
+  readonly lightroom = inject(LightroomService);
   readonly authStatus = input<AuthStatusModel | null>(null);
   readonly tools = input<readonly ToolModel[]>([]);
   readonly activeToolId = input<string>('image');
@@ -33,6 +36,7 @@ export class WorkbenchLayoutComponent {
     if (this.onRecipesRoute()) return 'RECIPES';
     if (this.onRecentRoute()) return 'RECENT';
     if (this.onDevicesRoute()) return 'DEVICES';
+
     return this.tools().find((tool) => tool.id === this.activeToolId())?.category.toUpperCase() ?? '';
   });
 }

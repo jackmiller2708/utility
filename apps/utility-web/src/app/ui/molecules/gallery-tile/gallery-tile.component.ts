@@ -10,9 +10,9 @@ import { IconComponent } from '@app/ui/atoms/icon/icon.component';
   host: { class: 'block relative bg-paper-fresh border border-paper-deckle rounded-sm overflow-hidden transition duration-shift ease-run hover:border-ink-muted hover:shadow-paper-lift' },
 })
 export class GalleryTileComponent {
-  label = input.required<string>();
-  sizeFormatted = input<string>('');
-  previewUrl = input<string | null>(null);
-  downloadUrl = input<string | null>(null);
-  kind = input<'image' | 'video' | 'audio'>('image');
+  readonly label = input.required<string>();
+  readonly sizeFormatted = input<string>('');
+  readonly previewUrl = input<string | null>(null);
+  readonly downloadUrl = input<string | null>(null);
+  readonly kind = input<'image' | 'video' | 'audio'>('image');
 }

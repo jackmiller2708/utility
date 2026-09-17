@@ -10,6 +10,10 @@ export const MEDIA_ROUTES: Routes = [
     loadChildren: () => import('./video-audio/video-audio.routes').then((m) => m.VIDEO_AUDIO_ROUTES),
   },
   {
+    path: 'video-download',
+    loadChildren: () => import('./video-download/video-download.routes').then((m) => m.VIDEO_DOWNLOAD_ROUTES),
+  },
+  {
     path: '',
     redirectTo: 'image-resize',
     pathMatch: 'full',

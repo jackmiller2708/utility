@@ -1,62 +1,13 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  HttpException,
-  NotFoundException,
-  BadRequestException,
-  ForbiddenException,
-  InternalServerErrorException,
-} from "@nestjs/common";
-import { Effect, Layer, ManagedRuntime, Cause } from "effect";
+import { makeToolRegistry, JobRegistry, JobRegistryLive, WorkflowRegistryLive, WorkflowValidationError, WorkflowStepError, WorkflowNotFoundError } from "@utility/toolkit";
+import { Injectable, OnModuleInit, OnModuleDestroy, HttpException, NotFoundException, BadRequestException, ForbiddenException, InternalServerErrorException } from "@nestjs/common";
+import { ProcessLive, WorkspaceManagerLive, ArtifactStore, ArtifactStoreLive, ArtifactNotFoundError, WorkspaceError, ProcessError, ArtifactError } from "@utility/runtime";
+import { imageTool, SharpImageServiceLive, InvalidImageError, UnsupportedImageFormatError, ImageProcessingError, } from "@utility/image";
+import { pdfTool, pdfMergeSplitTool, PopplerPdfServiceLive, InvalidPdfError, PdfProcessingError } from "@utility/pdf";
+import { videoDownloadTool, VideoDownloadServiceLive, UnsupportedSourceError, DownloadError } from "@utility/video-download";
+import { mediaTool, FfmpegMediaServiceLive, InvalidMediaError, MediaProcessingError } from "@utility/media";
 import { NodeFileSystem, NodeCommandExecutor, NodePath } from "@effect/platform-node";
+import { Effect, Layer, ManagedRuntime, Cause, Option, Exit } from "effect";
 import { isPlatformError } from "@effect/platform/Error";
-import {
-  ProcessLive,
-  WorkspaceManagerLive,
-  ArtifactStore,
-  ArtifactStoreLive,
-  ArtifactNotFoundError,
-  WorkspaceError,
-  ProcessError,
-  ArtifactError,
-} from "@utility/runtime";
-import {
-  ToolRegistry,
-  makeToolRegistry,
-  JobRegistry,
-  JobRegistryLive,
-  WorkflowRegistryLive,
-  WorkflowValidationError,
-  WorkflowStepError,
-  WorkflowNotFoundError,
-} from "@utility/toolkit";
-import {
-  imageTool,
-  SharpImageServiceLive,
-  InvalidImageError,
-  UnsupportedImageFormatError,
-  ImageProcessingError,
-} from "@utility/image";
-import {
-  pdfTool,
-  pdfMergeSplitTool,
-  PopplerPdfServiceLive,
-  InvalidPdfError,
-  PdfProcessingError,
-} from "@utility/pdf";
-import {
-  mediaTool,
-  FfmpegMediaServiceLive,
-  InvalidMediaError,
-  MediaProcessingError,
-} from "@utility/media";
-import {
-  videoDownloadTool,
-  VideoDownloadServiceLive,
-  UnsupportedSourceError,
-  DownloadError,
-} from "@utility/video-download";
 import { SecurityError, ValidationError } from "@utility/domain";
 
 const toolRegistryLayer = makeToolRegistry([imageTool, pdfTool, pdfMergeSplitTool, mediaTool, videoDownloadTool]);
@@ -82,14 +33,12 @@ export const AppLive = Layer.mergeAll(
   VideoDownloadServiceLive.pipe(Layer.provide(ProcessServiceLive)),
   toolRegistryLayer,
   JobRegistryLive,
-  WorkflowRegistryLive.pipe(
-    Layer.provide(Layer.mergeAll(
-      toolRegistryLayer,
-      NodeFileSystem.layer,
-      NodePath.layer,
-      ArtifactStoreLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer)))
-    ))
-  )
+  WorkflowRegistryLive.pipe(Layer.provide(Layer.mergeAll(
+    toolRegistryLayer,
+    NodeFileSystem.layer,
+    NodePath.layer,
+    ArtifactStoreLive.pipe(Layer.provide(Layer.mergeAll(NodeFileSystem.layer, NodePath.layer)))
+  )))
 ).pipe(Layer.orDie);
 
 export type AppServices = Layer.Layer.Success<typeof AppLive>;
@@ -150,19 +99,18 @@ export class EffectRuntimeService implements OnModuleInit, OnModuleDestroy {
   async runPromise<A, E>(effect: Effect.Effect<A, E, AppServices>): Promise<A> {
     const exit = await this.runtime.runPromiseExit(effect);
 
-    if (exit._tag === "Success") {
+    if (Exit.isSuccess(exit)) {
       return exit.value;
     }
 
     const failure = Cause.failureOption(exit.cause);
-    if (failure._tag === "Some") {
-      const error = failure.value;
-      throw this.mapErrorToHttpException(error);
+
+    if (Option.isSome(failure)) {
+      throw this.mapErrorToHttpException(failure.value);
     }
 
     // Die / Defect
-    const prettyCause = Cause.pretty(exit.cause);
-    throw new InternalServerErrorException(`Unexpected error: ${prettyCause}`);
+    throw new InternalServerErrorException(`Unexpected error: ${Cause.pretty(exit.cause)}`);
   }
 
   private mapErrorToHttpException(error: unknown): HttpException {
@@ -179,10 +127,7 @@ export class EffectRuntimeService implements OnModuleInit, OnModuleDestroy {
     }
 
     if (error instanceof ValidationError) {
-      return new BadRequestException({
-        message: error.message,
-        issues: error.issues,
-      });
+      return new BadRequestException({ message: error.message, issues: error.issues });
     }
 
     if (error instanceof InvalidImageError) {
@@ -239,12 +184,7 @@ export class EffectRuntimeService implements OnModuleInit, OnModuleDestroy {
       return new ForbiddenException(error.message);
     }
 
-    if (
-      isPlatformError(error) ||
-      error instanceof WorkspaceError ||
-      error instanceof ProcessError ||
-      error instanceof ArtifactError
-    ) {
+    if (isPlatformError(error) || error instanceof WorkspaceError || error instanceof ProcessError || error instanceof ArtifactError) {
       return new InternalServerErrorException(error.message);
     }
 

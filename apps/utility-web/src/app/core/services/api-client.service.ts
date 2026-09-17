@@ -1,4 +1,4 @@
-import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, DeviceResponse, DeviceListResponse, RevokeDeviceResponse, ApproveDeviceResponse, DeleteDeviceResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, MediaInspectOutput, JobResponse, JobListResponse, JobSubmittedResponse, BatchJobSubmittedResponse, JobCancelResponse, WorkflowResponse, WorkflowListResponse } from '@utility/protocol';
+import type { ToolsListResponse, ImageResizeOutput, ArtifactResponse, ArtifactListResponse, AuthStatusResponse, DeviceResponse, DeviceListResponse, RevokeDeviceResponse, ApproveDeviceResponse, DeleteDeviceResponse, PdfInspectOutput, PdfRenderPagesOutput, PdfExtractImagesOutput, MediaInspectOutput, VideoDownloadInfoOutput, JobResponse, JobListResponse, JobSubmittedResponse, BatchJobSubmittedResponse, JobCancelResponse, WorkflowResponse, WorkflowListResponse } from '@utility/protocol';
 import type { HttpResponse } from '../interfaces';
 
 import { Injectable, inject } from '@angular/core';
@@ -191,6 +191,20 @@ export class ApiClientService {
     formData.append('file', file, file.name);
 
     return this.http.post<MediaInspectOutput>(`${this.config.baseUrl}/tools/media.inspect`, formData);
+  }
+
+  /** `video-download.info` takes a URL, not a file — a plain JSON body, unlike every other synchronous tool call above which all carry at least one upload. */
+  getVideoInfo$(url: string) {
+    return this.http.post<VideoDownloadInfoOutput>(`${this.config.baseUrl}/tools/video-download.info`, { url });
+  }
+
+  /**
+   * `video-download.download`/`download-audio` also take a URL rather than a file, so this is
+   * `submitJob$`'s JSON-body counterpart for that one fileless case — same `POST /jobs/:operationId`
+   * route the generic `prepareJobInput` on the server already coerces from either body shape.
+   */
+  submitVideoDownloadJob$(operationId: 'video-download.download' | 'video-download.download-audio', url: string, format?: string) {
+    return this.http.post<JobSubmittedResponse>(`${this.config.baseUrl}/jobs/${operationId}`, format ? { url, format } : { url });
   }
 
   submitSplitJob$(file: File, ranges: readonly { firstPage: number; lastPage: number }[]) {

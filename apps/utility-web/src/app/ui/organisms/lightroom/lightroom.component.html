@@ -10,7 +10,7 @@
       [class.font-bold]="activeSide() === 'original'"
       [class.text-press-text-muted]="activeSide() !== 'original'"
       [class.hover:text-press-text]="activeSide() !== 'original'"
-      class="px-3 py-1.5 rounded-sm text-xs font-mono tracking-[0.04em] transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
+      class="px-3 pt-[7px] pb-[5px] rounded-sm text-xs font-mono tracking-[0.04em] transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
     >
       ORIGINAL
     </button>
@@ -24,7 +24,7 @@
       [class.font-bold]="activeSide() === 'export'"
       [class.text-press-text-muted]="activeSide() !== 'export'"
       [class.hover:text-press-text]="activeSide() !== 'export'"
-      class="px-3 py-1.5 rounded-sm text-xs font-mono tracking-[0.04em] transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
+      class="px-3 pt-[7px] pb-[5px] rounded-sm text-xs font-mono tracking-[0.04em] transition-colors duration-shift ease-run cursor-pointer active:opacity-60"
     >
       EXPORT
     </button>
@@ -35,7 +35,7 @@
   type="button"
   (click)="closeRequested.emit()"
   aria-label="Close preview"
-  class="absolute top-5 right-5 z-10 text-press-text-muted hover:text-press-text transition-colors duration-shift ease-run active:opacity-60 cursor-pointer"
+  class="absolute top-5 right-5 z-20 text-press-text-muted hover:text-press-text transition-colors duration-shift ease-run active:opacity-60 cursor-pointer"
 >
   <app-icon name="close" className="w-6 h-6"></app-icon>
 </button>
@@ -51,5 +51,5 @@
 </div>
 
 @if (activeCaption()) {
-  <span class="relative z-10 mt-5 font-mono text-xs font-bold tracking-[0.04em] text-ink text-center bg-paper-fresh border border-paper-deckle shadow-paper-lift px-3 py-1.5">{{ activeCaption() }}</span>
+  <span class="relative z-10 mt-5 font-mono text-xs font-bold tracking-[0.04em] text-ink text-center bg-paper-fresh border border-paper-deckle shadow-paper-lift px-3 pt-[7px] pb-[5px]">{{ activeCaption() }}</span>
 }

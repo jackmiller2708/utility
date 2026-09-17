@@ -103,6 +103,35 @@ html, body {
   box-shadow: inset 1px 1px 0 rgba(34, 29, 22, 0.25);
 }
 
+/* Optical text centering (Courier Prime UI labels — badges, tabs, tiles, ledger tags):
+   Courier Prime's descent reserve sits noticeably deeper below the baseline than its cap-height
+   sits above it (measured via canvas TextMetrics at UI sizes: ~0.85-1px of the font's own box
+   lands below where the eye expects the label's "core block" — baseline to cap-height — to end),
+   so flex/padding-centering by the font's full ascent+descent box reads as the label sitting too
+   high.
+   `transform: translateY()` cannot fix this: applied to the same element that owns the
+   border/background, it moves the whole painted box as one unit, so the text's position
+   *relative to that box* never changes — it only relocates the box within the surrounding
+   layout. The only way to shift the glyphs within a box that keeps its own height is to
+   redistribute the box's own padding: 1px more on top, 1px less on bottom (verified against
+   getBoundingClientRect, not assumed — padding-top is what offsets a text node from a fixed
+   top edge, so growing it moves the text down; shrinking padding-bottom by the same amount
+   keeps the box's total height, and its bottom edge, exactly where it was).
+   There is no single reusable utility for this — every instance repeats its own py-* value split
+   1px toward the top, e.g. `py-0.5` (2px/2px) becomes `pt-[3px] pb-[1px]`. Never applied to
+   multi-line or paragraph copy, which reads correctly from line-height alone.
+
+   The one case `translateY` *is* correct for: a label sitting beside a sibling icon/dot inside a
+   shared flex row (job-tray's toggle, gallery-grid's download button, error-diagnostic's retry
+   pill). There the row's own padding must stay untouched — shifting it would drag the icon down
+   too — so the nudge goes on the text's own bare inline wrapper instead, which carries no
+   border/background of its own for the transform to visibly detach from. Transform never
+   participates in layout, so it doesn't grow the row and doesn't move the icon; it only repaints
+   that one child 1px lower than where layout placed it. */
+@utility text-optical-center {
+  transform: translateY(1px);
+}
+
 /* Registration cross — corner mark for active plates, focus, loading */
 .reg-cross {
   width: 9px;
@@ -126,19 +155,16 @@ html, body {
   animation: ink-pulse 1.2s ease-in-out infinite;
 }
 
-/* Struck Plate — a cancelled job ticket: desaturates and takes one diagonal strike, then holds. */
-@keyframes struck-plate {
-  from { opacity: 1; filter: saturate(1); }
-  to { opacity: .55; filter: saturate(.3); }
-}
-
-@keyframes strike-line {
-  from { opacity: 0; }
-  to { opacity: .85; }
-}
-
+/* Struck Plate — a cancelled job ticket: desaturates and takes one diagonal strike, then holds.
+   A `transition`, not an `animation` — a row that's *already* cancelled/revoked when it first
+   mounts (e.g. loaded from the server already in that state) must render straight into the held
+   end state, not replay the strike every time the list is entered. An `animation` plays its
+   keyframes on first paint regardless of prior state; a `transition` only runs when the class is
+   toggled on an already-painted element, which is the one moment this should actually be seen. */
 .struck-plate {
-  animation: struck-plate 180ms var(--ease-run) forwards;
+  opacity: .55;
+  filter: saturate(.3);
+  transition: opacity 180ms var(--ease-run), filter 180ms var(--ease-run);
 }
 
 .struck-plate::after {
@@ -147,8 +173,8 @@ html, body {
   inset: 0;
   pointer-events: none;
   background: linear-gradient(115deg, transparent calc(50% - 1px), var(--color-riso-red) calc(50% - 1px), var(--color-riso-red) calc(50% + 1px), transparent calc(50% + 1px));
-  opacity: 0;
-  animation: strike-line 180ms var(--ease-run) forwards;
+  opacity: .85;
+  transition: opacity 180ms var(--ease-run);
 }
 
 /* A file dragged anywhere over the window, not yet over this exact plate — the quieter invitation before the direct-hover wash. */
@@ -212,6 +238,7 @@ html, body {
    rule only sets the element up to receive that transform. */
 .bounce-char {
   display: inline-block;
+  transform-origin: bottom;
   will-change: transform;
 }
 

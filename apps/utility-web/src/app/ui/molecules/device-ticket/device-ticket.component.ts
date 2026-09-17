@@ -37,30 +37,33 @@ export class DeviceTicketComponent {
   private readonly motion = inject(MotionService);
   private readonly hostRef = inject(ElementRef<HTMLElement>);
 
-  device = input.required<DeviceModel>();
+  readonly device = input.required<DeviceModel>();
   /** Position within the list — caps the Stamped In stagger delay. */
-  index = input<number>(0);
-  isThisDevice = input<boolean>(false);
-  /** False for another device viewed over a signed (non-`isLocal`) connection — the backend only lets a device manage itself remotely, so rename/revoke aren't offered on a row this session can't actually act on. */
-  canManage = input<boolean>(true);
+  readonly index = input<number>(0);
+  readonly isThisDevice = input<boolean>(false);
+  /**
+   * False for another device viewed over a signed (non-`isLocal`) connection — the backend only lets a device manage itself remotely,
+   * so rename/revoke aren't offered on a row this session can't actually act on.
+   */
+  readonly canManage = input<boolean>(true);
   /** True only when `isLocal` — approving (or rejecting) a pending enrollment is never self-service, matching `AuthController.approveDevice`. */
-  canApprove = input<boolean>(false);
+  readonly canApprove = input<boolean>(false);
   /** True only when `isLocal` — permanently deleting a revoked device is never self-service, matching `AuthController.deleteDevice`. */
-  canDelete = input<boolean>(false);
-  confirming = input<boolean>(false);
-  revoking = input<boolean>(false);
-  approving = input<boolean>(false);
-  confirmingDelete = input<boolean>(false);
-  deleting = input<boolean>(false);
+  readonly canDelete = input<boolean>(false);
+  readonly confirming = input<boolean>(false);
+  readonly revoking = input<boolean>(false);
+  readonly approving = input<boolean>(false);
+  readonly confirmingDelete = input<boolean>(false);
+  readonly deleting = input<boolean>(false);
 
-  renamed = output<string>();
-  revokeRequested = output<void>();
-  revokeCancelled = output<void>();
-  revokeConfirmed = output<void>();
-  approveRequested = output<void>();
-  deleteRequested = output<void>();
-  deleteCancelled = output<void>();
-  deleteConfirmed = output<void>();
+  readonly renamed = output<string>();
+  readonly revokeRequested = output<void>();
+  readonly revokeCancelled = output<void>();
+  readonly revokeConfirmed = output<void>();
+  readonly approveRequested = output<void>();
+  readonly deleteRequested = output<void>();
+  readonly deleteCancelled = output<void>();
+  readonly deleteConfirmed = output<void>();
 
   readonly editingName = signal(false);
 
@@ -88,6 +91,7 @@ export class DeviceTicketComponent {
       } else if (approved && !this._previousApproved) {
         this.motion.pulledSheet(this.hostRef.nativeElement);
       }
+
       this._previousRevoked = revoked;
       this._previousApproved = approved;
     });
@@ -101,23 +105,30 @@ export class DeviceTicketComponent {
 
   lastSeenLabel(): string {
     const date = new Date(this.device().lastSeenAt);
+
     if (Number.isNaN(date.getTime())) {
       return this.device().lastSeenAt;
     }
+
     return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
   }
 
   /** Days left before the retention sweep purges this row, or `null` when there's nothing to count down (not revoked, or revoked before this field existed). */
   daysUntilPurge(): number | null {
     const revokedAt = this.device().revokedAt;
+
     if (!revokedAt) {
       return null;
     }
+
     const revokedTime = new Date(revokedAt).getTime();
+
     if (Number.isNaN(revokedTime)) {
       return null;
     }
+
     const elapsedDays = (Date.now() - revokedTime) / (24 * 60 * 60 * 1000);
+
     return Math.max(0, Math.ceil(REVOKED_DEVICE_RETENTION_DAYS - elapsedDays));
   }
 
@@ -142,7 +153,9 @@ export class DeviceTicketComponent {
     }
 
     const value = (event.target as HTMLInputElement).value.trim();
+
     this.editingName.set(false);
+
     if (value && value !== this.device().name) {
       this.renamed.emit(value);
     }

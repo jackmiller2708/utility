@@ -8,14 +8,13 @@ import { CommonModule } from '@angular/common';
   templateUrl: './toggle.component.html',
 })
 export class ToggleComponent {
-  checked = input<boolean>(false);
-  label = input<string>('');
-  description = input<string>('');
-  disabled = input<boolean>(false);
-  checkedChange = output<boolean>();
+  readonly checked = input<boolean>(false);
+  readonly label = input<string>('');
+  readonly description = input<string>('');
+  readonly disabled = input<boolean>(false);
+  readonly checkedChange = output<boolean>();
 
   onChange(event: Event): void {
-    const isChecked = (event.target as HTMLInputElement).checked;
-    this.checkedChange.emit(isChecked);
+    this.checkedChange.emit((event.target as HTMLInputElement).checked);
   }
 }

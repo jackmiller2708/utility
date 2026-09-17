@@ -10,20 +10,21 @@ import { FormsModule } from '@angular/forms';
   host: { class: 'block relative w-full' },
 })
 export class InputComponent {
-  id = input<string>('');
-  ariaLabel = input<string>('');
-  ariaLabelledby = input<string>('');
-  type = input<string>('text');
-  value = input<any>(null);
-  placeholder = input<string>('');
-  unitSuffix = input<string>('');
-  disabled = input<boolean>(false);
-  required = input<boolean>(false);
-  mono = input<boolean>(true);
-  valueChange = output<any>();
+  readonly id = input<string>('');
+  readonly ariaLabel = input<string>('');
+  readonly ariaLabelledby = input<string>('');
+  readonly type = input<string>('text');
+  readonly value = input<any>(null);
+  readonly placeholder = input<string>('');
+  readonly unitSuffix = input<string>('');
+  readonly disabled = input<boolean>(false);
+  readonly required = input<boolean>(false);
+  readonly mono = input<boolean>(true);
+  readonly valueChange = output<any>();
 
   onInput(event: Event): void {
     const val = (event.target as HTMLInputElement).value;
+
     if (this.type() === 'number') {
       this.valueChange.emit(val === '' ? null : Number(val));
     } else {

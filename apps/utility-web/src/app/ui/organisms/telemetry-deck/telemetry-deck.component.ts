@@ -1,12 +1,13 @@
 import type { ArtifactModel } from '@app/domain';
 import type { ComparisonSource, SizeDelta } from '../../../modules/media/image-resize/services/image-resize.service';
 
-import { Component, input, output, signal } from '@angular/core';
+import { Component, input, output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BadgeComponent } from '@app/ui/atoms/badge/badge.component';
 import { IconComponent } from '@app/ui/atoms/icon/icon.component';
 import { TelemetryRowComponent } from '@app/ui/molecules/telemetry-row/telemetry-row.component';
-import { LightroomComponent, LightroomSide } from '@app/ui/organisms/lightroom/lightroom.component';
+import { LightroomSide } from '@app/ui/organisms/lightroom/lightroom.component';
+import { LightroomService } from '@app/ui/organisms/lightroom/lightroom.service';
 
 interface LedgerRow {
   key: string;
@@ -19,11 +20,13 @@ interface LedgerRow {
 @Component({
   selector: 'app-telemetry-deck',
   standalone: true,
-  imports: [CommonModule, BadgeComponent, IconComponent, TelemetryRowComponent, LightroomComponent],
+  imports: [CommonModule, BadgeComponent, IconComponent, TelemetryRowComponent],
   templateUrl: './telemetry-deck.component.html',
   host: { class: 'flex flex-col gap-6 h-full min-w-0', 'aria-live': 'polite', 'aria-atomic': 'true' },
 })
 export class TelemetryDeckComponent {
+  private readonly lightroom = inject(LightroomService);
+
   readonly artifact = input<ArtifactModel | null>(null);
   readonly previewUrl = input<string | null>(null);
   readonly downloadUrl = input<string | null>(null);
@@ -36,9 +39,6 @@ export class TelemetryDeckComponent {
   readonly stale = input<boolean>(false);
   readonly downloadClicked = output<void>();
 
-  readonly lightroomOpenSide = signal<LightroomSide | null>(null);
-  readonly lightroomLeaving = signal(false);
-
   get originalCaption(): string {
     return this.source()?.dimensions ?? '';
   }
@@ -48,17 +48,14 @@ export class TelemetryDeckComponent {
   }
 
   openLightroom(side: LightroomSide): void {
-    this.lightroomOpenSide.set(side);
-    this.lightroomLeaving.set(false);
-  }
-
-  closeLightroom(): void {
-    this.lightroomLeaving.set(true);
-  }
-
-  onLightroomLeftView(): void {
-    this.lightroomOpenSide.set(null);
-    this.lightroomLeaving.set(false);
+    this.lightroom.open(() => ({
+      initialSide: side,
+      originalUrl: this.source()?.previewUrl ?? null,
+      exportUrl: this.previewUrl(),
+      originalCaption: this.originalCaption,
+      exportCaption: this.exportCaption,
+      label: this.artifact()?.name ?? this.source()?.name ?? '',
+    }));
   }
 
   formatBytes(bytes: number): string {

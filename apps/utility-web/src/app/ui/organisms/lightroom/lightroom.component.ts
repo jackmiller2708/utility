@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from '@app/ui/atoms/icon/icon.component';
 import { MotionService } from '@app/core';
@@ -27,6 +27,7 @@ export type LightroomSide = 'original' | 'export';
     'aria-modal': 'true',
     '[attr.aria-label]': 'label() ? ("Preview — " + label()) : "Preview"',
     '(click)': 'onBackdropClick($event)',
+    '(document:keydown.escape)': 'onEscape()',
   },
 })
 export class LightroomComponent {
@@ -86,7 +87,6 @@ export class LightroomComponent {
     }
   }
 
-  @HostListener('document:keydown.escape')
   onEscape(): void {
     this.closeRequested.emit();
   }

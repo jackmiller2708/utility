@@ -14,16 +14,15 @@ export interface SelectOption {
   host: { class: 'block relative min-w-0 w-full' },
 })
 export class SelectComponent {
-  id = input<string>('');
-  ariaLabel = input<string>('');
-  ariaLabelledby = input<string>('');
-  options = input<readonly SelectOption[]>([]);
-  value = input<string>('');
-  disabled = input<boolean>(false);
-  valueChange = output<string>();
+  readonly id = input<string>('');
+  readonly ariaLabel = input<string>('');
+  readonly ariaLabelledby = input<string>('');
+  readonly options = input<readonly SelectOption[]>([]);
+  readonly value = input<string>('');
+  readonly disabled = input<boolean>(false);
+  readonly valueChange = output<string>();
 
   onChange(event: Event): void {
-    const val = (event.target as HTMLSelectElement).value;
-    this.valueChange.emit(val);
+    this.valueChange.emit((event.target as HTMLSelectElement).value);
   }
 }

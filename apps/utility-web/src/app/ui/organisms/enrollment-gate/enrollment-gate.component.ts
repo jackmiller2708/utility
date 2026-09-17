@@ -44,6 +44,7 @@ export class EnrollmentGateComponent {
     // when they haven't started typing something else themselves.
     effect(() => {
       const recovered = this.deviceTrust.pendingName();
+
       if (recovered && !this.name()) {
         this.name.set(recovered);
       }

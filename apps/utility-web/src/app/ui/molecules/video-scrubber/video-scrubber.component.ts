@@ -20,14 +20,14 @@ import { MotionService } from '@app/core';
 export class VideoScrubberComponent {
   private readonly motion = inject(MotionService);
 
-  src = input<string | null>(null);
-  durationSeconds = input<number>(0);
+  readonly src = input<string | null>(null);
+  readonly durationSeconds = input<number>(0);
   /** A seek target set by the parent (e.g. a default 10%-into-the-clip timestamp) — applied once per change, not fought over on every render. */
-  seekTo = input<number | null>(null);
-  disabled = input<boolean>(false);
+  readonly seekTo = input<number | null>(null);
+  readonly disabled = input<boolean>(false);
 
   /** The current playhead position, in seconds — updates on every drag step, every native seek, and every playback tick. */
-  timeChange = output<number>();
+  readonly timeChange = output<number>();
 
   readonly currentSeconds = signal<number>(0);
 
@@ -39,9 +39,11 @@ export class VideoScrubberComponent {
     effect(() => {
       const seek = this.seekTo();
       const video = this.videoRef()?.nativeElement;
+
       if (seek == null || !video || seek === this.lastAppliedSeek) {
         return;
       }
+
       this.lastAppliedSeek = seek;
       video.currentTime = seek;
       this.currentSeconds.set(seek);
@@ -51,6 +53,7 @@ export class VideoScrubberComponent {
   onVideoLoaded(): void {
     const seek = this.seekTo();
     const video = this.videoRef()?.nativeElement;
+
     if (video && seek != null) {
       video.currentTime = seek;
       this.lastAppliedSeek = seek;
@@ -60,9 +63,11 @@ export class VideoScrubberComponent {
 
   onTimeUpdate(): void {
     const video = this.videoRef()?.nativeElement;
+
     if (!video) {
       return;
     }
+
     this.currentSeconds.set(video.currentTime);
     this.timeChange.emit(video.currentTime);
   }
@@ -70,10 +75,12 @@ export class VideoScrubberComponent {
   onScrub(event: Event): void {
     const value = Number((event.target as HTMLInputElement).value);
     const video = this.videoRef()?.nativeElement;
+
     if (video) {
       video.pause();
       video.currentTime = value;
     }
+
     this.currentSeconds.set(value);
     this.lastAppliedSeek = value;
     this.timeChange.emit(value);
@@ -82,6 +89,7 @@ export class VideoScrubberComponent {
   /** The Punch — one settled tick when a drag ends, not on every intermediate pixel of it. */
   onScrubCommit(): void {
     const el = this.ledgerRef()?.nativeElement;
+
     if (el) {
       this.motion.tick(el);
     }
@@ -91,6 +99,7 @@ export class VideoScrubberComponent {
     const seconds = Math.max(0, totalSeconds);
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
+
     return `${m}:${String(s).padStart(2, '0')}`;
   }
 }

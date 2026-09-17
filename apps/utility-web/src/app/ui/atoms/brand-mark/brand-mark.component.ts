@@ -17,8 +17,8 @@ const INNER_XY = OUTER_INSET + INNER_GAP;
   templateUrl: './brand-mark.component.html',
 })
 export class BrandMarkComponent {
-  size = input<number>(24);
-  variant = input<'default' | 'reversed'>('default');
+  readonly size = input<number>(24);
+  readonly variant = input<'default' | 'reversed'>('default');
 
   readonly outerInset = OUTER_INSET;
   readonly outerSpan = OUTER_SPAN;

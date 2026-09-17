@@ -8,7 +8,7 @@
       aria-label="Toggle job tray"
     >
       <span class="w-1.5 h-1.5 rounded-full shrink-0" [class.bg-riso-gold]="activeCount() > 0" [class.pulse-slow]="activeCount() > 0" [class.bg-riso-mint]="activeCount() === 0"></span>
-      <span>
+      <span class="text-optical-center">
         @if (activeCount() > 0) {
           {{ activeCount() }} JOB{{ activeCount() === 1 ? '' : 'S' }} RUNNING
         } @else {

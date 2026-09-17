@@ -24,7 +24,7 @@
           class="relative border border-paper-deckle bg-[repeating-linear-gradient(45deg,#E7DFC8_0,#E7DFC8_5px,#FCF8ED_5px,#FCF8ED_10px)] aspect-[4/5] max-h-[260px] w-full flex items-center justify-center p-3 cursor-zoom-in transition-opacity duration-shift ease-run hover:opacity-90 active:opacity-75"
         >
           <img [src]="src.previewUrl" [alt]="'Original — ' + src.name" class="w-full h-full object-contain" />
-          <span class="absolute bottom-2 left-1/2 -translate-x-1/2 font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-ink-muted text-center bg-paper-fresh border border-paper-deckle shadow-paper-lift px-2 py-1">{{ src.dimensions }}</span>
+          <span class="absolute bottom-2 left-1/2 -translate-x-1/2 font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-ink-muted text-center bg-paper-fresh border border-paper-deckle shadow-paper-lift px-2 pt-[5px] pb-[3px]">{{ src.dimensions }}</span>
         </button>
       } @else {
         <div class="border border-paper-deckle bg-[repeating-linear-gradient(45deg,#E7DFC8_0,#E7DFC8_5px,#FCF8ED_5px,#FCF8ED_10px)] aspect-[4/5] max-h-[260px] w-full"></div>
@@ -40,7 +40,7 @@
           class="relative border border-riso-mint bg-[repeating-linear-gradient(45deg,#E7DFC8_0,#E7DFC8_5px,#FCF8ED_5px,#FCF8ED_10px)] aspect-[4/5] max-h-[260px] w-full flex items-center justify-center p-3 cursor-zoom-in transition-opacity duration-shift ease-run hover:opacity-90 active:opacity-75"
         >
           <img [src]="url" [alt]="'Export — ' + artifact()!.name" class="w-full h-full object-contain" />
-          <span class="absolute bottom-2 left-1/2 -translate-x-1/2 font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-ink text-center bg-paper-fresh border border-paper-deckle shadow-paper-lift px-2 py-1">{{ targetDimensionsLabel() }} {{ outputFormatLabel() }}</span>
+          <span class="absolute bottom-2 left-1/2 -translate-x-1/2 font-mono text-[0.6875rem] font-bold tracking-[0.04em] text-ink text-center bg-paper-fresh border border-paper-deckle shadow-paper-lift px-2 pt-[5px] pb-[3px]">{{ targetDimensionsLabel() }} {{ outputFormatLabel() }}</span>
         </button>
       } @else {
         <div
@@ -61,20 +61,6 @@
     </div>
   </div>
 </div>
-
-@if (lightroomOpenSide(); as side) {
-  <app-lightroom
-    [initialSide]="side"
-    [originalUrl]="source()?.previewUrl ?? null"
-    [exportUrl]="previewUrl()"
-    [originalCaption]="originalCaption"
-    [exportCaption]="exportCaption"
-    [label]="artifact()?.name ?? source()?.name ?? ''"
-    [leaving]="lightroomLeaving()"
-    (closeRequested)="closeLightroom()"
-    (leftView)="onLightroomLeftView()"
-  ></app-lightroom>
-}
 
 <!-- What changes -->
 <div class="flex-1 flex flex-col bg-paper border border-paper-deckle rounded-lg shadow-paper-lift min-h-[220px]">

@@ -7,6 +7,7 @@ import { RuntimeStatusService, DeviceTrustService } from './core';
 const TOOL_ROUTES: Record<string, string> = {
   image: '/media/image-resize',
   media: '/media/video-audio',
+  'video-download': '/media/video-download',
   pdf: '/document/pdf',
   'pdf-merge-split': '/document/merge-split',
 };

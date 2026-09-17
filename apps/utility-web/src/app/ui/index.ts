@@ -29,6 +29,7 @@ export * from './organisms/sortable-file-list/sortable-file-list.component';
 export * from './organisms/job-tray/job-tray.component';
 export * from './organisms/route-curtain/route-curtain.component';
 export * from './organisms/lightroom/lightroom.component';
+export * from './organisms/lightroom/lightroom.service';
 export * from './organisms/enrollment-gate/enrollment-gate.component';
 export * from './organisms/operation-form/operation-form.component';
 

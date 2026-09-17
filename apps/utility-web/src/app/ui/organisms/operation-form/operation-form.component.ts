@@ -32,9 +32,9 @@ const MAX_TILE_OPTIONS = 6;
   host: { class: 'flex flex-col gap-5 min-w-0' },
 })
 export class OperationFormComponent {
-  parameters = input<readonly ToolParameterModel[]>([]);
+  readonly parameters = input<readonly ToolParameterModel[]>([]);
   /** Two-way: seed with defaults via `[values]`, or bind `[(values)]` to read every change back. */
-  values = model<Readonly<Record<string, unknown>>>({});
+  readonly values = model<Readonly<Record<string, unknown>>>({});
 
   readonly fields = computed(() => this.parameters().filter((param) => param.type !== 'file'));
 

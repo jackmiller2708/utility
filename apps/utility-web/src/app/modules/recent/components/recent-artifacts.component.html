@@ -70,7 +70,7 @@
         <div class="flex items-center gap-4 px-6 py-3 border-b border-paper-hairline last:border-b-0 flex-wrap">
           <div class="shrink-0 w-10 h-10 rounded-sm border border-paper-deckle bg-paper-fresh flex items-center justify-center overflow-hidden">
             @if (isImage(artifact.mimeType)) {
-              <img [src]="service.getArtifactFileUrl(artifact.id)" [alt]="artifact.name" class="w-full h-full object-cover" />
+              <img [src]="service.getArtifactPreviewUrl(artifact.id)" [alt]="artifact.name" class="w-full h-full object-cover" />
             } @else {
               <app-icon name="document" className="w-4 h-4 text-ink-faint"></app-icon>
             }
@@ -83,7 +83,7 @@
             }
           </div>
 
-          <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 py-0.5">{{ service.formatBytes(artifact.size) }}</span>
+          <span class="font-mono text-xs font-bold tracking-[0.04em] text-ink bg-paper-fresh border border-paper-deckle rounded-sm px-2 pt-[3px] pb-[1px]">{{ service.formatBytes(artifact.size) }}</span>
           <span class="font-mono text-xs text-ink-faint w-16 text-right shrink-0">{{ service.formatTime(artifact.createdAt) }}</span>
 
           <a

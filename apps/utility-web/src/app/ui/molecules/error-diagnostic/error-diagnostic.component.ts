@@ -10,9 +10,9 @@ import { IconComponent } from '@app/ui/atoms/icon/icon.component';
   host: { class: 'flex flex-col gap-2 min-w-0 p-4 bg-riso-red/10 border border-riso-red rounded-sm' },
 })
 export class ErrorDiagnosticComponent {
-  title = input.required<string>();
-  message = input.required<string>();
-  suggestion = input<string>('');
-  retryLabel = input<string>('Retry');
-  retryClicked = output<void>();
+  readonly title = input.required<string>();
+  readonly message = input.required<string>();
+  readonly suggestion = input<string>('');
+  readonly retryLabel = input<string>('Retry');
+  readonly retryClicked = output<void>();
 }

@@ -11,17 +11,17 @@ import { MotionService } from '@app/core';
   host: { class: 'block' },
 })
 export class FileSummaryCardComponent {
-  name = input<string>('');
-  dimensions = input<string>('');
-  sizeFormatted = input<string>('');
-  previewUrl = input<string | null>(null);
+  readonly name = input<string>('');
+  readonly dimensions = input<string>('');
+  readonly sizeFormatted = input<string>('');
+  readonly previewUrl = input<string | null>(null);
   /** Noun used in the removal-confirmation copy, e.g. "image", "document". */
-  itemLabel = input<string>('image');
+  readonly itemLabel = input<string>('image');
   /** True while metadata (page count, dimensions) is still being read — shows Index Turn beside the dimensions line. */
-  loading = input<boolean>(false);
-  changeFile = output<void>();
+  readonly loading = input<boolean>(false);
+  readonly changeFile = output<void>();
 
-  confirmingRemoval = signal(false);
+  readonly confirmingRemoval = signal(false);
 
   private readonly removalAlert = viewChild<ElementRef<HTMLElement>>('removalAlert');
 
@@ -37,6 +37,7 @@ export class FileSummaryCardComponent {
     /** Same entrance, reused for the removal-confirmation alert appearing. */
     effect(() => {
       const el = this.removalAlert()?.nativeElement;
+
       if (el) {
         motion.stampIn(el, 0);
       }
