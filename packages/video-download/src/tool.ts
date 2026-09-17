@@ -56,6 +56,8 @@ export const downloadOperation: Operation<
 
       return { artifact };
     }),
+  // `output.artifact` is always the real domain `Artifact` from `ArtifactStore.saveArtifact`
+  // above; the output schema only widens its `id` to `string` for the wire.
   producesArtifact: (output) => output.artifact as Artifact,
 };
 
@@ -100,6 +102,8 @@ export const downloadAudioOperation: Operation<
 
       return { artifact };
     }),
+  // `output.artifact` is always the real domain `Artifact` from `ArtifactStore.saveArtifact`
+  // above; the output schema only widens its `id` to `string` for the wire.
   producesArtifact: (output) => output.artifact as Artifact,
 };
 

@@ -112,6 +112,12 @@ const getMimeTypeFromExt = (path: Path.Path, filename: string): string => {
       return "audio/flac";
     case ".ogg":
       return "audio/ogg";
+    case ".m4a":
+      return "audio/mp4";
+    case ".opus":
+      return "audio/opus";
+    case ".oga":
+      return "audio/ogg";
     case ".mp4":
       return "video/mp4";
     case ".webm":

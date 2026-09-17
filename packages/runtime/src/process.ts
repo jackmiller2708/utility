@@ -60,6 +60,9 @@ export const ProcessLive = Layer.effect(
     const executor = yield* CommandExecutor.CommandExecutor;
 
     const spawn = (command: Command): Effect.Effect<ProcessResult, ProcessError> => Effect.gen(function* () {
+      // Accumulates the full stdout for the process's entire lifetime with no bound — a
+      // pre-existing limitation shared by every `Process` caller (ffmpeg included). Out of
+      // scope for the video-download plan, not fixed here.
       const stdoutRef = yield* Ref.make("");
       const stderrRef = yield* Ref.make("");
       const platformCommand = buildPlatformCommand(command);

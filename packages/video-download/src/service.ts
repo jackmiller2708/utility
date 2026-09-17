@@ -31,7 +31,10 @@ export const assertSupportedExtractor = (extractorKey: string, url: string): Eff
  * point that actually needs it (see `tool.ts`), not this function's.
  */
 export const parseFinalOutputPath = (stdout: string): string => {
-  const lines = stdout.split("\n").map((line) => line.trim()).filter((line) => line.length > 0);
+  const lines = stdout
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("["));
   const lastLine = lines[lines.length - 1];
 
   if (!lastLine) {
@@ -74,6 +77,9 @@ export interface VideoDownloadService {
 
 export const VideoDownloadService = Context.GenericTag<VideoDownloadService>("@utility/video-download/VideoDownloadService");
 
+const PREFLIGHT_TIMEOUT_MS = 30_000;
+const DOWNLOAD_TIMEOUT_MS = 30 * 60 * 1000;
+
 export const VideoDownloadServiceLive = Layer.effect(
   VideoDownloadService,
   Effect.gen(function* () {
@@ -81,7 +87,11 @@ export const VideoDownloadServiceLive = Layer.effect(
 
     const checkSourceSupported = (url: string): Effect.Effect<void, UnsupportedSourceError | DownloadError> =>
       process
-        .spawn({ executable: "yt-dlp", args: ["--dump-json", "--no-warnings", "--skip-download", "--no-playlist", url] })
+        .spawn({
+          executable: "yt-dlp",
+          args: ["--dump-json", "--no-warnings", "--skip-download", "--no-playlist", "--", url],
+          timeoutMs: PREFLIGHT_TIMEOUT_MS,
+        })
         .pipe(
           Effect.mapError((err: ProcessError) => new DownloadError({
             operation: "video-download.check-source",
@@ -108,6 +118,10 @@ export const VideoDownloadServiceLive = Layer.effect(
       Effect.gen(function* () {
         let stdoutBuffer = "";
 
+        // Note: a dual-stream (video+audio) download reports two independent 0→100%
+        // `[download]` progress sequences back to back (one per stream), so the percentage
+        // this reports can visibly reset partway through a single operation. Cosmetic only,
+        // not fixed here.
         const onStdout = onProgress
           ? (chunk: string) => {
               stdoutBuffer += chunk;
@@ -116,14 +130,17 @@ export const VideoDownloadServiceLive = Layer.effect(
                 onProgress({ completed: Math.round(percent), total: 100, message: `Downloaded ${percent.toFixed(1)}%` });
               }
               // Bound the buffer — only the tail ever matters for "last percentage seen so far".
+              // Trimmed at a newline boundary (rather than a raw byte offset) so we never cut a
+              // percentage token in half.
               if (stdoutBuffer.length > 4096) {
-                stdoutBuffer = stdoutBuffer.slice(-2048);
+                const newlineIndex = stdoutBuffer.indexOf("\n", stdoutBuffer.length - 2048);
+                stdoutBuffer = newlineIndex === -1 ? stdoutBuffer.slice(-2048) : stdoutBuffer.slice(newlineIndex + 1);
               }
             }
           : undefined;
 
         const res = yield* process
-          .spawn({ executable: "yt-dlp", args, onStdout })
+          .spawn({ executable: "yt-dlp", args, onStdout, timeoutMs: DOWNLOAD_TIMEOUT_MS })
           .pipe(Effect.mapError((err: ProcessError) => new DownloadError({
             operation,
             message: `${operation} failed: ${err.stderr?.trim() || err.message}`,
@@ -153,8 +170,10 @@ export const VideoDownloadServiceLive = Layer.effect(
           ...(options.format ? ["-f", options.format] : []),
           "--no-playlist",
           "--newline",
+          "--progress",
           "-o", workspace.allocateOutputPath("%(title).200B [%(id)s].%(ext)s"),
           "--print", "after_move:filepath",
+          "--",
           url,
         ];
 
@@ -171,13 +190,17 @@ export const VideoDownloadServiceLive = Layer.effect(
         yield* checkSourceSupported(url);
 
         const args = [
-          "-f", "bestaudio",
+          "-f", "bestaudio", // Source stream selector — always the best available audio track,
+                              // distinct from `options.format` below (the user-suppliable
+                              // `--audio-format` output re-encode target).
           "-x",
           ...(options.format ? ["--audio-format", options.format] : []),
           "--no-playlist",
           "--newline",
+          "--progress",
           "-o", workspace.allocateOutputPath("%(title).200B [%(id)s].%(ext)s"),
           "--print", "after_move:filepath",
+          "--",
           url,
         ];
 

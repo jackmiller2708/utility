@@ -54,6 +54,17 @@ describe("video-download pure helpers", () => {
     it("throws when there is no usable output line", () => {
       expect(() => parseFinalOutputPath("   \n  \n")).toThrow("yt-dlp reported no output path");
     });
+
+    it("skips real yt-dlp progress lines and returns the final printed path", () => {
+      const stdout = [
+        "[download]   0.4% of  246.27KiB at  491.83KiB/s ETA 00:00",
+        "[download]   1.2% of  246.27KiB at    1.19MiB/s ETA 00:00",
+        "[download] 100.0% of  246.27KiB at   10.64MiB/s ETA 00:00",
+        "[download] 100% of  246.27KiB in 00:00:00 at 4.10MiB/s",
+        "/tmp/ws_1/output/My Video [abc123].mp3",
+      ].join("\n");
+      expect(parseFinalOutputPath(stdout)).toBe("/tmp/ws_1/output/My Video [abc123].mp3");
+    });
   });
 
   describe("parseDownloadPercent", () => {
